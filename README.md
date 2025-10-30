@@ -40,9 +40,9 @@ La solución: "CanchaYa" nace con la misión de centralizar y digitalizar este p
 
 ---
 
-## ⚙️ Funcionalidad Detallada
+⚙️ Funcionalidad Detallada
 
-### Funcionalidad Actual (MVP)
+Funcionalidad Actual (MVP)
 
 La versión actual de la aplicación se centra en el flujo de reserva principal:
 
@@ -72,12 +72,12 @@ Basado en la hoja de ruta, las próximas grandes funcionalidades a implementar s
 
 Este proyecto está construido con un stack de tecnologías moderno, enfocado en el rendimiento, la escalabilidad y una excelente experiencia de desarrollo:
 
-   Framework Principal: [Next.js](https://nextjs.org/) (usando el App Router para renderizado en servidor y cliente.
-   Lenguaje: para un código más seguro, mantenible y auto-documentado.
+   Framework Principal: 	React (JavaScript) 
+   Lenguaje: JavasCript, Css y Html (Optimizado en React)
    Librería de UI: para construir componentes de interfaz de usuario declarativos y reutilizables.
-   Estilos: un framework de CSS "utility-first" para un diseño rápido y personalizable.
-   Componentes UI: una colección de componentes reutilizables y accesibles construidos sobre Radix UI y Tailwind CSS.
-   Base de Datos : una base de datos NoSQL en tiempo real para gestionar las reservas y los datos de usuario.
+   Estilos: utilizamos libreria "Tailwind Css" para un diseño rápido y personalizable.
+   Componentes UI: una colección de componentes reutilizables y accesibles construidos sobre React y Tailwind CSS.
+   Base de Datos : (P R O X I M A N T E)
    Autenticación : para gestionar el registro e inicio de sesión de usuarios.
 
 ---
@@ -86,11 +86,8 @@ Este proyecto está construido con un stack de tecnologías moderno, enfocado en
 
 La accesibilidad es un pilar fundamental del proyecto para garantizar que todas las personas puedan utilizar la aplicación sin barreras.
 
- Contraste de Color: La paleta de colores (`globals.css`) se ha elegido para cumplir con las directrices de accesibilidad (WCAG), asegurando que el texto sea legible sobre los fondos.
- Navegación por Teclado: Todos los elementos interactivos (botones, enlaces, campos de formulario) son accesibles y operables usando solo el teclado.
- Semántica HTML: Se utiliza HTML semántico (`<header>`, `<main>`, `<button>`, etc.) para dar estructura y significado al contenido, lo cual es crucial para los lectores de pantalla.
- Atributos ARIA: Los componentes complejos, como los diálogos de confirmación y calendarios, utilizan atributos ARIA (Accessible Rich Internet Applications) para describir su estado y función a las tecnologías de asistencia.
- Indicadores de Foco: Se mantienen los indicadores de foco visibles (`focus-visible`) para que los usuarios que navegan con teclado siempre sepan qué elemento está activo.
+ Contraste de Color: La paleta de colores (`Personalizada`) se ha elegido para cumplir con las directrices de accesibilidad, asegurando que el texto sea legible sobre los fondos, con opcionabilidad de modo "Claro" y "Obscuro"
+Semántica HTML: Se utiliza HTML semántico (`<header>`, `<main>`, `<button>`, etc.) para dar estructura y significado al contenido, lo cual es crucial para los lectores de pantalla.
 
 ---
 
