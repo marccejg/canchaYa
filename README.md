@@ -82,15 +82,15 @@ Este proyecto está construido con un stack de tecnologías moderno, enfocado en
 
 ---
 
-## ♿ Accesibilidad
+♿ Accesibilidad
 
 La accesibilidad es un pilar fundamental del proyecto para garantizar que todas las personas puedan utilizar la aplicación sin barreras.
 
-*   Contraste de Color: La paleta de colores (`globals.css`) se ha elegido para cumplir con las directrices de accesibilidad (WCAG), asegurando que el texto sea legible sobre los fondos.
-*   Navegación por Teclado: Todos los elementos interactivos (botones, enlaces, campos de formulario) son accesibles y operables usando solo el teclado.
-*   Semántica HTML: Se utiliza HTML semántico (`<header>`, `<main>`, `<button>`, etc.) para dar estructura y significado al contenido, lo cual es crucial para los lectores de pantalla.
-*   Atributos ARIA: Los componentes complejos, como los diálogos de confirmación y calendarios, utilizan atributos ARIA (Accessible Rich Internet Applications) para describir su estado y función a las tecnologías de asistencia.
-*   Indicadores de Foco: Se mantienen los indicadores de foco visibles (`focus-visible`) para que los usuarios que navegan con teclado siempre sepan qué elemento está activo.
+ Contraste de Color: La paleta de colores (`globals.css`) se ha elegido para cumplir con las directrices de accesibilidad (WCAG), asegurando que el texto sea legible sobre los fondos.
+ Navegación por Teclado: Todos los elementos interactivos (botones, enlaces, campos de formulario) son accesibles y operables usando solo el teclado.
+ Semántica HTML: Se utiliza HTML semántico (`<header>`, `<main>`, `<button>`, etc.) para dar estructura y significado al contenido, lo cual es crucial para los lectores de pantalla.
+ Atributos ARIA: Los componentes complejos, como los diálogos de confirmación y calendarios, utilizan atributos ARIA (Accessible Rich Internet Applications) para describir su estado y función a las tecnologías de asistencia.
+ Indicadores de Foco: Se mantienen los indicadores de foco visibles (`focus-visible`) para que los usuarios que navegan con teclado siempre sepan qué elemento está activo.
 
 ---
 
@@ -125,3 +125,10 @@ Tenemos grandes planes para "CanchaYa". Aquí están las funcionalidades (épica
 2.  Integración con Firestore: Mover el almacenamiento de reservas de la memoria a una base de datos en tiempo real para hacer los datos persistentes y accesibles desde cualquier lugar.
 3.  Panel "Mis Reservas": Crear una sección para que los usuarios puedan ver, gestionar y cancelar sus próximas reservas, así como consultar su historial.
 4.  Panel de Administración: Construir una interfaz para que los dueños de las canchas puedan gestionar su disponibilidad, bloquear horarios y visualizar la ocupación de su complejo.
+
+
+
+
+
+
+Scheneider Querian, Cabrera Dario, Garcia Marcelo y Arenzana Bruno.
