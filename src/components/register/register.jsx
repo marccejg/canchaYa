@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css'; // 👈 Importa los íconos de Bootstrap
-import './Register.css'; // 👈 Tu archivo de estilos personalizados
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import './Register.css';
 import Logo from './logo.jpg'
 
 function Register() {
