@@ -1,0 +1,104 @@
+/* Fondo general de la página */
+.register-container {
+  background-color: white;
+}
+
+/* Fondo y estilo del card */
+.card-custom {
+  background-color: rgb(33, 79, 168);
+  color: white;
+  border-radius: 80px;
+  width: 100%;
+  max-width: 700px;
+}
+
+/* Inputs dentro del card */
+.card-custom .form-control {
+  background-color: rgb(33, 79, 168);
+  color: white;
+  border: 1px solid white;
+}
+
+/* Placeholder color */
+.card-custom .form-control::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Enfocar input */
+.card-custom .form-control:focus {
+  background-color: rgb(33, 79, 168);
+  color: white;
+  border-color: white;
+  box-shadow: none;
+}
+
+/* Etiquetas */
+.card-custom .form-label {
+  color: white;
+}
+
+/* Checkbox */
+.card-custom .form-check-input {
+  background-color: white;
+  border: 1px solid white;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Cuando está marcado */
+
+.card-custom .form-check-input:checked {
+  background-color: white; /* Fondo blanco */
+  border-color: white;
+  box-shadow: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='rgb(33,79,168)' stroke='rgb(33,79,168)' stroke-width='3' d='M4 12l6 6L20 6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 70%;
+}
+
+/* Efecto hover */
+.card-custom .form-check-input:hover {
+  transform: scale(1.1);
+}
+
+/* Label del checkbox */
+.card-custom .form-check-label {
+  color: white;
+  margin-left: 8px;
+}
+
+
+/* Botón */
+/* Botón principal: fondo blanco y letras azules */
+.card-custom .btn-primary {
+  background-color: white;
+  color: rgb(33, 79, 168);
+  border: 2px solid white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+/* Efecto al pasar el mouse */
+.card-custom .btn-primary:hover {
+  background-color: rgb(33, 79, 168);
+  color: white;
+  border: 2px solid white;
+}
+
+/* Íconos dentro del input */
+.input-with-icon {
+  padding-right: 40px; /* Espacio para el ícono */
+}
+
+.icon-inside {
+  position: absolute;
+  right: 20px;
+  top: 65%;
+  transform: translateY(-50%);
+  color: white;
+  pointer-events: none; /* no bloquea clics */
+  font-size: 1.2rem;
+}
