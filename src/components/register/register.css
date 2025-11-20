@@ -1,0 +1,156 @@
+.register-container,
+.register-user-container {
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+}
+
+.register-title,
+.register-user-title {
+  color: #007bff;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.register-subtitle,
+.register-user-subtitle {
+  text-align: center;
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.register-form,
+.register-user-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.register-form-section,
+.register-user-form-section {
+  margin-bottom: 20px;
+}
+
+.register-form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.register-form-field,
+.register-user-form-field {
+  flex: 1;
+  margin-bottom: 15px;
+}
+
+.register-form-field-large {
+  flex: 2;
+  margin-bottom: 15px;
+}
+
+.register-form-field-medium {
+  flex: 1;
+  margin-bottom: 15px;
+}
+
+.register-form-field-small {
+  flex: 1;
+  margin-bottom: 15px;
+}
+
+.register-label,
+.register-user-label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+.register-input,
+.register-user-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.register-input:focus,
+.register-user-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.register-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  color: #333;
+}
+
+.register-checkbox {
+  width: 18px;
+  height: 18px;
+}
+
+.register-buttons,
+.register-user-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.register-submit-button,
+.register-user-submit-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  flex: 1;
+}
+
+.register-submit-button:hover,
+.register-user-submit-button:hover {
+  background-color: #0056b3;
+}
+
+.register-cancel-button,
+.register-user-cancel-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  flex: 1;
+}
+
+.register-cancel-button:hover,
+.register-user-cancel-button:hover {
+  background-color: #5a6268;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .register-form-row {
+    flex-direction: column;
+  }
+  
+  .register-buttons,
+  .register-user-buttons {
+    flex-direction: column;
+  }
+}
