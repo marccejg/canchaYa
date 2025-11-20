@@ -1,3 +1,5 @@
+<<<<<<< HEAD
+=======
 import React, { useState } from 'react';
 import './calendario.css';
 
@@ -117,3 +119,4 @@ const Calendar = ({ onDateSelect, onBack }) => {
 };
 
 export default Calendar;
+>>>>>>> 5c5630e4b0770f7a6d4dfdfec9411f90b9f034a7
