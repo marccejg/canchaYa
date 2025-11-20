@@ -1,104 +1,132 @@
 /* Fondo general de la página */
 .register-container {
-  background-color: white;
+    background-color: white;
+    padding-top: 100px; 
 }
+
 
 /* Fondo y estilo del card */
 .card-custom {
-  background-color: rgb(33, 79, 168);
-  color: white;
-  border-radius: 80px;
-  width: 100%;
-  max-width: 700px;
+    background-color: rgb(33, 79, 168);
+    color: white;
+    border-top-left-radius: 80px;
+    border-top-right-radius: 80px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+
+    width: 100%;
+    max-width: 700px;
 }
 
 /* Inputs dentro del card */
 .card-custom .form-control {
-  background-color: rgb(33, 79, 168);
-  color: white;
-  border: 1px solid white;
+    background-color: rgb(33, 79, 168);
+    color: white;
+    border: 1px solid white;
 }
 
 /* Placeholder color */
 .card-custom .form-control::placeholder {
-  color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.7);
 }
 
 /* Enfocar input */
 .card-custom .form-control:focus {
-  background-color: rgb(33, 79, 168);
-  color: white;
-  border-color: white;
-  box-shadow: none;
+    background-color: rgb(33, 79, 168);
+    color: white;
+    border-color: white;
+    box-shadow: none;
 }
 
 /* Etiquetas */
 .card-custom .form-label {
-  color: white;
+    color: white;
 }
 
 /* Checkbox */
 .card-custom .form-check-input {
-  background-color: white;
-  border: 1px solid white;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+    background-color: white;
+    border: 1px solid white;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 /* Cuando está marcado */
-
 .card-custom .form-check-input:checked {
-  background-color: white; /* Fondo blanco */
-  border-color: white;
-  box-shadow: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='rgb(33,79,168)' stroke='rgb(33,79,168)' stroke-width='3' d='M4 12l6 6L20 6'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 70%;
+    background-color: white;
+    border-color: white;
+    box-shadow: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='rgb(33,79,168)' stroke='rgb(33,79,168)' stroke-width='3' d='M4 12l6 6L20 6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 70%;
 }
 
 /* Efecto hover */
 .card-custom .form-check-input:hover {
-  transform: scale(1.1);
+    transform: scale(1.1);
 }
 
 /* Label del checkbox */
 .card-custom .form-check-label {
-  color: white;
-  margin-left: 8px;
+    color: white;
+    margin-left: 8px;
 }
 
-
-/* Botón */
 /* Botón principal: fondo blanco y letras azules */
 .card-custom .btn-primary {
-  background-color: white;
-  color: rgb(33, 79, 168);
-  border: 2px solid white;
-  font-weight: 600;
-  transition: all 0.3s ease;
+    background-color: white;
+    color: rgb(33, 79, 168);
+    border: 2px solid white;
+    font-weight: 600;
+    transition: all 0.3s ease;
 }
 
 /* Efecto al pasar el mouse */
 .card-custom .btn-primary:hover {
-  background-color: rgb(33, 79, 168);
-  color: white;
-  border: 2px solid white;
+    background-color: rgb(33, 79, 168);
+    color: white;
+    border: 2px solid white;
 }
 
 /* Íconos dentro del input */
 .input-with-icon {
-  padding-right: 40px; /* Espacio para el ícono */
+    padding-right: 40px;
+    /* Espacio para el ícono */
 }
 
 .icon-inside {
-  position: absolute;
-  right: 20px;
-  top: 65%;
-  transform: translateY(-50%);
-  color: white;
-  pointer-events: none; /* no bloquea clics */
-  font-size: 1.2rem;
+    position: absolute;
+    right: 20px;
+    top: 65%;
+    transform: translateY(-50%);
+    color: white;
+    pointer-events: none;
+    /* no bloquea clics */
+    font-size: 1.2rem;
+}
+
+.card-custom {
+    background-color: rgb(33, 79, 168);
+    color: white;
+    border-top-left-radius: 80px;
+    border-top-right-radius: 80px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    padding: 2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+/* Rectángulo decorativo abajo */
+.card-bottom-rectangle {
+    height: 50px;
+    /* altura del rectángulo */
+    background-color: rgb(20, 60, 130);
+    /* color distinto si querés */
+    width: 100%;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
 }
