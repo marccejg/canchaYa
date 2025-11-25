@@ -1,8 +1,12 @@
 import React, { useState , useEffect} from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
 import './register.css';
-import Logo from ./register/logo.jpg
-import { register } from 'module';
+import Logo from './logo.jpg'
+
+
+
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -10,12 +14,13 @@ function Register() {
     apellido: '',
     razonSocial: '',
     CUIT: '',
-    usuario: '',
+    email: '',
     password: '',
     confirmPassword: '',
     ciudad: '',
     provincia: '',
-    cp: ''
+    cp: '',
+    canchas: [] // arreglo de canchas seleccionadas
   });
 
   useEffect(() => {
@@ -28,6 +33,23 @@ function Register() {
     setFormData({ ...formData, [id]: value });
   };
 
+  // Maneja los checkboxes de canchas
+  const handleCanchaChange = (e) => {
+    const { value, checked } = e.target;
+
+    if (checked) {
+      setFormData({
+        ...formData,
+        canchas: [...formData.canchas, value]
+      });
+    } else {
+      setFormData({
+        ...formData,
+        canchas: formData.canchas.filter((c) => c !== value)
+      });
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     sessionStorage.setItem('userData', JSON.stringify(formData));
@@ -38,6 +60,8 @@ function Register() {
     <div className="register-container d-flex justify-content-center align-items-center vh-100">
       <div className="card shadow-lg p-4 card-custom">
         <div className="card-body">
+
+          {/* Título */}
           <div className='Titulo'>
             <h2 className="text-center">Software Para Clubes</h2>
             <h6 className="text-center mb-4">
@@ -46,6 +70,7 @@ function Register() {
           </div>
 
           <form onSubmit={handleSubmit}>
+
             {/* Nombre y Apellido */}
             <div className="row mb-3">
               <div className="col-md-6 position-relative">
@@ -108,23 +133,58 @@ function Register() {
               </div>
             </div>
 
-            {/* Usuario */}
+            {/* Email */}
             <div className="mb-3 position-relative">
-              <label htmlFor="usuario" className="form-label">Usuario</label>
+              <label htmlFor="email" className="form-label">Email</label>
               <input
-                type="text"
+                type="email"
                 className="form-control form-control-lg input-with-icon"
-                id="usuario"
-                placeholder="Usuario para ingresar al sistema"
-                value={formData.usuario}
+                id="email"
+                placeholder="Ej: club@gmail.com"
+                value={formData.email}
                 onChange={handleChange}
                 required
               />
-              <i className="bi bi-person-circle icon-inside"></i>
+              <i className="bi bi-envelope icon-inside"></i>
+            </div>
+
+            {/* Canchas que alquila */}
+            <div className="card-canchas">
+              <h5 className="mb-3">Canchas que alquila</h5>
+              <div className="row">
+                {[
+                  { id: "futbol5", label: "Fútbol 5" },
+                  { id: "futbol7", label: "Fútbol 7" },
+                  { id: "basquet", label: "Básquet" },
+                  { id: "voley", label: "Vóley" },
+                  { id: "natacion", label: "Natación" },
+                  { id: "padel", label: "Pádel" },
+                  { id: "golf", label: "Golf" }
+                ].map((cancha) => (
+                  <div className="col-md-4 mb-2" key={cancha.id}>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id={cancha.id}
+                        value={cancha.id}
+                        checked={formData.canchas.includes(cancha.id)}
+                        onChange={handleCanchaChange}
+                      />
+                      <label
+                        className="form-check-label"
+                        htmlFor={cancha.id}
+                      >
+                        {cancha.label}
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Contraseñas */}
-            <div className="row mb-3">
+            <div className="row mb-3 mt-3">
               <div className="col-md-6 position-relative">
                 <label htmlFor="password" className="form-label">Contraseña</label>
                 <input
@@ -199,7 +259,7 @@ function Register() {
               </div>
             </div>
 
-            {/* Checkbox */}
+            {/* Checkbox términos */}
             <div className="form-check mb-4">
               <input
                 className="form-check-input"
@@ -218,6 +278,7 @@ function Register() {
             </button>
           </form>
 
+          {/* Pie */}
           <h5 className="text-center mt-2 mb-2">
             Nos pondremos en contacto con usted a la brevedad
           </h5>
