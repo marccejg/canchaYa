@@ -1,26 +1,25 @@
-import React, { useState , useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
 import './register.css';
-import Logo from './logo.jpg'
+import Logo from './logo.jpg';
 
+function Register({ onRegisterComplete, onCancelRegister }) {
 
-
-
-function Register() {
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
     razonSocial: '',
     CUIT: '',
+    telefono: '',
     email: '',
     password: '',
     confirmPassword: '',
     ciudad: '',
     provincia: '',
     cp: '',
-    canchas: [] // arreglo de canchas seleccionadas
+    canchas: []
   });
 
   useEffect(() => {
@@ -33,7 +32,6 @@ function Register() {
     setFormData({ ...formData, [id]: value });
   };
 
-  // Maneja los checkboxes de canchas
   const handleCanchaChange = (e) => {
     const { value, checked } = e.target;
 
@@ -52,8 +50,19 @@ function Register() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     sessionStorage.setItem('userData', JSON.stringify(formData));
-    alert('Datos guardados en sessionStorage');
+
+    if (onRegisterComplete) {
+      onRegisterComplete(formData);
+    }
+
+    Swal.fire({
+      title: 'Registro completado',
+      text: 'Ahora puede iniciar sesión con sus credenciales.',
+      icon: 'success',
+      confirmButtonText: 'Aceptar',
+    });
   };
 
   return (
@@ -62,9 +71,9 @@ function Register() {
         <div className="card-body">
 
           {/* Título */}
-          <div className='Titulo'>
-            <h2 className="text-center">Software Para Clubes</h2>
-            <h6 className="text-center mb-4">
+          <div className="Titulo">
+            <h2 className="text-center titulo-principal">Software Para Clubes</h2>
+            <h6 className="text-center mb-4 subtitulo-principal">
               Completa el siguiente formulario para formar parte de nuestra red de clubes.
             </h6>
           </div>
@@ -133,23 +142,39 @@ function Register() {
               </div>
             </div>
 
-            {/* Email */}
-            <div className="mb-3 position-relative">
-              <label htmlFor="email" className="form-label">Email</label>
-              <input
-                type="email"
-                className="form-control form-control-lg input-with-icon"
-                id="email"
-                placeholder="Ej: club@gmail.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-              <i className="bi bi-envelope icon-inside"></i>
+            {/* Teléfono y Email */}
+            <div className="row mb-3">
+              <div className="col-md-6 position-relative mb-3">
+                <label htmlFor="telefono" className="form-label">Teléfono</label>
+                <input
+                  type="text"
+                  className="form-control form-control-lg input-with-icon"
+                  id="telefono"
+                  placeholder="Ej: 2983-404040"
+                  value={formData.telefono}
+                  onChange={handleChange}
+                  required
+                />
+                <i className="bi bi-telephone icon-inside"></i>
+              </div>
+
+              <div className="col-md-6 position-relative mb-3">
+                <label htmlFor="email" className="form-label">Email</label>
+                <input
+                  type="email"
+                  className="form-control form-control-lg input-with-icon"
+                  id="email"
+                  placeholder="Ej: club@gmail.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+                <i className="bi bi-envelope icon-inside"></i>
+              </div>
             </div>
 
             {/* Canchas que alquila */}
-            <div className="card-canchas">
+            <div className="card-canchas p-3 mb-3">
               <h5 className="mb-3">Canchas que alquila</h5>
               <div className="row">
                 {[
@@ -171,10 +196,7 @@ function Register() {
                         checked={formData.canchas.includes(cancha.id)}
                         onChange={handleCanchaChange}
                       />
-                      <label
-                        className="form-check-label"
-                        htmlFor={cancha.id}
-                      >
+                      <label className="form-check-label" htmlFor={cancha.id}>
                         {cancha.label}
                       </label>
                     </div>
@@ -259,7 +281,7 @@ function Register() {
               </div>
             </div>
 
-            {/* Checkbox términos */}
+            {/* Acepto términos */}
             <div className="form-check mb-4">
               <input
                 className="form-check-input"
@@ -272,11 +294,20 @@ function Register() {
               </label>
             </div>
 
-            {/* Botón */}
+            {/* Botón enviar */}
             <button className="btn btn-primary btn-lg w-100" type="submit">
               Enviar Formulario
             </button>
+
           </form>
+
+          {/* Botón volver */}
+          <button
+            className="btn btn-primary btn-lg w-100 mt-3"
+            onClick={onCancelRegister}
+          >
+            Volver al Login
+          </button>
 
           {/* Pie */}
           <h5 className="text-center mt-2 mb-2">

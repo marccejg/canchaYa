@@ -1,6 +1,6 @@
 .register-container {
     background-color: white;
-    padding-top: 150px; /* ajusta según la altura de tu navbar */
+    padding-top: 300px; /* ajusta según la altura de tu navbar */
 }
 /* Fondo general de la página */
 .register-container {
@@ -87,6 +87,13 @@
 }
 
 /* Botón principal: fondo blanco y letras azules */
+.card-custom .btn-primary {
+    background-color: white;
+    color: rgb(33, 79, 168);
+    border: 2px solid white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
 .card-custom .btn-primary {
     background-color: white;
     color: rgb(33, 79, 168);
