@@ -1,4 +1,4 @@
- canchaYa   ---   rabajo Final FullStack  --   https://drive.google.com/drive/folders/1ERLAKYx2MZ3ad8WySdDEEBkI0lSLMc78
+ canchaYa   ---   Trabajo Final FullStack  --   https://drive.google.com/drive/folders/1ERLAKYx2MZ3ad8WySdDEEBkI0lSLMc78
 
 
 CanchaYa - Plataforma de Reserva de Canchas Deportivas
@@ -48,23 +48,20 @@ La versión actual de la aplicación se centra en el flujo de reserva principal:
 
 1.  Selección de Deporte: El usuario elige entre una variedad de deportes (Fútbol, Tenis, Pádel, etc.), cada uno con un icono distintivo.
 2.  Selección de Fecha: Un componente de calendario permite al usuario seleccionar el día deseado. Las fechas pasadas están deshabilitadas para evitar errores.
-3.  Visualización de Horarios: Basado en el deporte y la fecha, el sistema genera una lista de turnos disponibles (ej. de 8:00 a 22:00 en intervalos de 30 o 60 minutos).
+3.  Visualización de Horarios: Basado en el deporte y la fecha, el sistema genera una lista de turnos disponibles, diferenciando los horarios ya ocupados.
 4.  Estado de los Turnos: Cada turno se muestra visualmente como:
        Disponible: Botón activado, listo para ser reservado.
-       Ocupado/Pasado: Botón desactivado, indicando que ya no se puede seleccionar.
-5.  Proceso de Reserva:
+       Ocupado: Botón diferenciado de color naranja para dar sensacion de turno ocupado y facilitar la lectura visual del calendario.
+       Pasado: Botón desactivado, indicando que ya no se puede seleccionar.
+6.  Proceso de Reserva:
        Al hacer clic en un turno disponible, un diálogo de confirmación aparece resumiendo la selección (deporte, fecha y hora).
-       Al confirmar, la aplicación simula la creación de la reserva y actualiza la interfaz para mostrar el turno como "ocupado".
+       Al confirmar, se solicita el pago del turno mediante la App Mercado pago, y la aplicación simula la creación de la reserva y actualiza la interfaz para mostrar el turno como "ocupado".
        Se muestra una notificación de éxito o error.
 
  Funcionalidades Futuras
 
 Basado en la hoja de ruta, las próximas grandes funcionalidades a implementar son:
-
-   Gestión de Usuarios: Registro, inicio de sesión y perfiles.
-    Persistencia de Datos: Integración con Firebase Firestore para guardar reservas.
-   Panel "Mis Reservas": Una sección para que los usuarios vean y cancelen sus reservas.
-   Panel de Administración: Una interfaz para que los dueños de canchas gestionen su disponibilidad.
+Modulo Generador de torneos: Facilita a los clubes organizar torneos deportivos, gestionando (segun la cantidad de equipos) las llaves y cruces nesarios para realizar de forma pareja dicho encuentro.
 
 ---
 
@@ -74,19 +71,21 @@ Este proyecto está construido con un stack de tecnologías moderno, enfocado en
 
    Framework Principal: 	React (JavaScript) 
    Lenguaje: JavasCript, Css y Html (Optimizado en React)
+   React: Componetizacion y simpleza para lectura y modificacion de codigo a futuro, provee agilidad y facilidad a nuevas implementaciones.
    Librería de UI: para construir componentes de interfaz de usuario declarativos y reutilizables.
-   Estilos: utilizamos libreria "Tailwind Css" para un diseño rápido y personalizable.
-   Componentes UI: una colección de componentes reutilizables y accesibles construidos sobre React y Tailwind CSS.
+   Estilos: utilizamos libreria "Boostrap" para un diseño rápido y personalizable.
+   Componentes UI: una colección de componentes reutilizables y accesibles construidos sobre React y Boostrap.
    Base de Datos : (P R O X I M A N T E)
-   Autenticación : para gestionar el registro e inicio de sesión de usuarios.
+   Autenticación : Validacion locar para gestionar el registro e inicio de sesión de usuarios.
+   SweetAlert2: Mensajes bajo modales actualizados y embellecios por SweetAleert, evitando los Alert tradicionales.
 
 ---
 
 ♿ Accesibilidad
 
 La accesibilidad es un pilar fundamental del proyecto para garantizar que todas las personas puedan utilizar la aplicación sin barreras.
-
- Contraste de Color: La paleta de colores (`Personalizada`) se ha elegido para cumplir con las directrices de accesibilidad, asegurando que el texto sea legible sobre los fondos, con opcionabilidad de modo "Claro" y "Obscuro"
+Para ello enfocamos el desarrollo en una interfaz agil y legible, añadiendo tambien PWA (progresive web aplication), permitiendo la instalacion en dispositivos móviles (creando un ac.directo y simulando gracias a la distribucion responsive) que es una app movil nativa.
+ Contraste de Color: La paleta de colores (`Personalizada`) se ha elegido para cumplir con las directrices de accesibilidad, asegurando que el texto sea legible sobre los fondos, manteniendo a lo largo del sistema, los mismos colores y estilos predefinidos con anterioridad por el equipo de desarrollo.
 Semántica HTML: Se utiliza HTML semántico (`<header>`, `<main>`, `<button>`, etc.) para dar estructura y significado al contenido, lo cual es crucial para los lectores de pantalla.
 
 ---
@@ -118,8 +117,8 @@ Para levantar el entorno de desarrollo local y empezar a contribuir, sigue estos
 
 Tenemos grandes planes para "CanchaYa". Aquí están las funcionalidades (épicas) en las que trabajaremos:
 
-1.  Gestión de Usuarios y Autenticación: Permitir que los usuarios se registren e inicien sesión para personalizar su experiencia y asegurar sus reservas.
-2.  Integración con Firestore: Mover el almacenamiento de reservas de la memoria a una base de datos en tiempo real para hacer los datos persistentes y accesibles desde cualquier lugar.
+1.  Gestión de Usuarios y Autenticación: Permitir que los usuarios se registren e inicien sesión para personalizar su experiencia y asegurar sus reservas y tambien a los clubes para ver sus disponibilidades.
+2.  Integración con Base de Datos: Mover el almacenamiento de reservas del LocalStorage de la memoria a una base de datos en tiempo real para hacer los datos persistentes y accesibles desde cualquier lugar.
 3.  Panel "Mis Reservas": Crear una sección para que los usuarios puedan ver, gestionar y cancelar sus próximas reservas, así como consultar su historial.
 4.  Panel de Administración: Construir una interfaz para que los dueños de las canchas puedan gestionar su disponibilidad, bloquear horarios y visualizar la ocupación de su complejo.
 

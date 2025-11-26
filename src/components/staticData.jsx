@@ -7,7 +7,7 @@ export const deportes = [
   { id: 9, nombre: 'Basquet' },
   { id: 4, nombre: 'Tenis' },
   { id: 5, nombre: 'Voley' },
-  { id: 6, nombre: 'Paddle' },
+  { id: 6, nombre: 'Padel' },
   { id: 7, nombre: 'Natacion' },
   { id: 8, nombre: 'Golf' },
   { id: 3, nombre: 'Futbol 11' }
