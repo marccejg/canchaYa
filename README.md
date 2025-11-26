@@ -124,7 +124,7 @@ Tenemos grandes planes para "CanchaYa". Aquí están las funcionalidades (épica
 
 
 
-A instalar luego del cloando
-npm install @vitejs/plugin-react --save-dev bootstrap bootstrap-icons sweetalert2 react-router-dom
+
+
 
 Scheneider Querian, Cabrera Dario, Garcia Marcelo y Arenzana Bruno.
