@@ -7,6 +7,9 @@ import ClubSelector from './components/clubSeleccion/clubSelector';
 import Calendar from './components/calendario/calendario';
 import TimeSlots from './components/SlotsDeTiempo/slotsTiempo';
 import { clubes } from './components/staticData';
+import Header from './components/header/header';
+import Footer from './components/footer/footer';
+import Layout from './components/layout/layout';
 import './App.css';
 
 function App() {
@@ -21,25 +24,19 @@ function App() {
   const [reservas, setReservas] = useState([]);
   const [clubesRegistrados, setClubesRegistrados] = useState([]);
 
-  // Cargar datos del localStorage al iniciar
+  // Cargar datos
   useEffect(() => {
-    const storedUsuarios = localStorage.getItem('usuarios');
-    if (storedUsuarios) {
-      setUsuarios(JSON.parse(storedUsuarios));
-    }
-    
-    const storedReservas = localStorage.getItem('reservas');
-    if (storedReservas) {
-      setReservas(JSON.parse(storedReservas));
-    }
-    
-    const storedClubes = localStorage.getItem('clubesRegistrados');
-    if (storedClubes) {
-      setClubesRegistrados(JSON.parse(storedClubes));
-    }
+    const u = localStorage.getItem('usuarios');
+    if (u) setUsuarios(JSON.parse(u));
+
+    const r = localStorage.getItem('reservas');
+    if (r) setReservas(JSON.parse(r));
+
+    const c = localStorage.getItem('clubesRegistrados');
+    if (c) setClubesRegistrados(JSON.parse(c));
   }, []);
 
-  // Guardar datos en localStorage cuando cambian
+  // Guardar datos
   useEffect(() => {
     localStorage.setItem('usuarios', JSON.stringify(usuarios));
   }, [usuarios]);
@@ -52,22 +49,21 @@ function App() {
     localStorage.setItem('clubesRegistrados', JSON.stringify(clubesRegistrados));
   }, [clubesRegistrados]);
 
+  // Login
   const handleLogin = (username, password) => {
-    // Verificar credenciales de administrador
     if (username === 'admin' && password === 'admin') {
       setIsLoggedIn(true);
       return;
     }
-    
-    // Verificar credenciales de usuarios registrados
-    const usuarioEncontrado = usuarios.find(
-      user => user.usuario === username && user.password === password
+
+    const user = usuarios.find(
+      u => u.usuario === username && u.password === password
     );
-    
-    if (usuarioEncontrado) {
+
+    if (user) {
       setIsLoggedIn(true);
     } else {
-      return false; // Credenciales incorrectas
+      return false;
     }
   };
 
@@ -79,426 +75,197 @@ function App() {
     setShowReservas(false);
   };
 
-  const handleRegister = () => {
-    setShowRegisterUser(true);
-  };
+  const handleRegister = () => setShowRegisterUser(true);
+  const handleRegisterClub = () => setShowRegister(true);
+  const handleShowReservas = () => setShowReservas(true);
+  const handleHideReservas = () => setShowReservas(false);
 
-  const handleRegisterClub = () => {
-    setShowRegister(true);
-  };
-
-  const handleShowReservas = () => {
-    setShowReservas(true);
-  };
-
-  const handleHideReservas = () => {
-    setShowReservas(false);
-  };
-
-  const handleSportSelect = (sport) => {
+  const handleSportSelect = sport => {
     setSelectedSport(sport);
     setSelectedClub(null);
     setSelectedDate(null);
   };
 
-  const handleClubSelect = (club) => {
+  const handleClubSelect = club => {
     setSelectedClub(club);
     setSelectedDate(null);
   };
 
-  const handleDateSelect = (date) => {
+  const handleDateSelect = date => {
     setSelectedDate(date);
   };
 
-  const handleRegisterComplete = (nuevoUsuario) => {
+  const handleRegisterComplete = nuevoUsuario => {
     setUsuarios([...usuarios, nuevoUsuario]);
     setShowRegister(false);
     setShowRegisterUser(false);
   };
 
-  // Función para cancelar el registro y volver al login
   const handleCancelRegister = () => {
     setShowRegister(false);
     setShowRegisterUser(false);
   };
 
-  // Función para calcular si una reserva puede modificarse (más de 48 horas antes)
-  const puedeModificarReserva = (fechaReserva) => {
-    try {
-      const ahora = new Date();
-      let reservaDate;
-      
-      // Manejar diferentes formatos de fecha
-      if (typeof fechaReserva === 'string') {
-        reservaDate = new Date(fechaReserva);
-      } else if (fechaReserva instanceof Date) {
-        reservaDate = new Date(fechaReserva);
-      } else {
-        console.error('Formato de fecha no reconocido:', fechaReserva);
-        return false;
-      }
-      
-      // Verificar si la fecha es válida
-      if (isNaN(reservaDate.getTime())) {
-        console.error('Fecha inválida:', fechaReserva);
-        return false;
-      }
-      
-      const diferenciaHoras = (reservaDate - ahora) / (1000 * 60 * 60);
-      console.log('Verificando si se puede modificar reserva:', fechaReserva, 'Diferencia horas:', diferenciaHoras);
-      return diferenciaHoras > 48;
-    } catch (error) {
-      console.error('Error al parsear fecha de reserva para modificación:', fechaReserva, error);
-      return false;
-    }
-  };
-
-  // Función para verificar si una reserva ya pasó
-  const reservaYaPaso = (fechaReserva) => {
-    try {
-      const ahora = new Date();
-      let reservaDate;
-      
-      // Manejar diferentes formatos de fecha
-      if (typeof fechaReserva === 'string') {
-        reservaDate = new Date(fechaReserva);
-      } else if (fechaReserva instanceof Date) {
-        reservaDate = new Date(fechaReserva);
-      } else {
-        console.error('Formato de fecha no reconocido:', fechaReserva);
-        return false;
-      }
-      
-      // Verificar si la fecha es válida
-      if (isNaN(reservaDate.getTime())) {
-        console.error('Fecha inválida:', fechaReserva);
-        return false;
-      }
-      
-      console.log('Verificando fecha de reserva:', fechaReserva, 'Reserva date:', reservaDate, 'Ahora:', ahora);
-      return reservaDate < ahora;
-    } catch (error) {
-      console.error('Error al parsear fecha de reserva:', fechaReserva, error);
-      return false;
-    }
-  };
-
-  // Función para modificar una reserva
-  const handleModificarReserva = (idReserva) => {
-    // Encontrar la reserva a modificar
-    const reserva = reservas.find(r => r.id === idReserva);
-    if (!reserva) return;
-
-    // Verificar si se puede modificar (más de 48 horas de anticipación)
-    if (!puedeModificarReserva(reserva.fecha)) {
-      alert('Solo se pueden modificar reservas con más de 48 horas de anticipación.');
-      return;
-    }
-
-    // Guardar información de la reserva que se va a modificar
-    const reservaAModificar = {
-      id: idReserva,
-      deporte: reserva.deporte,
-      club: reserva.club
-    };
-    
-    // Guardamos en el localStorage para usar la informaciion de la reserva que se va a modificar
-    //se borra la anterior y queda seteados los parametros de la nueva reserva.
-    localStorage.setItem('reservaAModificar', JSON.stringify(reservaAModificar));
-    
-    // Iniciar el proceso de modificación
-    // Vamos a la selección de deporte manteniendo la información de la reserva
-    setShowReservas(false);
-    // Seleccionamos el deporte de la reserva original
-    setSelectedSport({ nombre: reserva.deporte });
-  };
-
-  
-  const handleEliminarReserva = (idReserva) => {
-    const reserva = reservas.find(r => r.id === idReserva);         // <---- eliminamos la reserva del array y ya no la muestra
-    if (!reserva) return;
-
-    // Verificar si es una reserva pasada o si se puede cancelar (más de 48 horas de anticipación)
-    if (reservaYaPaso(reserva.fecha) || puedeModificarReserva(reserva.fecha)) {
-      const nuevasReservas = reservas.filter(reserva => reserva.id !== idReserva);
-      setReservas(nuevasReservas);
-    } else {
-      alert('Solo se pueden eliminar reservas pasadas o con más de 48 horas de anticipación.');
-    }
-  };
-
-  // Función para forzar la eliminación de cualquier reserva (para casos especiales)
-  const handleForzarEliminarReserva = (idReserva) => {
-    const confirmacion = window.confirm('¿Estás seguro de que quieres eliminar esta reserva? Esta acción no se puede deshacer.');
-    if (confirmacion) {
-      const nuevasReservas = reservas.filter(reserva => reserva.id !== idReserva);
-      setReservas(nuevasReservas);
-    }
-  };
-
-  // Función para manejar la adición de una reserva, incluyendo la modificación
-  const handleAddReserva = (reserva) => {
-    console.log('Agregando reserva:', reserva);
-    // Verificar si estamos modificando una reserva existente
-    const reservaModificadaStr = localStorage.getItem('reservaAModificar');
-    
-    if (reservaModificadaStr) {
-      // Estamos modificando una reserva existente
-      const reservaModificada = JSON.parse(reservaModificadaStr);
-      console.log('Modificando reserva existente:', reservaModificada);
-      
-      // Crear la nueva reserva
-      const nuevaReserva = {
-        ...reserva,
-        id: Date.now(), // ID único para la nueva reserva
-        timestamp: new Date().toISOString()
-      };
-      console.log('Nueva reserva creada:', nuevaReserva);
-      
-      // Eliminar la reserva antigua y agregar la nueva
-      const reservasActualizadas = reservas.filter(r => r.id !== reservaModificada.id);
-      console.log('Reservas después de eliminar la antigua:', reservasActualizadas);
-      setReservas([...reservasActualizadas, nuevaReserva]);
-      console.log('Reservas después de agregar la nueva:', [...reservasActualizadas, nuevaReserva]);
-      
-      // Limpiar el localStorage
-      localStorage.removeItem('reservaAModificar');
-    } else {
-      // Agregar una nueva reserva normalmente
-      const nuevaReserva = {
-        ...reserva,
-        id: Date.now(), // ID único para la reserva
-        timestamp: new Date().toISOString()
-      };
-      console.log('Nueva reserva creada:', nuevaReserva);
-      const reservasActualizadas = [...reservas, nuevaReserva];
-      console.log('Todas las reservas:', reservasActualizadas);
-      setReservas(reservasActualizadas);
-    }
-  };
-
-  // Función para volver a la selección de deporte después de una reserva
-  const handleReservaComplete = () => {
-    setSelectedSport(null);
-    setSelectedClub(null);
-    setSelectedDate(null);
-  };
-
-  // Funciones para volver atrás
-  const goBackToSportSelection = () => {
-    setSelectedSport(null);
-    setSelectedClub(null);
-    setSelectedDate(null);
-  };
-
-  const goBackToClubSelection = () => {
-    setSelectedClub(null);
-    setSelectedDate(null);
-  };
-
-  const goBackToDateSelection = () => {
-    setSelectedDate(null);
-  };
-
-  // Mostrar el componente de registro de club
-  if (showRegister) {
-    return (
+  // Mostrar Registro Club
+if (showRegister) {
+  return (
+    <Layout>
       <div className="app-container">
-        <Register 
-          onRegisterComplete={handleRegisterComplete} 
+        <Register
+          onRegisterComplete={handleRegisterComplete}
           onCancelRegister={handleCancelRegister}
         />
       </div>
-    );
-  }
+    </Layout>
+  );
+}
 
-  // Mostrar el componente de registro de usuario
+  // Mostrar Registro Usuario
   if (showRegisterUser) {
     return (
-      <div className="app-container">
-        <RegisterUser 
-          onRegisterComplete={handleRegisterComplete} 
-          onCancelRegister={handleCancelRegister}
-        />
-      </div>
+      <Layout>
+        <div className="app-container">
+          <RegisterUser
+            onRegisterComplete={handleRegisterComplete}
+            onCancelRegister={handleCancelRegister}
+          />
+        </div>
+        
+      </Layout>
     );
   }
 
-  // Mostrar el componente de reservas
+  // Mostrar Reservas
   if (showReservas) {
-    console.log('Mostrando reservas:', reservas);
     return (
-      <div className="app-container">
-        <div className="card">
-          <div className="nav-container">
-            <h2 className="nav-title">Mis Reservas</h2>
-            <div className="nav-actions">
-              <button
-                onClick={handleHideReservas}
-                className="btn btn-secondary"
-              >
-                Volver
-              </button>
+      <Layout>
+        <div className="app-container">
+          <div className="card">
+            <div className="nav-container">
+              <h2 className="nav-title">Mis Reservas</h2>
+              <div className="nav-actions">
+                <button
+                  onClick={handleHideReservas}
+                  className="btn btn-secondary"
+                >
+                  Volver
+                </button>
+              </div>
             </div>
-          </div>
-          
-          {reservas.length === 0 ? (
-            <p className="alert alert-info">No tienes reservas aún.</p>
-          ) : (
-            <div className="reservas-list">
-              {reservas
-                .sort((a, b) => new Date(b.fecha) - new Date(a.fecha)) // Orden descendente por fecha
-                .map((reserva, index) => {
-                  console.log('Renderizando reserva:', reserva);
-                  
-                  if (!reserva || !reserva.deporte || !reserva.club || !reserva.fecha || !reserva.hora) {
-                    console.log('Reserva incompleta o inválida:', reserva); //<--- pedimos todos los campos necesarios de la reserva, si no se cumplen le damos un aviso de reserva invalida y la borramos dentro con el boton de limpiar reservas
-                    return (
-                      <div 
-                        key={index} 
-                        className="card"
-                      >
-                        <p><strong>Reserva inválida:</strong> Datos incompletos</p>
-                      </div>
-                    );
-                  }
-                  
-                  // Formatear la fecha de manera segura
-                  let fechaFormateada = 'Fecha inválida';
-                  try {
-                    const fechaReserva = new Date(reserva.fecha);
-                    if (!isNaN(fechaReserva.getTime())) {
-                      fechaFormateada = fechaReserva.toLocaleDateString('es-ES');
-                    }
-                  } catch (error) {
-                    console.error('Error al formatear fecha:', reserva.fecha, error);
-                  }
-                  
-                  return (
-                    <div 
-                      key={reserva.id || index} 
-                      className="card"
-                    >
-                      <p><strong>Deporte:</strong> {reserva.deporte || 'No especificado'}</p>
-                      <p><strong>Club:</strong> {reserva.club || 'No especificado'}</p>
-                      <p><strong>Fecha:</strong> {fechaFormateada}</p>
-                      <p><strong>Hora:</strong> {reserva.hora || 'No especificada'}</p>
+
+            {reservas.length === 0 ? (
+              <p className="alert alert-info">No tienes reservas aún.</p>
+            ) : (
+              <div className="reservas-list">
+                {reservas
+                  .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+                  .map((reserva, index) => (
+                    <div key={reserva.id || index} className="card">
+                      <p><strong>Deporte:</strong> {reserva.deporte}</p>
+                      <p><strong>Club:</strong> {reserva.club}</p>
+                      <p><strong>Fecha:</strong> {new Date(reserva.fecha).toLocaleDateString()}</p>
+                      <p><strong>Hora:</strong> {reserva.hora}</p>
+
                       <div className="reserva-actions">
-                        {/* Botón para modificar reservas con más de 48 horas de anticipación */}
-                        {puedeModificarReserva(reserva.fecha) ? (
-                          <>
-                            <button
-                              onClick={() => handleModificarReserva(reserva.id)}
-                              className="btn btn-primary"
-                            >
-                              Modificar
-                            </button>
-                            <button
-                              onClick={() => handleEliminarReserva(reserva.id)}
-                              className="btn btn-danger"
-                            >
-                              Cancelar
-                            </button>
-                          </>
-                        ) : null}
-                        
-                        {/* Botón para eliminar reservas pasadas */}
-                        {reservaYaPaso(reserva.fecha) ? (
-                          <button
-                            onClick={() => handleEliminarReserva(reserva.id)}
-                            className="btn btn-danger"
-                          >
-                            Eliminar
-                          </button>
-                        ) : null}
-                        
-                        {/* Botón para forzar eliminación de reservas que no se pueden eliminar normalmente */}
-                        {!puedeModificarReserva(reserva.fecha) && !reservaYaPaso(reserva.fecha) ? (
-                          <>
-                            <p className="reserva-no-actions">La reserva aún no puede modificarse ni eliminarse</p>
-                            <button
-                              onClick={() => handleForzarEliminarReserva(reserva.id)}
-                              className="btn btn-danger"
-                            >
-                              Forzar Eliminación
-                            </button>
-                          </>
-                        ) : null}
+                        <button
+                          onClick={() => handleForzarEliminarReserva(reserva.id)}
+                          className="btn btn-danger"
+                        >
+                          Eliminar
+                        </button>
                       </div>
                     </div>
-                  );
-                })
-              }
-            </div>
-          )}
+                  ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
-  // Mostrar el componente de login
+  // Login
   if (!isLoggedIn) {
     return (
-      <div className="app-container">
-        <Login 
-          onLogin={handleLogin} 
-          onRegister={handleRegister} 
-          onRegisterClub={handleRegisterClub}
-        />
-      </div>
+      <Layout>
+        <div className="app-container">
+          <Login
+            onLogin={handleLogin}
+            onRegister={handleRegister}
+            onRegisterClub={handleRegisterClub}
+          />
+        </div>
+      </Layout>
     );
   }
 
-  // Flujo después del login que ven los usarios 
+  // Selección deporte
   if (!selectedSport) {
     return (
-      <div className="app-container">
-        <SportSelector 
-          onSportSelect={handleSportSelect} 
-          onLogout={handleLogout} 
-          onShowReservas={handleShowReservas}
-        />
-      </div>
+      <Layout>
+        <div className="app-container">
+          <SportSelector
+            onSportSelect={handleSportSelect}
+            onLogout={handleLogout}
+            onShowReservas={handleShowReservas}
+          />
+        </div>
+      </Layout>
     );
   }
 
+  // Selección club
   if (!selectedClub) {
     return (
-      <div className="app-container">
-        <ClubSelector 
-          selectedSport={selectedSport} 
-          onClubSelect={handleClubSelect} 
-          onBack={goBackToSportSelection}
-          clubesRegistrados={clubesRegistrados}
-          clubesEstaticos={clubes}
-        />
-      </div>
+      <Layout>
+        <div className="app-container">
+          <ClubSelector
+            selectedSport={selectedSport}
+            onClubSelect={handleClubSelect}
+            onBack={() => setSelectedSport(null)}
+            clubesRegistrados={clubesRegistrados}
+            clubesEstaticos={clubes}
+          />
+        </div>
+      </Layout>
     );
   }
 
+  // Selección fecha
   if (!selectedDate) {
     return (
-      <div className="app-container">
-        <Calendar 
-          onDateSelect={handleDateSelect} 
-          onBack={goBackToClubSelection}
-        />
-      </div>
+      <Layout>
+        <div className="app-container">
+          <Calendar
+            onDateSelect={handleDateSelect}
+            onBack={() => setSelectedClub(null)}
+          />
+        </div>
+      </Layout>
     );
   }
 
+  // Selección horarios
   return (
-    <div className="app-container">
-      <TimeSlots 
-        date={selectedDate} 
-        sport={selectedSport} 
-        club={selectedClub} 
-        onBack={goBackToDateSelection}
-        onAddReserva={handleAddReserva}
-        onReservaComplete={handleReservaComplete}
-      />
-    </div>
+    <Layout>
+      <div className="app-container">
+        <TimeSlots
+          date={selectedDate}
+          sport={selectedSport}
+          club={selectedClub}
+          onBack={() => setSelectedDate(null)}
+          onAddReserva={handleAddReserva}
+          onReservaComplete={() => {
+            setSelectedSport(null);
+            setSelectedClub(null);
+            setSelectedDate(null);
+          }}
+        />
+      </div>
+    </Layout>
   );
 }
 
 export default App;
+
+
