@@ -11,11 +11,6 @@
   letter-spacing: 0.5px;
 }
 
-.btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
 .btn:active {
   transform: scale(0.98);
 }
@@ -38,14 +33,6 @@
   background: linear-gradient(135deg, #d93043 0%, #db5439 100%);
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  color: white;
-}
-
-.btn-primary:hover {
-  background: linear-gradient(135deg, #192f5f 0%, #214178 100%);
-}
 
 .btn-secondary {
   background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
