@@ -1,156 +1,156 @@
-.register-container,
-.register-user-container {
-  max-width: 600px;
-  margin: 0 auto;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 30px;
+.register-container {
+    background-color: white;
+    padding-top: 300px; /* ajusta según la altura de tu navbar */
+}
+/* Fondo general de la página */
+.register-container {
+    background-color: white;
 }
 
-.register-title,
-.register-user-title {
-  color: #007bff;
-  text-align: center;
-  margin-bottom: 10px;
+
+/* Fondo y estilo del card */
+.card-custom {
+    background-color: rgb(33, 79, 168);
+    color: white;
+    border-top-left-radius: 80px;
+    border-top-right-radius: 80px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+
+    width: 100%;
+    max-width: 700px;
 }
 
-.register-subtitle,
-.register-user-subtitle {
-  text-align: center;
-  color: #666;
-  margin-bottom: 30px;
+
+/* Inputs dentro del card */
+.card-custom .form-control {
+    background-color: rgb(33, 79, 168);
+    color: white;
+    border: 1px solid white;
 }
 
-.register-form,
-.register-user-form {
-  display: flex;
-  flex-direction: column;
+/* Placeholder color */
+.card-custom .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.7);
 }
 
-.register-form-section,
-.register-user-form-section {
-  margin-bottom: 20px;
+/* Enfocar input */
+.card-custom .form-control:focus {
+    background-color: rgb(33, 79, 168);
+    color: white;
+    border-color: white;
+    box-shadow: none;
 }
 
-.register-form-row {
-  display: flex;
-  gap: 15px;
+/* Etiquetas */
+.card-custom .form-label {
+    color: white;
 }
 
-.register-form-field,
-.register-user-form-field {
-  flex: 1;
-  margin-bottom: 15px;
+/* Checkbox */
+.card-custom .form-check-input {
+    background-color: white;
+    border: 1px solid white;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 1; /* que no tape títulos */
 }
 
-.register-form-field-large {
-  flex: 2;
-  margin-bottom: 15px;
+/* Cuando está marcado */
+.card-custom .form-check-input:checked {
+    background-color: white;
+    border-color: white;
+    box-shadow: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='rgb(33,79,168)' stroke='rgb(33,79,168)' stroke-width='3' d='M4 12l6 6L20 6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 70%;
 }
 
-.register-form-field-medium {
-  flex: 1;
-  margin-bottom: 15px;
+/* Efecto hover */
+.card-custom .form-check-input:hover {
+    transform: scale(1.1);
 }
 
-.register-form-field-small {
-  flex: 1;
-  margin-bottom: 15px;
+/* Label del checkbox */
+.card-custom .form-check-label {
+    color: white;
+    margin-left: 8px;
 }
 
-.register-label,
-.register-user-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #333;
+/* Checkbox específico de canchas */
+.canchas-checks .form-check-label {
+    color: white;
+    font-weight: 500;
 }
 
-.register-input,
-.register-user-input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
-  box-sizing: border-box;
+/* Botón principal: fondo blanco y letras azules */
+.card-custom .btn-primary {
+    background-color: white;
+    color: rgb(33, 79, 168);
+    border: 2px solid white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.card-custom .btn-primary {
+    background-color: white;
+    color: rgb(33, 79, 168);
+    border: 2px solid white;
+    font-weight: 600;
+    transition: all 0.3s ease;
 }
 
-.register-input:focus,
-.register-user-input:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+/* Efecto al pasar el mouse */
+.card-custom .btn-primary:hover {
+    background-color: rgb(33, 79, 168);
+    color: white;
+    border: 2px solid white;
 }
 
-.register-checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: bold;
-  color: #333;
+/* Íconos dentro del input */
+.input-with-icon {
+    padding-right: 40px; /* Espacio para el ícono */
+    position: relative;
 }
 
-.register-checkbox {
-  width: 18px;
-  height: 18px;
+.icon-inside {
+    position: absolute;
+    right: 20px;
+    top: 65%;
+    transform: translateY(-50%);
+    color: white;
+    pointer-events: none;
+    font-size: 1.2rem;
+    z-index: 1; /* menor que título */
 }
 
-.register-buttons,
-.register-user-buttons {
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-  margin-top: 30px;
+/* Título */
+.Titulo {
+    position: relative;
+    z-index: 10; /* sobre todos los inputs */
+    margin-bottom: 2rem;
 }
 
-.register-submit-button,
-.register-user-submit-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 4px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  flex: 1;
+.Titulo h2, .Titulo h6 {
+    color: white;
+    text-align: center;
 }
 
-.register-submit-button:hover,
-.register-user-submit-button:hover {
-  background-color: #0056b3;
+/* Card para canchas */
+.canchas-card {
+    background-color: rgb(25, 60, 140);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
 }
 
-.register-cancel-button,
-.register-user-cancel-button {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 4px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  flex: 1;
-}
-
-.register-cancel-button:hover,
-.register-user-cancel-button:hover {
-  background-color: #5a6268;
-}
-
-/* Estilos responsivos */
-@media (max-width: 768px) {
-  .register-form-row {
-    flex-direction: column;
-  }
-  
-  .register-buttons,
-  .register-user-buttons {
-    flex-direction: column;
-  }
+/* Rectángulo decorativo abajo */
+.card-bottom-rectangle {
+    height: 50px; 
+    background-color: rgb(20, 60, 130);
+    width: 100%;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
 }

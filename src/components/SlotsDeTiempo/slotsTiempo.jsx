@@ -14,6 +14,8 @@ const TimeSlots = ({ date, sport, club, onBack, onAddReserva, onReservaComplete 
     
     // Verificar si el horario está disponible en el día actual
     let horarioDisponibleHoy = true;
+    let horarioPasado = false;
+    
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
     
@@ -25,6 +27,7 @@ const TimeSlots = ({ date, sport, club, onBack, onAddReserva, onReservaComplete 
       const horaActual = new Date().getHours();
       const [horaHorario] = horario.hora.split(':').map(Number);
       horarioDisponibleHoy = horaHorario > horaActual;
+      horarioPasado = horaHorario <= horaActual;
     }
     
     const disponible = clubTieneHorario && !reservado && horarioDisponibleHoy;
@@ -32,7 +35,8 @@ const TimeSlots = ({ date, sport, club, onBack, onAddReserva, onReservaComplete 
     return {
       ...horario,
       disponible,
-      reservado
+      reservado,
+      horarioPasado // Agregamos esta propiedad para identificar horas pasadas
     };
   });
 
@@ -81,7 +85,12 @@ const TimeSlots = ({ date, sport, club, onBack, onAddReserva, onReservaComplete 
             key={slot.id}
             onClick={() => handleReservarHorario(slot)}
             disabled={!slot.disponible}
-            className={`time-slot-button ${slot.reservado ? 'time-slot-reserved' : ''} ${slot.disponible ? 'time-slot-available' : 'time-slot-unavailable'}`}
+            className={`time-slot-button 
+              ${slot.reservado ? 'time-slot-reserved' : ''} 
+              ${slot.disponible ? 'time-slot-available' : ''} 
+              ${!slot.disponible && !slot.reservado ? 'time-slot-unavailable' : ''}
+              ${slot.horarioPasado ? 'time-slot-past' : ''}
+              ${slot.disponible && !slot.horarioPasado ? 'time-slot-future' : ''}`}
           >
             {slot.hora}
             {slot.reservado && ' ✓'}

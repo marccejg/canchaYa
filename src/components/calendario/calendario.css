@@ -69,8 +69,8 @@
 }
 
 .calendar-day-available {
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
+  background-color: #e0f7fa; /* Celeste */
+  border: 2px solid #007bff; /* Azul */
 }
 
 .calendar-day-available:hover {
