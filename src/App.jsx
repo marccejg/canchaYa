@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import Login from './components/login/login';
 import Register from './components/register/registerClub';
 import RegisterUser from './components/register/registerUsuario';
@@ -6,8 +7,13 @@ import SportSelector from './components/deportesSeleccion/SportSelector';
 import ClubSelector from './components/clubSeleccion/clubSelector';
 import Calendar from './components/calendario/calendario';
 import TimeSlots from './components/SlotsDeTiempo/slotsTiempo';
-import { clubes } from './components/staticData';
+import { clubesEstaticos } from './components/staticData';
+import Header from './components/header/header';
+import Footer from './components/footer/footer';
+import Layout from './components/layout/layout';
 import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -191,7 +197,13 @@ function App() {
 
     // Verificar si se puede modificar (más de 48 horas de anticipación)
     if (!puedeModificarReserva(reserva.fecha)) {
-      alert('Solo se pueden modificar reservas con más de 48 horas de anticipación.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'No se puede modificar',
+        text: 'Solo se pueden modificar reservas con más de 48 horas de anticipación.',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#2a5298'
+      });
       return;
     }
 
@@ -223,17 +235,39 @@ function App() {
       const nuevasReservas = reservas.filter(reserva => reserva.id !== idReserva);
       setReservas(nuevasReservas);
     } else {
-      alert('Solo se pueden eliminar reservas pasadas o con más de 48 horas de anticipación.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'No se puede eliminar',
+        text: 'Solo se pueden eliminar reservas pasadas o con más de 48 horas de anticipación.',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#2a5298'
+      });
     }
   };
 
   // Función para forzar la eliminación de cualquier reserva (para casos especiales)
   const handleForzarEliminarReserva = (idReserva) => {
-    const confirmacion = window.confirm('¿Estás seguro de que quieres eliminar esta reserva? Esta acción no se puede deshacer.');
-    if (confirmacion) {
-      const nuevasReservas = reservas.filter(reserva => reserva.id !== idReserva);
-      setReservas(nuevasReservas);
-    }
+    Swal.fire({
+      icon: 'question',
+      title: '¿Eliminar reserva?',
+      text: '¿Estás seguro de que quieres eliminar esta reserva? Esta acción no se puede deshacer.',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#eb3349',
+      cancelButtonColor: '#7f8c8d'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const nuevasReservas = reservas.filter(reserva => reserva.id !== idReserva);
+        setReservas(nuevasReservas);
+        Swal.fire({
+          icon: 'success',
+          title: 'Eliminado',
+          text: 'La reserva ha sido eliminada correctamente.',
+          confirmButtonColor: '#2a5298'
+        });
+      }
+    });
   };
 
   // Función para manejar la adición de una reserva, incluyendo la modificación
@@ -303,24 +337,28 @@ function App() {
   // Mostrar el componente de registro de club
   if (showRegister) {
     return (
+      <Layout>
       <div className="app-container">
         <Register 
           onRegisterComplete={handleRegisterComplete} 
           onCancelRegister={handleCancelRegister}
         />
       </div>
+      </Layout>
     );
   }
 
   // Mostrar el componente de registro de usuario
   if (showRegisterUser) {
     return (
+    <Layout>
       <div className="app-container">
         <RegisterUser 
           onRegisterComplete={handleRegisterComplete} 
           onCancelRegister={handleCancelRegister}
         />
       </div>
+      </Layout>
     );
   }
 
@@ -328,6 +366,7 @@ function App() {
   if (showReservas) {
     console.log('Mostrando reservas:', reservas);
     return (
+      <Layout>
       <div className="app-container">
         <div className="card">
           <div className="nav-container">
@@ -335,31 +374,33 @@ function App() {
             <div className="nav-actions">
               <button
                 onClick={handleHideReservas}
-                className="btn btn-secondary"
+                className="btn btn-danger"
               >
                 Volver
               </button>
             </div>
           </div>
           
+          
           {reservas.length === 0 ? (
             <p className="alert alert-info">No tienes reservas aún.</p>
           ) : (
             <div className="reservas-list">
               {reservas
-                .sort((a, b) => new Date(b.fecha) - new Date(a.fecha)) // Orden descendente por fecha
+                .sort((a, b) => new Date(a.fecha) - new Date(b.fecha)) // Orden ascendente: de la más cercana a la más lejana
                 .map((reserva, index) => {
                   console.log('Renderizando reserva:', reserva);
                   
                   if (!reserva || !reserva.deporte || !reserva.club || !reserva.fecha || !reserva.hora) {
                     console.log('Reserva incompleta o inválida:', reserva); //<--- pedimos todos los campos necesarios de la reserva, si no se cumplen le damos un aviso de reserva invalida y la borramos dentro con el boton de limpiar reservas
-                    return (
+                    return (<layout>
                       <div 
                         key={index} 
                         className="card"
                       >
                         <p><strong>Reserva inválida:</strong> Datos incompletos</p>
                       </div>
+                      </layout>
                     );
                   }
                   
@@ -375,6 +416,7 @@ function App() {
                   }
                   
                   return (
+                    <layout>
                     <div 
                       key={reserva.id || index} 
                       className="card"
@@ -426,6 +468,7 @@ function App() {
                         ) : null}
                       </div>
                     </div>
+                    </layout>
                   );
                 })
               }
@@ -433,6 +476,7 @@ function App() {
           )}
         </div>
       </div>
+      </Layout>
     );
   }
 
@@ -451,7 +495,7 @@ function App() {
 
   // Flujo después del login que ven los usarios 
   if (!selectedSport) {
-    return (
+    return (<Layout>
       <div className="app-container">
         <SportSelector 
           onSportSelect={handleSportSelect} 
@@ -459,11 +503,12 @@ function App() {
           onShowReservas={handleShowReservas}
         />
       </div>
+      </Layout>
     );
   }
 
   if (!selectedClub) {
-    return (
+    return (<Layout>
       <div className="app-container">
         <ClubSelector 
           selectedSport={selectedSport} 
@@ -473,21 +518,24 @@ function App() {
           clubesEstaticos={clubes}
         />
       </div>
+      </Layout>
     );
   }
 
   if (!selectedDate) {
-    return (
+    return (<Layout>
       <div className="app-container">
         <Calendar 
           onDateSelect={handleDateSelect} 
           onBack={goBackToClubSelection}
         />
       </div>
+      </Layout>
     );
   }
 
   return (
+    <Layout>
     <div className="app-container">
       <TimeSlots 
         date={selectedDate} 
@@ -497,7 +545,7 @@ function App() {
         onAddReserva={handleAddReserva}
         onReservaComplete={handleReservaComplete}
       />
-    </div>
+    </div></Layout>
   );
 }
 

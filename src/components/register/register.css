@@ -1,10 +1,12 @@
 .register-container {
     background-color: white;
-    padding-top: 300px; /* ajusta según la altura de tu navbar */
-}
-/* Fondo general de la página */
-.register-container {
-    background-color: white;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    margin-top: 80px;
+    padding-bottom: 2rem;
 }
 
 

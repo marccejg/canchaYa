@@ -7,7 +7,7 @@ export const deportes = [
   { id: 9, nombre: 'Basquet' },
   { id: 4, nombre: 'Tenis' },
   { id: 5, nombre: 'Voley' },
-  { id: 6, nombre: 'Paddle' },
+  { id: 6, nombre: 'Padel' },
   { id: 7, nombre: 'Natacion' },
   { id: 8, nombre: 'Golf' },
   { id: 3, nombre: 'Futbol 11' }
@@ -32,35 +32,65 @@ export const horarios = [
 ];
 
 // Datos de ejemplo para clubes
-export const clubes = [
+export const clubesEstaticos = [
   { 
     id: 1, 
-    nombre: 'Club OnlyFans Fulbitoo', 
-    deportesIds: [1, 3, 5, 7], 
+    nombre: 'Barlay Padel', 
+    deportesIds: [6], 
     horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
   },
   { 
     id: 2, 
-    nombre: 'Club Sur', 
-    deportesIds: [2, 4, 6, 8], 
+    nombre: 'Costa Sud', 
+    deportesIds: [1,2], 
     horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
   },
   { 
     id: 3, 
-    nombre: 'Club Este', 
-    deportesIds: [2, 5, 7, 9], 
+    nombre: 'EL Aurinegro', 
+    deportesIds: [1, 2, 3], 
     horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
   },
   { 
     id: 4, 
-    nombre: 'Club Oeste', 
-    deportesIds: [3, 4, 5], 
+    nombre: 'El Bosque', 
+    deportesIds: [1,2], 
     horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
   },
   { 
     id: 5, 
-    nombre: 'Club Central', 
-    deportesIds: [1, 2, 3, 4, 5, 6, 7, 8, 9], 
+    nombre: 'La Academia', 
+    deportesIds: [1], 
     horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+  },
+  { 
+      id: 6, 
+    nombre: 'La Barraca', 
+    deportesIds: [1,2,6,4], 
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 2]
+  },
+  { 
+      id: 7, 
+    nombre: 'La Ola', 
+    deportesIds: [6,4], 
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 2]
+  },
+  { 
+      id: 8, 
+    nombre: 'Lawn Tennis', 
+    deportesIds: [1,2,4], 
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+  },
+  { 
+      id: 9, 
+    nombre: 'Padel total', 
+    deportesIds: [1], 
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 2]
+  },
+  { 
+      id: 10, 
+    nombre: 'Kiwi Padel', 
+    deportesIds: [4], 
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 2]
   }
 ];

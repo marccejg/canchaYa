@@ -161,16 +161,19 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
             </div>
 
             {/* Canchas */}
+            {/* Canchas que alquila */}
             <div className="card-canchas p-3 mb-3">
-              <h5 className="mb-3">Preferencias</h5>
+              <h5 className="mb-3">Canchas de interes</h5>
               <div className="row">
                 {[
                   { id: "futbol5", label: "Fútbol 5" },
                   { id: "futbol7", label: "Fútbol 7" },
+                  { id: "futbol11", label: "Fútbol 11" },
                   { id: "basquet", label: "Básquet" },
+                  { id: "tenis", label: "Tenis" },
                   { id: "voley", label: "Vóley" },
-                  { id: "natacion", label: "Natación" },
                   { id: "padel", label: "Pádel" },
+                  { id: "natacion", label: "Natación" },
                   { id: "golf", label: "Golf" }
                 ].map((cancha) => (
                   <div className="col-md-4 mb-2" key={cancha.id}>
@@ -297,10 +300,8 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
           </button>
 
           {/* Pie */}
-          <h5 className="text-center mt-2 mb-2">
-            Nos pondremos en contacto con usted a la brevedad
-          </h5>
-          <h5 className="text-center mb-1">
+
+          <h5 className="text-center mb-1 mt-3 ">
             Gracias por interesarse en{' '}
             <img
               src={Logo}
