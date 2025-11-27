@@ -7,7 +7,7 @@ import SportSelector from './components/deportesSeleccion/SportSelector';
 import ClubSelector from './components/clubSeleccion/clubSelector';
 import Calendar from './components/calendario/calendario';
 import TimeSlots from './components/SlotsDeTiempo/slotsTiempo';
-import { clubes } from './components/staticData';
+import { clubesEstaticos } from './components/staticData';
 import Header from './components/header/header';
 import Footer from './components/footer/footer';
 import Layout from './components/layout/layout';
@@ -393,13 +393,14 @@ function App() {
                   
                   if (!reserva || !reserva.deporte || !reserva.club || !reserva.fecha || !reserva.hora) {
                     console.log('Reserva incompleta o inválida:', reserva); //<--- pedimos todos los campos necesarios de la reserva, si no se cumplen le damos un aviso de reserva invalida y la borramos dentro con el boton de limpiar reservas
-                    return (
+                    return (<layout>
                       <div 
                         key={index} 
                         className="card"
                       >
                         <p><strong>Reserva inválida:</strong> Datos incompletos</p>
                       </div>
+                      </layout>
                     );
                   }
                   
@@ -415,6 +416,7 @@ function App() {
                   }
                   
                   return (
+                    <layout>
                     <div 
                       key={reserva.id || index} 
                       className="card"
@@ -466,6 +468,7 @@ function App() {
                         ) : null}
                       </div>
                     </div>
+                    </layout>
                   );
                 })
               }
