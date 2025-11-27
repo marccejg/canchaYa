@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import Login from './components/login/login';
 import Register from './components/register/registerClub';
 import RegisterUser from './components/register/registerUsuario';
@@ -191,7 +192,13 @@ function App() {
 
     // Verificar si se puede modificar (más de 48 horas de anticipación)
     if (!puedeModificarReserva(reserva.fecha)) {
-      alert('Solo se pueden modificar reservas con más de 48 horas de anticipación.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'No se puede modificar',
+        text: 'Solo se pueden modificar reservas con más de 48 horas de anticipación.',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#2a5298'
+      });
       return;
     }
 
@@ -223,17 +230,39 @@ function App() {
       const nuevasReservas = reservas.filter(reserva => reserva.id !== idReserva);
       setReservas(nuevasReservas);
     } else {
-      alert('Solo se pueden eliminar reservas pasadas o con más de 48 horas de anticipación.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'No se puede eliminar',
+        text: 'Solo se pueden eliminar reservas pasadas o con más de 48 horas de anticipación.',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#2a5298'
+      });
     }
   };
 
   // Función para forzar la eliminación de cualquier reserva (para casos especiales)
   const handleForzarEliminarReserva = (idReserva) => {
-    const confirmacion = window.confirm('¿Estás seguro de que quieres eliminar esta reserva? Esta acción no se puede deshacer.');
-    if (confirmacion) {
-      const nuevasReservas = reservas.filter(reserva => reserva.id !== idReserva);
-      setReservas(nuevasReservas);
-    }
+    Swal.fire({
+      icon: 'question',
+      title: '¿Eliminar reserva?',
+      text: '¿Estás seguro de que quieres eliminar esta reserva? Esta acción no se puede deshacer.',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#eb3349',
+      cancelButtonColor: '#7f8c8d'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const nuevasReservas = reservas.filter(reserva => reserva.id !== idReserva);
+        setReservas(nuevasReservas);
+        Swal.fire({
+          icon: 'success',
+          title: 'Eliminado',
+          text: 'La reserva ha sido eliminada correctamente.',
+          confirmButtonColor: '#2a5298'
+        });
+      }
+    });
   };
 
   // Función para manejar la adición de una reserva, incluyendo la modificación
@@ -347,7 +376,7 @@ function App() {
           ) : (
             <div className="reservas-list">
               {reservas
-                .sort((a, b) => new Date(b.fecha) - new Date(a.fecha)) // Orden descendente por fecha
+                .sort((a, b) => new Date(a.fecha) - new Date(b.fecha)) // Orden ascendente: de la más cercana a la más lejana
                 .map((reserva, index) => {
                   console.log('Renderizando reserva:', reserva);
                   
