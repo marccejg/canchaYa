@@ -180,10 +180,12 @@ function Register({ onRegisterComplete, onCancelRegister }) {
                 {[
                   { id: "futbol5", label: "Fútbol 5" },
                   { id: "futbol7", label: "Fútbol 7" },
+                  { id: "futbol11", label: "Fútbol 11" },
                   { id: "basquet", label: "Básquet" },
+                  { id: "tenis", label: "Tenis" },
                   { id: "voley", label: "Vóley" },
-                  { id: "natacion", label: "Natación" },
                   { id: "padel", label: "Pádel" },
+                  { id: "natacion", label: "Natación" },
                   { id: "golf", label: "Golf" }
                 ].map((cancha) => (
                   <div className="col-md-4 mb-2" key={cancha.id}>
