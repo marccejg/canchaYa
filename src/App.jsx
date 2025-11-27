@@ -9,6 +9,8 @@ import Calendar from './components/calendario/calendario';
 import TimeSlots from './components/SlotsDeTiempo/slotsTiempo';
 import { clubes } from './components/staticData';
 import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -364,7 +366,7 @@ function App() {
             <div className="nav-actions">
               <button
                 onClick={handleHideReservas}
-                className="btn btn-secondary"
+                className="btn btn-danger"
               >
                 Volver
               </button>

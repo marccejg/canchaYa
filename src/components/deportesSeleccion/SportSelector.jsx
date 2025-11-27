@@ -10,7 +10,7 @@ const SportSelector = ({ onSportSelect, onLogout, onShowReservas }) => {
         <div className="sport-selector-actions">
           <button
             onClick={onShowReservas}
-            className="btn btn-secondary"
+            className="btn btn-success"
           >
             Mis Reservas
           </button>
