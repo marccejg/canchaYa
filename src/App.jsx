@@ -8,6 +8,9 @@ import ClubSelector from './components/clubSeleccion/clubSelector';
 import Calendar from './components/calendario/calendario';
 import TimeSlots from './components/SlotsDeTiempo/slotsTiempo';
 import { clubes } from './components/staticData';
+import Header from './components/header/header';
+import Footer from './components/footer/footer';
+import Layout from './components/layout/layout';
 import './App.css';
 
 function App() {
@@ -332,24 +335,28 @@ function App() {
   // Mostrar el componente de registro de club
   if (showRegister) {
     return (
+      <Layout>
       <div className="app-container">
         <Register 
           onRegisterComplete={handleRegisterComplete} 
           onCancelRegister={handleCancelRegister}
         />
       </div>
+      </Layout>
     );
   }
 
   // Mostrar el componente de registro de usuario
   if (showRegisterUser) {
     return (
+    <Layout>
       <div className="app-container">
         <RegisterUser 
           onRegisterComplete={handleRegisterComplete} 
           onCancelRegister={handleCancelRegister}
         />
       </div>
+      </Layout>
     );
   }
 
@@ -357,6 +364,7 @@ function App() {
   if (showReservas) {
     console.log('Mostrando reservas:', reservas);
     return (
+      <Layout>
       <div className="app-container">
         <div className="card">
           <div className="nav-container">
@@ -370,6 +378,7 @@ function App() {
               </button>
             </div>
           </div>
+          
           
           {reservas.length === 0 ? (
             <p className="alert alert-info">No tienes reservas aún.</p>
@@ -462,6 +471,7 @@ function App() {
           )}
         </div>
       </div>
+      </Layout>
     );
   }
 
@@ -480,7 +490,7 @@ function App() {
 
   // Flujo después del login que ven los usarios 
   if (!selectedSport) {
-    return (
+    return (<Layout>
       <div className="app-container">
         <SportSelector 
           onSportSelect={handleSportSelect} 
@@ -488,11 +498,12 @@ function App() {
           onShowReservas={handleShowReservas}
         />
       </div>
+      </Layout>
     );
   }
 
   if (!selectedClub) {
-    return (
+    return (<Layout>
       <div className="app-container">
         <ClubSelector 
           selectedSport={selectedSport} 
@@ -502,21 +513,24 @@ function App() {
           clubesEstaticos={clubes}
         />
       </div>
+      </Layout>
     );
   }
 
   if (!selectedDate) {
-    return (
+    return (<Layout>
       <div className="app-container">
         <Calendar 
           onDateSelect={handleDateSelect} 
           onBack={goBackToClubSelection}
         />
       </div>
+      </Layout>
     );
   }
 
   return (
+    <Layout>
     <div className="app-container">
       <TimeSlots 
         date={selectedDate} 
@@ -526,7 +540,7 @@ function App() {
         onAddReserva={handleAddReserva}
         onReservaComplete={handleReservaComplete}
       />
-    </div>
+    </div></Layout>
   );
 }
 
