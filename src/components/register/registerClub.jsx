@@ -23,7 +23,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
   });
 
   useEffect(() => {
-    const savedData = sessionStorage.getItem('userData');
+    const savedData = localStorage.getItem('userData');
     if (savedData) setFormData(JSON.parse(savedData));
   }, []);
 
@@ -48,22 +48,30 @@ function Register({ onRegisterComplete, onCancelRegister }) {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+const handleSubmit = (e) => {
+  e.preventDefault();
 
-    sessionStorage.setItem('userData', JSON.stringify(formData));
+  const clubesGuardados = JSON.parse(localStorage.getItem("clubesRegistrados")) || [];
 
-    if (onRegisterComplete) {
-      onRegisterComplete(formData);
-    }
-
-    Swal.fire({
-      title: 'Registro completado',
-      text: 'Ahora puede iniciar sesión con sus credenciales.',
-      icon: 'success',
-      confirmButtonText: 'Aceptar',
-    });
+  const nuevoClub = {
+    ...formData,
+    tipo: "club" // <- importante, así lo diferenciás
   };
+
+  clubesGuardados.push(nuevoClub);
+
+  localStorage.setItem("clubesRegistrados", JSON.stringify(clubesGuardados));
+
+  if (onRegisterComplete) onRegisterComplete(nuevoClub);
+
+  Swal.fire({
+    title: "Registro completado",
+    text: "Ahora puede iniciar sesión con sus credenciales.",
+    icon: "success",
+    confirmButtonText: "Aceptar",
+  });
+};
+
 
   return (
     <div className="register-container d-flex justify-content-center align-items-center vh-100">

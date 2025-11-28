@@ -47,22 +47,53 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+ const handleSubmit = (e) => {
+  e.preventDefault();
 
-    sessionStorage.setItem('userData', JSON.stringify(formData));
+  // 1) Traer usuarios existentes
+  const usuariosGuardados = JSON.parse(localStorage.getItem("usuariosRegistrados")) || [];
 
-    if (onRegisterComplete) {
-      onRegisterComplete(formData);
-    }
-
-    Swal.fire({
-      title: 'Registro completado',
-      text: 'Ahora puede iniciar sesión con sus credenciales.',
-      icon: 'success',
-      confirmButtonText: 'Aceptar',
-    });
+  // 2) Crear nuevo usuario con tipo
+  const nuevoUsuario = {
+    ...formData,
+    tipo: "usuario"
   };
+
+  // 3) Guardar dentro del array
+  usuariosGuardados.push(nuevoUsuario);
+
+  // 4) Guardar en localStorage
+  localStorage.setItem("usuariosRegistrados", JSON.stringify(usuariosGuardados));
+
+  // 5) Notificar al componente padre
+  if (onRegisterComplete) {
+    onRegisterComplete(nuevoUsuario);
+  }
+
+  // 6) Alerta
+  Swal.fire({
+    title: "Registro completado",
+    text: "Ahora puede iniciar sesión con sus credenciales.",
+    icon: "success",
+    confirmButtonText: "Aceptar",
+  });
+
+  // 7) Limpiar formulario
+  setFormData({
+    nombre: '',
+    apellido: '',
+    CUIT: '',
+    telefono: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    ciudad: '',
+    provincia: '',
+    cp: '',
+    canchas: []
+  });
+};
+
 
   return (
     <div className="register-container d-flex justify-content-center align-items-center vh-100">
