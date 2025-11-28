@@ -5,6 +5,7 @@ import Register from './components/register/registerClub';
 import RegisterUser from './components/register/registerUsuario';
 import SportSelector from './components/deportesSeleccion/SportSelector';
 import ClubSelector from './components/clubSeleccion/clubSelector';
+import ClubDashboard from './components/clubDashboard/ClubDashboard';
 import Calendar from './components/calendario/calendario';
 import TimeSlots from './components/SlotsDeTiempo/slotsTiempo';
 import { clubesEstaticos } from './components/staticData';
@@ -26,23 +27,35 @@ function App() {
   const [usuarios, setUsuarios] = useState([]);
   const [reservas, setReservas] = useState([]);
   const [clubesRegistrados, setClubesRegistrados] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
 
   // Cargar datos del localStorage al iniciar
   useEffect(() => {
-    // Cargar usuarios registrados (el formulario de registro guarda en 'usuariosRegistrados')
-    const storedUsuarios = localStorage.getItem('usuariosRegistrados');
-    if (storedUsuarios) {
-      setUsuarios(JSON.parse(storedUsuarios));
+    // Cargar usuarios registrados y clubes; migrar entradas con tipo 'club' que estén en usuariosRegistrados
+    const storedUsuariosStr = localStorage.getItem('usuariosRegistrados');
+    const storedClubesStr = localStorage.getItem('clubesRegistrados');
+
+    const storedUsuarios = storedUsuariosStr ? JSON.parse(storedUsuariosStr) : [];
+    const storedClubes = storedClubesStr ? JSON.parse(storedClubesStr) : [];
+
+    // Migrar objetos tipo 'club' que por error estén en usuariosRegistrados
+    const clubesDesdeUsuarios = storedUsuarios.filter(u => u && u.tipo === 'club');
+    const usuariosSolo = storedUsuarios.filter(u => !u || u.tipo !== 'club');
+
+    if (clubesDesdeUsuarios.length > 0) {
+      const nuevosClubes = [...storedClubes, ...clubesDesdeUsuarios];
+      setClubesRegistrados(nuevosClubes);
+      localStorage.setItem('clubesRegistrados', JSON.stringify(nuevosClubes));
+      setUsuarios(usuariosSolo);
+      localStorage.setItem('usuariosRegistrados', JSON.stringify(usuariosSolo));
+    } else {
+      if (storedClubes.length > 0) setClubesRegistrados(storedClubes);
+      if (storedUsuarios.length > 0) setUsuarios(storedUsuarios);
     }
 
     const storedReservas = localStorage.getItem('reservas');
     if (storedReservas) {
       setReservas(JSON.parse(storedReservas));
-    }
-
-    const storedClubes = localStorage.getItem('clubesRegistrados');
-    if (storedClubes) {
-      setClubesRegistrados(JSON.parse(storedClubes));
     }
   }, []);
 
@@ -68,16 +81,34 @@ function App() {
 
     if (username === adminEmail && password === adminPassword) {
       setIsLoggedIn(true);
+      setCurrentUser({ email: adminEmail, tipo: 'admin' });
       return true;
     }
 
-    // Verificar credenciales de usuarios registrados (registro guarda en 'usuariosRegistrados')
+    // Verificar credenciales en clubes registrados primero (prioridad a clubs)
+    const clubEncontrado = clubesRegistrados.find(
+      club => (club.email === username || club.usuario === username) && club.password === password
+    );
+    if (clubEncontrado) {
+      setIsLoggedIn(true);
+      setCurrentUser({ ...clubEncontrado, tipo: 'club' });
+      return true;
+    }
+
+    // Verificar credenciales en usuarios registrados
     const usuarioEncontrado = usuarios.find(
       user => (user.email === username || user.usuario === username) && user.password === password
     );
-
     if (usuarioEncontrado) {
+      // Si accidentalmente un club quedó en usuarios, respetar su tipo
+      if (usuarioEncontrado.tipo === 'club') {
+        setIsLoggedIn(true);
+        setCurrentUser({ ...usuarioEncontrado, tipo: 'club' });
+        return true;
+      }
+
       setIsLoggedIn(true);
+      setCurrentUser(usuarioEncontrado);
       return true;
     }
 
@@ -91,6 +122,7 @@ function App() {
     setSelectedClub(null);
     setSelectedDate(null);
     setShowReservas(false);
+    setCurrentUser(null);
   };
 
   const handleRegister = () => {
@@ -125,7 +157,13 @@ function App() {
   };
 
   const handleRegisterComplete = (nuevoUsuario) => {
-    setUsuarios([...usuarios, nuevoUsuario]);
+    // Separar almacenamiento por tipo: 'club' -> clubesRegistrados, 'usuario' -> usuarios
+    if (nuevoUsuario && nuevoUsuario.tipo === 'club') {
+      setClubesRegistrados([...clubesRegistrados, nuevoUsuario]);
+    } else {
+      setUsuarios([...usuarios, nuevoUsuario]);
+    }
+
     setShowRegister(false);
     setShowRegisterUser(false);
   };
@@ -366,6 +404,23 @@ function App() {
             onCancelRegister={handleCancelRegister}
           />
         </div>
+      </Layout>
+    );
+  }
+
+  // Si está logueado y es un club, mostrar su panel específico
+  if (isLoggedIn && currentUser && currentUser.tipo === 'club') {
+    return (
+      <Layout>
+        <ClubDashboard
+          club={currentUser}
+          onLogout={handleLogout}
+          onBackToMain={() => {
+            // permitir al club ir a la vista pública del sitio
+            setIsLoggedIn(false);
+            setCurrentUser(null);
+          }}
+        />
       </Layout>
     );
   }
