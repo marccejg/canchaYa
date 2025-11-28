@@ -29,7 +29,8 @@ function App() {
 
   // Cargar datos del localStorage al iniciar
   useEffect(() => {
-    const storedUsuarios = localStorage.getItem('usuarios');
+    // Cargar usuarios registrados (el formulario de registro guarda en 'usuariosRegistrados')
+    const storedUsuarios = localStorage.getItem('usuariosRegistrados');
     if (storedUsuarios) {
       setUsuarios(JSON.parse(storedUsuarios));
     }
@@ -47,7 +48,8 @@ function App() {
 
   // Guardar datos en localStorage cuando cambian
   useEffect(() => {
-    localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    // Guardar usuarios en la misma clave que usa el registro
+    localStorage.setItem('usuariosRegistrados', JSON.stringify(usuarios));
   }, [usuarios]);
 
   useEffect(() => {
@@ -59,25 +61,28 @@ function App() {
   }, [clubesRegistrados]);
 
   const handleLogin = (username, password) => {
-    // Verificar credenciales de administrador
-    const savedUser = JSON.parse(localStorage.getItem('userData'));
+    // Intentar validar contra usuario admin guardado (si existe) o contra credenciales por defecto
+    const savedUser = JSON.parse(localStorage.getItem('userData')) || JSON.parse(sessionStorage.getItem('userData')) || null;
+    const adminEmail = savedUser?.email ?? 'admin@admin.com';
+    const adminPassword = savedUser?.password ?? 'admin';
 
-    if (savedUser && username === savedUser.email && password === savedUser.password) {
+    if (username === adminEmail && password === adminPassword) {
       setIsLoggedIn(true);
-      return;
+      return true;
     }
 
-
-    // Verificar credenciales de usuarios registrados
+    // Verificar credenciales de usuarios registrados (registro guarda en 'usuariosRegistrados')
     const usuarioEncontrado = usuarios.find(
-      user => user.usuario === username && user.password === password
+      user => (user.email === username || user.usuario === username) && user.password === password
     );
 
     if (usuarioEncontrado) {
       setIsLoggedIn(true);
-    } else {
-      return false; // Credenciales incorrectas
+      return true;
     }
+
+    // Credenciales incorrectas
+    return false;
   };
 
   const handleLogout = () => {
