@@ -31,32 +31,14 @@ function App() {
 
   // Cargar datos del localStorage al iniciar
   useEffect(() => {
-    // Cargar usuarios registrados y clubes; migrar entradas con tipo 'club' que estén en usuariosRegistrados
-    const storedUsuariosStr = localStorage.getItem('usuariosRegistrados');
-    const storedClubesStr = localStorage.getItem('clubesRegistrados');
+    // Cargar arrays desde localStorage (sin migraciones)
+    const storedUsuarios = JSON.parse(localStorage.getItem('usuariosRegistrados') || '[]');
+    const storedClubes = JSON.parse(localStorage.getItem('clubesRegistrados') || '[]');
+    const storedReservas = JSON.parse(localStorage.getItem('reservas') || '[]');
 
-    const storedUsuarios = storedUsuariosStr ? JSON.parse(storedUsuariosStr) : [];
-    const storedClubes = storedClubesStr ? JSON.parse(storedClubesStr) : [];
-
-    // Migrar objetos tipo 'club' que por error estén en usuariosRegistrados
-    const clubesDesdeUsuarios = storedUsuarios.filter(u => u && u.tipo === 'club');
-    const usuariosSolo = storedUsuarios.filter(u => !u || u.tipo !== 'club');
-
-    if (clubesDesdeUsuarios.length > 0) {
-      const nuevosClubes = [...storedClubes, ...clubesDesdeUsuarios];
-      setClubesRegistrados(nuevosClubes);
-      localStorage.setItem('clubesRegistrados', JSON.stringify(nuevosClubes));
-      setUsuarios(usuariosSolo);
-      localStorage.setItem('usuariosRegistrados', JSON.stringify(usuariosSolo));
-    } else {
-      if (storedClubes.length > 0) setClubesRegistrados(storedClubes);
-      if (storedUsuarios.length > 0) setUsuarios(storedUsuarios);
-    }
-
-    const storedReservas = localStorage.getItem('reservas');
-    if (storedReservas) {
-      setReservas(JSON.parse(storedReservas));
-    }
+    setUsuarios(storedUsuarios);
+    setClubesRegistrados(storedClubes);
+    setReservas(storedReservas);
   }, []);
 
   // Guardar datos en localStorage cuando cambian
