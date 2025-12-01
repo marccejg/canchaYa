@@ -176,7 +176,7 @@ const handleSubmit = (e) => {
                   type="text"
                   className="form-control form-control-lg input-with-icon"
                   id="razonSocial"
-                  placeholder="Ej: Soy Xeneize Futbol 5"
+                  placeholder="Ej: La Ratonera FC"
                   value={formData.razonSocial}
                   onChange={handleChange}
                   required
