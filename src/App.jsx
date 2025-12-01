@@ -90,7 +90,8 @@ function App() {
       }
 
       setIsLoggedIn(true);
-      setCurrentUser(usuarioEncontrado);
+      // Asignar tipo 'usuario' para usuarios normales
+      setCurrentUser({ ...usuarioEncontrado, tipo: 'usuario' });
       return true;
     }
 
@@ -538,7 +539,7 @@ function App() {
     );
   }
 
-  // Flujo después del login que ven los usarios 
+  // Flujo después del login que ven los usuarios 
   if (!selectedSport) {
     return (<Layout>
       <div className="app-container">
@@ -560,7 +561,7 @@ function App() {
           onClubSelect={handleClubSelect}
           onBack={goBackToSportSelection}
           clubesRegistrados={clubesRegistrados}
-          clubesEstaticos={clubes}
+          clubesEstaticos={clubesEstaticos}
         />
       </div>
     </Layout>

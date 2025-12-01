@@ -4,6 +4,20 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
 import './register.css';
 import Logo from './logo.jpg';
+import { deportes } from '../staticData';
+
+// Estructura de canchas predeterminadas por deporte
+const canchasPredeterminadas = {
+  1: [{ id: 1, nombre: "Fútbol 5", deporteId: 1 }], // Fútbol 5
+  2: [{ id: 2, nombre: "Fútbol 7", deporteId: 2 }], // Fútbol 7
+  3: [{ id: 3, nombre: "Fútbol 11", deporteId: 3 }], // Fútbol 11
+  4: [{ id: 4, nombre: "Tenis", deporteId: 4 }], // Tenis
+  5: [{ id: 5, nombre: "Vóley", deporteId: 5 }], // Vóley
+  6: [{ id: 6, nombre: "Pádel", deporteId: 6 }], // Pádel
+  7: [{ id: 7, nombre: "Natación", deporteId: 7 }], // Natación
+  8: [{ id: 8, nombre: "Golf", deporteId: 8 }], // Golf
+  9: [{ id: 9, nombre: "Básquet", deporteId: 9 }]  // Básquet
+};
 
 function Register({ onRegisterComplete, onCancelRegister }) {
 
@@ -19,7 +33,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
     ciudad: '',
     provincia: '',
     cp: '',
-    canchas: []
+    canchas: [] // Asegurarse de que canchas sea un array vacío por defecto
   });
 
   useEffect(() => {
@@ -34,16 +48,18 @@ function Register({ onRegisterComplete, onCancelRegister }) {
 
   const handleCanchaChange = (e) => {
     const { value, checked } = e.target;
+    // Convertir el valor a número ya que los IDs de los deportes son numéricos
+    const idNumerico = Number(value);
 
     if (checked) {
       setFormData({
         ...formData,
-        canchas: [...formData.canchas, value]
+        canchas: [...(formData.canchas || []), idNumerico]
       });
     } else {
       setFormData({
         ...formData,
-        canchas: formData.canchas.filter((c) => c !== value)
+        canchas: (formData.canchas || []).filter((c) => c !== idNumerico)
       });
     }
   };
@@ -51,27 +67,60 @@ function Register({ onRegisterComplete, onCancelRegister }) {
 const handleSubmit = (e) => {
   e.preventDefault();
 
-  const clubesGuardados = JSON.parse(localStorage.getItem("clubesRegistrados")) || [];
+  // Validar que las contraseñas coincidan
+  if (formData.password !== formData.confirmPassword) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Las contraseñas no coinciden.',
+    });
+    return;
+  }
 
-  const nuevoClub = {
-    ...formData,
-    tipo: "club" // <- importante, así lo diferenciás
-  };
+  try {
+    const clubesGuardados = JSON.parse(localStorage.getItem("clubesRegistrados")) || [];
 
-  clubesGuardados.push(nuevoClub);
+    // Generar canchas automáticamente basadas en deportes seleccionados
+    const canchasGeneradas = [];
+    const deportesUnicos = [...new Set(formData.canchas)]; // Evitar duplicados
+    
+    deportesUnicos.forEach(deporteId => {
+      if (canchasPredeterminadas[deporteId]) {
+        canchasGeneradas.push(...canchasPredeterminadas[deporteId]);
+      }
+    });
 
-  localStorage.setItem("clubesRegistrados", JSON.stringify(clubesGuardados));
+    // Crear el nuevo club con deportesIds y canchas
+    const nuevoClub = {
+      ...formData,
+      tipo: "club",
+      // Usar los deportes seleccionados como deportesIds
+      deportesIds: deportesUnicos,
+      // Agregar las canchas generadas
+      canchas: canchasGeneradas
+    };
 
-  if (onRegisterComplete) onRegisterComplete(nuevoClub);
+    clubesGuardados.push(nuevoClub);
 
-  Swal.fire({
-    title: "Registro completado",
-    text: "Ahora puede iniciar sesión con sus credenciales.",
-    icon: "success",
-    confirmButtonText: "Aceptar",
-  });
+    localStorage.setItem("clubesRegistrados", JSON.stringify(clubesGuardados));
+
+    if (onRegisterComplete) onRegisterComplete(nuevoClub);
+
+    Swal.fire({
+      title: "Registro completado",
+      text: "Ahora puede iniciar sesión con sus credenciales.",
+      icon: "success",
+      confirmButtonText: "Aceptar",
+    });
+  } catch (error) {
+    console.error("Error al registrar el club:", error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Hubo un error al registrar el club. Por favor, inténtelo de nuevo.',
+    });
+  }
 };
-
 
   return (
     <div className="register-container d-flex justify-content-center align-items-center vh-100">
@@ -186,27 +235,27 @@ const handleSubmit = (e) => {
               <h5 className="mb-3">Canchas que alquila</h5>
               <div className="row">
                 {[
-                  { id: "futbol5", label: "Fútbol 5" },
-                  { id: "futbol7", label: "Fútbol 7" },
-                  { id: "futbol11", label: "Fútbol 11" },
-                  { id: "basquet", label: "Básquet" },
-                  { id: "tenis", label: "Tenis" },
-                  { id: "voley", label: "Vóley" },
-                  { id: "padel", label: "Pádel" },
-                  { id: "natacion", label: "Natación" },
-                  { id: "golf", label: "Golf" }
+                  { id: 1, label: "Fútbol 5" },
+                  { id: 2, label: "Fútbol 7" },
+                  { id: 3, label: "Fútbol 11" },
+                  { id: 9, label: "Básquet" },
+                  { id: 4, label: "Tenis" },
+                  { id: 5, label: "Vóley" },
+                  { id: 6, label: "Pádel" },
+                  { id: 7, label: "Natación" },
+                  { id: 8, label: "Golf" }
                 ].map((cancha) => (
                   <div className="col-md-4 mb-2" key={cancha.id}>
                     <div className="form-check">
                       <input
                         className="form-check-input"
                         type="checkbox"
-                        id={cancha.id}
+                        id={`deporte-${cancha.id}`}
                         value={cancha.id}
-                        checked={formData.canchas.includes(cancha.id)}
+                        checked={(formData.canchas || []).includes(cancha.id)}
                         onChange={handleCanchaChange}
                       />
-                      <label className="form-check-label" htmlFor={cancha.id}>
+                      <label className="form-check-label" htmlFor={`deporte-${cancha.id}`}>
                         {cancha.label}
                       </label>
                     </div>
