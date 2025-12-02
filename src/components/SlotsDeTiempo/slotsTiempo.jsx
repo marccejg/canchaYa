@@ -9,7 +9,8 @@ const TimeSlots = ({ date, sport, club, onBack, onAddReserva, onReservaComplete 
   
   const horariosDisponibles = horarios.map(horario => {
     const clubTieneHorario = club.horariosDisponibles.includes(horario.id); //buscamos los horarios que el club tiene disponible
-    
+     const horariosDeClub = club.horariosDisponibles||[9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+     
     const reservado = horariosReservados.includes(horario.id); // verificamos si el horario esta disponible o no
     
     // Verificar si el horario está disponible en el día actual
@@ -46,7 +47,7 @@ const TimeSlots = ({ date, sport, club, onBack, onAddReserva, onReservaComplete 
       Swal.fire({
         title: 'Turno reservado',
         html: `<p><strong>Deporte:</strong> ${sport.nombre}</p>
-               <p><strong>Club:</strong> ${club.nombre}</p>
+               <p><strong>Club:</strong> ${club.razonSocial || club.nombre}</p>
                <p><strong>Fecha:</strong> ${date.toLocaleDateString('es-ES')}</p>
                <p><strong>Horario:</strong> ${horario.hora}</p>`,
         icon: 'success',
@@ -59,8 +60,8 @@ const TimeSlots = ({ date, sport, club, onBack, onAddReserva, onReservaComplete 
       if (onAddReserva) {    // Agregar la reserva al estado global
         onAddReserva({
           deporte: sport.nombre,
-          club: club.nombre,
-          fecha: date,
+          club: club.razonSocial || club.nombre,
+          fecha: date.toISOString(), // Guardar como string ISO para consistencia
           hora: horario.hora
         });
       }
@@ -76,7 +77,7 @@ const TimeSlots = ({ date, sport, club, onBack, onAddReserva, onReservaComplete 
     <div className="time-slots-container">
       <h2 className="time-slots-title">Horarios Disponibles</h2>
       <p className="time-slots-info"><strong>Deporte:</strong> {sport.nombre}</p>
-      <p className="time-slots-info"><strong>Club:</strong> {club.nombre}</p>
+      <p className="time-slots-info"><strong>Club:</strong> {club.razonSocial || club.nombre}</p>
       <p className="time-slots-info"><strong>Fecha:</strong> {date.toLocaleDateString('es-ES')}</p>
       
       <div className="time-slots-grid">

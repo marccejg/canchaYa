@@ -28,9 +28,10 @@ const Login = ({ onLogin, onRegister, onRegisterClub }) => {
         <form onSubmit={handleSubmit} className="login-form">
           {error && <p className="login-error">{error}</p>}
           <div className="login-form-group">
-            <label className="login-label">Usuario:</label>
+            <label className="login-label">Mail:</label>
             <input
               type="text"
+              placeholder="Mail registrado"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="login-input"
@@ -40,6 +41,7 @@ const Login = ({ onLogin, onRegister, onRegisterClub }) => {
             <label className="login-label">Contraseña:</label>
             <input
               type="password"
+              placeholder="tu contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="login-input"
