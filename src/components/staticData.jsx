@@ -74,14 +74,14 @@ export const clubesEstaticos = [
     nombre: 'La Barraca', 
     razonSocial: 'La Barraca',
     deportesIds: [1,2,6,4], 
-    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 2]
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
   },
   { 
       id: 7, 
     nombre: 'La Ola', 
     razonSocial: 'La Ola',
     deportesIds: [6,4], 
-    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 2]
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
   },
   { 
       id: 8, 
@@ -95,13 +95,13 @@ export const clubesEstaticos = [
     nombre: 'Padel total', 
     razonSocial: 'Padel total',
     deportesIds: [1], 
-    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 2]
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
   },
   { 
       id: 10, 
     nombre: 'Kiwi Padel', 
     razonSocial: 'Kiwi Padel',
     deportesIds: [4], 
-    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 2]
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
   }
 ];

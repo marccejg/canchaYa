@@ -9,7 +9,8 @@ const TimeSlots = ({ date, sport, club, onBack, onAddReserva, onReservaComplete 
   
   const horariosDisponibles = horarios.map(horario => {
     const clubTieneHorario = club.horariosDisponibles.includes(horario.id); //buscamos los horarios que el club tiene disponible
-    
+     const horariosDeClub = club.horariosDisponibles||[9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+     
     const reservado = horariosReservados.includes(horario.id); // verificamos si el horario esta disponible o no
     
     // Verificar si el horario está disponible en el día actual
