@@ -5,7 +5,7 @@ import Register from './components/register/registerClub';
 import RegisterUser from './components/register/registerUsuario';
 import SportSelector from './components/deportesSeleccion/SportSelector';
 import ClubSelector from './components/clubSeleccion/clubSelector';
-import ClubDashboard from './components/clubDashboard/ClubDashboard';
+import PanelDelClub from './components/panelDelClub/PanelDelClub';
 import Calendar from './components/calendario/calendario';
 import TimeSlots from './components/SlotsDeTiempo/slotsTiempo';
 import { clubesEstaticos } from './components/staticData';
@@ -252,6 +252,18 @@ function App() {
     setShowReservas(false);
     // Seleccionamos el deporte de la reserva original
     setSelectedSport({ nombre: reserva.deporte });
+    // Buscar y seleccionar el club de la reserva original
+    const clubOriginal = [...clubesRegistrados, ...clubesEstaticos].find(
+      club => {
+        const nombreClub = club.razonSocial || club.nombre;
+        return nombreClub === reserva.club;
+      }
+    );
+    if (clubOriginal) {
+      setSelectedClub(clubOriginal);
+    } else {
+      console.warn('No se encontró el club original:', reserva.club);
+    }
   };
 
 
@@ -395,8 +407,9 @@ function App() {
   if (isLoggedIn && currentUser && currentUser.tipo === 'club') {
     return (
       <Layout>
-        <ClubDashboard
+        <PanelDelClub
           club={currentUser}
+          reservas={reservas}
           onLogout={handleLogout}
           onBackToMain={() => {
             // permitir al club ir a la vista pública del sitio
@@ -553,7 +566,11 @@ function App() {
     );
   }
 
-  if (!selectedClub) {
+  // Verificar si estamos en modo de modificación
+  const reservaModificadaStr = localStorage.getItem('reservaAModificar');
+  const enModoModificacion = !!reservaModificadaStr;
+
+  if (!selectedClub && !enModoModificacion) {
     return (<Layout>
       <div className="app-container">
         <ClubSelector
@@ -562,6 +579,20 @@ function App() {
           onBack={goBackToSportSelection}
           clubesRegistrados={clubesRegistrados}
           clubesEstaticos={clubesEstaticos}
+        />
+      </div>
+    </Layout>
+    );
+  }
+
+  // Si estamos en modo modificación y ya tenemos el deporte pero no la fecha, continuar con el flujo
+  if (enModoModificacion && selectedSport && !selectedDate) {
+    // En modo de modificación, continuar directamente al calendario
+    return (<Layout>
+      <div className="app-container">
+        <Calendar
+          onDateSelect={handleDateSelect}
+          onBack={goBackToSportSelection}
         />
       </div>
     </Layout>

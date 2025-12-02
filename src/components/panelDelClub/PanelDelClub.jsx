@@ -20,7 +20,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas }) => {
           ) : (
             <div className="reservas-list">
               {reservasDelClub
-                .sort((a, b) => new Date(a.fecha) - new Date(b.fecha)) // Orden ascendente: más próximas primero
+                .sort((a, b) => new Date(a.fecha) - new Date(b.fecha)) // usamos el sort comparando fechas para ordenar cronológicamente!
                 .map((reserva, index) => {
                   // Formatear la fecha de manera segura
                   let fechaFormateada = 'Fecha inválida';
