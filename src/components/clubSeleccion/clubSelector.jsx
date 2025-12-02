@@ -36,7 +36,7 @@ const ClubSelector = ({ selectedSport, onClubSelect, onBack, clubesRegistrados})
 
   return (
     <div className="club-selector-container">
-      <h2 className="club-selector-title">Clubes disponibles para {selectedSport.nombre}</h2>
+      <h2 className="club-selector-title">Clubes disponibles para {selectedSport.razonSocial}</h2>
       <div className="club-selector-list">
         {clubesDelDeporte.map(club => (
           <button
@@ -44,7 +44,7 @@ const ClubSelector = ({ selectedSport, onClubSelect, onBack, clubesRegistrados})
             onClick={() => onClubSelect(club)}
             className="club-selector-item"
           >
-            {club.nombre}
+            {club.razonSocial}
           </button>
         ))}
       </div>
