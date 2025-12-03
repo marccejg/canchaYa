@@ -33,6 +33,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
     ciudad: '',
     provincia: '',
     cp: '',
+    imgClub: '',
     canchas: [] // Asegurarse de que canchas sea un array vacío por defecto
   });
 
@@ -231,6 +232,17 @@ const handleSubmit = (e) => {
                 <i className="bi bi-hash icon-inside"></i>
               </div>
             </div>
+
+  <div class="mb-3">
+    <label for="formFile" className="form-label">Adjuntar Logo</label>
+    <input 
+    className="form-control" 
+    type="file" 
+    id="imgClub"
+    value={formData.imgVlub}
+    onChange={handleChange}
+    />
+  </div>
 
             {/* Teléfono y Email */}
             <div className="row mb-3">

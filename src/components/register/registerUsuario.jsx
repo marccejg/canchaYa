@@ -224,7 +224,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
                   type="email"
                   className="form-control form-control-lg input-with-icon"
                   id="email"
-                  placeholder="Ej: club@gmail.com"
+                  placeholder="Ej: MiUsuario@gmail.com"
                   value={formData.email}
                   onChange={handleChange}
                   required
