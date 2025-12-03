@@ -1,17 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { horarios } from '../staticData';
 import './slotTiempo.css';
 
-const TimeSlots = ({ date, sport, club, onBack, onAddReserva, onReservaComplete }) => {  
+const TimeSlots = ({ date, sport, club, reservas, onBack, onAddReserva, onReservaComplete }) => {  
   const [horariosReservados, setHorariosReservados] = useState([]); // este maneja los estados de los horarios ya reservados
+
+  // Efecto para depurar las props
+  useEffect(() => {
+    console.log('Props recibidas en TimeSlots:', { date, sport, club, reservas });
+  }, [date, sport, club, reservas]);
 
   
   const horariosDisponibles = horarios.map(horario => {
-    const clubTieneHorario = club.horariosDisponibles.includes(horario.id); //buscamos los horarios que el club tiene disponible
-     const horariosDeClub = club.horariosDisponibles||[9,10,11,12,13,14,15,16,17,18,19,20,21,22];
-     
-    const reservado = horariosReservados.includes(horario.id); // verificamos si el horario esta disponible o no
+    const clubTieneHorario = club.horariosDisponibles.includes(horario.id);
+    const reservado = horariosReservados.includes(horario.id);
+    
+    // Verificar si el horario está ocupado por otra reserva en la misma fecha y club
+    let ocupadoPorReserva = false;
+    
+    if (reservas && reservas.length > 0 && date) {
+      const nombreClub = club.razonSocial || club.nombre;
+      const fechaSeleccionadaStr = date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+      
+      ocupadoPorReserva = reservas.some(reserva => {
+        if (!reserva.fecha || !reserva.hora || !reserva.club) return false;
+        
+        // Convertir la fecha de la reserva a formato YYYY-MM-DD
+        const fechaReserva = new Date(reserva.fecha);
+        const fechaReservaStr = fechaReserva.toISOString().split('T')[0];
+        
+        const mismoClub = reserva.club === nombreClub;
+        const mismaFecha = fechaReservaStr === fechaSeleccionadaStr;
+        const mismaHora = reserva.hora === horario.hora;
+        
+        const resultado = mismoClub && mismaFecha && mismaHora;
+        
+        if (resultado) {
+          console.log('Horario ocupado encontrado:', {
+            horario: horario.hora,
+            clubReserva: reserva.club,
+            clubActual: nombreClub,
+            fechaReserva: fechaReservaStr,
+            fechaActual: fechaSeleccionadaStr
+          });
+        }
+        
+        return resultado;
+      });
+    }
     
     // Verificar si el horario está disponible en el día actual
     let horarioDisponibleHoy = true;
@@ -23,21 +60,21 @@ const TimeSlots = ({ date, sport, club, onBack, onAddReserva, onReservaComplete 
     const fechaSeleccionada = new Date(date);
     fechaSeleccionada.setHours(0, 0, 0, 0);
     
-   
-    if (fechaSeleccionada.getTime() === hoy.getTime()) {  // Si es el día de hoy, verificar que el horario no haya pasado
+    if (fechaSeleccionada.getTime() === hoy.getTime()) {
       const horaActual = new Date().getHours();
       const [horaHorario] = horario.hora.split(':').map(Number);
       horarioDisponibleHoy = horaHorario > horaActual;
       horarioPasado = horaHorario <= horaActual;
     }
     
-    const disponible = clubTieneHorario && !reservado && horarioDisponibleHoy;
+    const disponible = clubTieneHorario && !reservado && !ocupadoPorReserva && horarioDisponibleHoy;
     
     return {
       ...horario,
       disponible,
       reservado,
-      horarioPasado // Agregamos esta propiedad para identificar horas pasadas
+      ocupado: ocupadoPorReserva,
+      horarioPasado
     };
   });
 
@@ -54,22 +91,22 @@ const TimeSlots = ({ date, sport, club, onBack, onAddReserva, onReservaComplete 
         confirmButtonText: 'Aceptar'
       });
       
-      setHorariosReservados([...horariosReservados, horario.id]);  // cambia el estado para marcar el horario como reservado
+      setHorariosReservados([...horariosReservados, horario.id]);
       
-     
-      if (onAddReserva) {    // Agregar la reserva al estado global
+      if (onAddReserva) {
         onAddReserva({
           deporte: sport.nombre,
           club: club.razonSocial || club.nombre,
-          fecha: date.toISOString(), // Guardar como string ISO para consistencia
+          fecha: date.toISOString(),
           hora: horario.hora
         });
       }
       
-     
-      if (onReservaComplete) {  // Redirigir a la página principal despues de seleccionar y confirmar el horario
+      if (onReservaComplete) {
         onReservaComplete();
       }
+    } else {
+      console.log('Intento de reservar horario no disponible:', horario);
     }
   };
 
@@ -88,13 +125,14 @@ const TimeSlots = ({ date, sport, club, onBack, onAddReserva, onReservaComplete 
             disabled={!slot.disponible}
             className={`time-slot-button 
               ${slot.reservado ? 'time-slot-reserved' : ''} 
+              ${slot.ocupado ? 'time-slot-occupied' : ''}
               ${slot.disponible ? 'time-slot-available' : ''} 
-              ${!slot.disponible && !slot.reservado ? 'time-slot-unavailable' : ''}
+              ${!slot.disponible && !slot.reservado && !slot.ocupado ? 'time-slot-unavailable' : ''}
               ${slot.horarioPasado ? 'time-slot-past' : ''}
               ${slot.disponible && !slot.horarioPasado ? 'time-slot-future' : ''}`}
           >
             {slot.hora}
-            {slot.reservado && ' ✓'}
+            {(slot.reservado || slot.ocupado) && ' ✓'}
           </button>
         ))}
       </div>

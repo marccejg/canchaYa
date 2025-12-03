@@ -618,6 +618,7 @@ function App() {
           date={selectedDate}
           sport={selectedSport}
           club={selectedClub}
+          reservas={reservas}
           onBack={goBackToDateSelection}
           onAddReserva={handleAddReserva}
           onReservaComplete={handleReservaComplete}
