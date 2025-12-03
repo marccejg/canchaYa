@@ -16,6 +16,7 @@ import Layout from './components/layout/layout';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import Inicio from './components/inicio/inicio.jsx';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -544,11 +545,7 @@ function App() {
   if (!isLoggedIn) {
     return (
       <div className="app-container">
-        <Login
-          onLogin={handleLogin}
-          onRegister={handleRegister}
-          onRegisterClub={handleRegisterClub}
-        />
+       <Inicio/>
       </div>
     );
   }
@@ -626,6 +623,7 @@ function App() {
           onReservaComplete={handleReservaComplete}
         />
       </div></Layout>
+
   );
 }
 
