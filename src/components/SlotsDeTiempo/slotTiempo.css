@@ -60,6 +60,12 @@
   cursor: not-allowed;
 }
 
+.time-slot-occupied {
+  background-color: #fd7e14; /* Naranja */
+  color: white;
+  cursor: not-allowed;
+}
+
 .time-slot-past {
   background-color: #f8d7da; /* Rojo claro */
   color: #721c24;

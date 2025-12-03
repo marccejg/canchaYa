@@ -9,6 +9,7 @@ import PanelDelClub from './components/panelDelClub/PanelDelClub';
 import Calendar from './components/calendario/calendario';
 import TimeSlots from './components/SlotsDeTiempo/slotsTiempo';
 import { clubesEstaticos } from './components/staticData';
+import CalendarView from './components/calendario/tarjetaCalendario.jsx'
 import Header from './components/header/header';
 import Footer from './components/footer/footer';
 import Layout from './components/layout/layout';
@@ -602,11 +603,12 @@ function App() {
   if (!selectedDate) {
     return (<Layout>
       <div className="app-container">
-        <Calendar
-          onDateSelect={handleDateSelect}
-          onBack={goBackToClubSelection}
-        />
-      </div>
+      <CalendarView 
+        club={selectedClub} 
+        onDateSelect={handleDateSelect}
+        onBack={goBackToClubSelection}
+      />
+    </div>
     </Layout>
     );
   }
@@ -618,6 +620,7 @@ function App() {
           date={selectedDate}
           sport={selectedSport}
           club={selectedClub}
+          reservas={reservas}
           onBack={goBackToDateSelection}
           onAddReserva={handleAddReserva}
           onReservaComplete={handleReservaComplete}

@@ -33,6 +33,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
     ciudad: '',
     provincia: '',
     cp: '',
+    imgClub: '',
     canchas: [] // Asegurarse de que canchas sea un array vacío por defecto
   });
 
@@ -79,6 +80,38 @@ const handleSubmit = (e) => {
 
   try {
     const clubesGuardados = JSON.parse(localStorage.getItem("clubesRegistrados")) || [];
+    const usuariosGuardados = JSON.parse(localStorage.getItem("usuariosRegistrados")) || [];
+    const todosLosRegistros = [...clubesGuardados, ...usuariosGuardados];
+
+    // Validar que email no esté duplicado
+    const emailExiste = todosLosRegistros.some(
+      item => item.email && item.email.toLowerCase() === formData.email.toLowerCase()
+    );
+
+    if (emailExiste) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Email registrado',
+        text: 'Este email ya está registrado en la plataforma.',
+        confirmButtonText: 'Entendido',
+      });
+      return;
+    }
+
+    // Validar que CUIT no esté duplicado
+    const cuitExiste = todosLosRegistros.some(
+      item => item.CUIT && item.CUIT === formData.CUIT
+    );
+
+    if (cuitExiste) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'CUIT registrado',
+        text: 'Este CUIT ya está registrado en la plataforma.',
+        confirmButtonText: 'Entendido',
+      });
+      return;
+    }
 
     // Generar canchas automáticamente basadas en deportes seleccionados
     const canchasGeneradas = [];
@@ -199,6 +232,17 @@ const handleSubmit = (e) => {
                 <i className="bi bi-hash icon-inside"></i>
               </div>
             </div>
+
+  <div class="mb-3">
+    <label for="formFile" className="form-label">Adjuntar Logo</label>
+    <input 
+    className="form-control" 
+    type="file" 
+    id="imgClub"
+    value={formData.imgVlub}
+    onChange={handleChange}
+    />
+  </div>
 
             {/* Teléfono y Email */}
             <div className="row mb-3">
