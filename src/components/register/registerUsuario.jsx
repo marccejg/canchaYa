@@ -50,8 +50,50 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
  const handleSubmit = (e) => {
   e.preventDefault();
 
-  // 1) Traer usuarios existentes
+  // Validar que las contraseñas coincidan
+  if (formData.password !== formData.confirmPassword) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Las contraseñas no coinciden.',
+    });
+    return;
+  }
+
+  // 1) Traer usuarios y clubes existentes
   const usuariosGuardados = JSON.parse(localStorage.getItem("usuariosRegistrados")) || [];
+  const clubesGuardados = JSON.parse(localStorage.getItem("clubesRegistrados")) || [];
+  const todosLosRegistros = [...usuariosGuardados, ...clubesGuardados];
+
+  // Validar que email no esté duplicado
+  const emailExiste = todosLosRegistros.some(
+    item => item.email && item.email.toLowerCase() === formData.email.toLowerCase()
+  );
+
+  if (emailExiste) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Email registrado',
+      text: 'Este email ya está registrado en la plataforma.',
+      confirmButtonText: 'Entendido',
+    });
+    return;
+  }
+
+  // Validar que CUIT/DNI no esté duplicado
+  const cuitDniExiste = todosLosRegistros.some(
+    item => item.CUIT && item.CUIT === formData.CUIT
+  );
+
+  if (cuitDniExiste) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'DNI/CUIT registrado',
+      text: 'Este DNI o CUIT ya está registrado en la plataforma.',
+      confirmButtonText: 'Entendido',
+    });
+    return;
+  }
 
   // 2) Crear nuevo usuario con tipo
   const nuevoUsuario = {
