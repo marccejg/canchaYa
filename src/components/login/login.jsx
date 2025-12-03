@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './login.css';
 import BannerVertical from '../bannerVertical/BannerVertical';
+import Layout from '../layout/layout';
 
 const Login = ({ onLogin, onRegister, onRegisterClub }) => {
   const [username, setUsername] = useState('');
@@ -19,10 +20,8 @@ const Login = ({ onLogin, onRegister, onRegisterClub }) => {
   };
 
   return (
+    <Layout>
     <div className="login-page-container">
-      <div className="banner-izquierda">
-        <BannerVertical imagen="https://picsum.photos/300/600?random=1" />
-      </div>
       <div className="login-container">
         <h2 className="login-title">Iniciar Sesión</h2>
         <form onSubmit={handleSubmit} className="login-form">
@@ -74,10 +73,8 @@ const Login = ({ onLogin, onRegister, onRegisterClub }) => {
           </div>
         </form>
       </div>
-      <div className="banner-derecha">
-        <BannerVertical imagen="https://picsum.photos/300/600?random=2" />
-      </div>
     </div>
+  </Layout>
   );
 };
 
