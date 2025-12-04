@@ -64,8 +64,10 @@ export const clubesEstaticos = [
     direccion : 'Av. Siempre Viva 123',
     descripcion: 'Barlay Padel es un club deportivo que ofrece instalaciones de primer nivel para la práctica de pádel. Ubicado en un entorno natural, es ideal para familias y deportistas de todas las edades.',
     deportesIds: [6], 
-    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
-  },
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+    email: 'barlay@gmail.com',
+    password: '123'
+    },
   { 
     id: 2, 
     nombre: 'Costa Sud', 
@@ -73,7 +75,9 @@ export const clubesEstaticos = [
         direccion : 'Av. Siempre Viva 123',
         descripcion: 'Costa Sud es un club deportivo que ofrece instalaciones de primer nivel para la práctica de fútbol, tenis y natación. Ubicado en un entorno natural, es ideal para familias y deportistas de todas las edades.',
     deportesIds: [1,2], 
-    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+    email: 'costasud@gmail.com',
+    password: '123'
   },
   { 
     id: 3, 
@@ -82,7 +86,9 @@ export const clubesEstaticos = [
         direccion : 'Av. Siempre Viva 123',
         descripcion: 'El Aurinegro es un club deportivo con una rica historia en la comunidad local. Ofrece instalaciones de alta calidad para la práctica de fútbol, tenis y natación. Con un ambiente familiar y acogedor, es el lugar perfecto para que los deportistas de todas las edades disfruten de su pasión por el deporte.',
     deportesIds: [1, 2, 3], 
-    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+    email: 'elaurinegro@gmail.com',
+    password: '123'
   },
   { 
     id: 4, 
@@ -91,7 +97,9 @@ export const clubesEstaticos = [
         direccion : 'Av. Siempre Viva 123',
         descripcion: 'El Bosque es un club deportivo que ofrece instalaciones de primer nivel para la práctica de fútbol, tenis y natación. Ubicado en un entorno natural, es ideal para familias y deportistas de todas las edades.',
     deportesIds: [1,2], 
-    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+    email: 'elbosque@gmail.com',
+    password: '123'
   },
   { 
     id: 5, 
@@ -100,7 +108,9 @@ export const clubesEstaticos = [
         direccion : 'Av. Siempre Viva 123',
         descripcion: 'Club especializado en futbol 5, con canchas de alta calidad y servicios para jugadores de todas las edades.',
     deportesIds: [1], 
-    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+    email: 'laacademia@gmail.com',
+    password: '123'
   },
   { 
       id: 6, 
@@ -109,7 +119,9 @@ export const clubesEstaticos = [
         direccion : 'Av. Siempre Viva 123',
     descripcion: 'Club multifuncional con canchas de futbol, tenis, padel y natacion para todas las edades.',
     deportesIds: [1,2,6,4], 
-    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 2]
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+    email: 'labarraca@gmail.com',
+    password: '123'
   },
   { 
       id: 7, 
@@ -118,8 +130,11 @@ export const clubesEstaticos = [
         direccion : 'Av. Siempre Viva 123',
         descripcion: 'Club deportivo con canchas de futbol, tenis y padel, ideal para toda la familia.',
     deportesIds: [6,4], 
-    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 2]
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+    email: 'laola@gmail.com',
+    password: '123'
   },
+  
   { 
       id: 8, 
     nombre: 'Lawn Tennis', 
@@ -127,7 +142,9 @@ export const clubesEstaticos = [
         direccion : 'Av. Siempre Viva 123',
     descripcion: 'Club de tenis y futbol con amplias canchas y servicios de primera calidad.',
     deportesIds: [1,2,4], 
-    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+    email: 'lawntennis@gmail.com',
+    password: '123'
   },
   { 
       id: 9, 
@@ -145,6 +162,8 @@ export const clubesEstaticos = [
         direccion : 'Av. Siempre Viva 123',
     descripcion: 'Club multifuncional con canchas de futbol, tenis, padel y natacion para todas las edades.',
     deportesIds: [4,6], 
-    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 2]
+    horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+    email: 'kiwipadel@gmail.com',
+    password: '123'
   }
 ];

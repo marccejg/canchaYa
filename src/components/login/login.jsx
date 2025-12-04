@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './login.css';
 import BannerVertical from '../bannerVertical/BannerVertical';
 import Layout from '../layout/layout';
-import { clubesEstaticos } from '../staticData';
+import { clubesEstaticos } from '../staticData';  
 
 const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
   const [username, setUsername] = useState('');
@@ -12,12 +12,10 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
   const [clubesRegistrados, setClubesRegistrados] = useState([]);
 
   // Cargar datos del localStorage al iniciar
-  // Cargar datos del localStorage al iniciar
   useEffect(() => {
-
     const storedUsuarios = JSON.parse(localStorage.getItem('usuariosRegistrados') || '[]');
     const storedClubes = JSON.parse(localStorage.getItem('clubesRegistrados') || '[]');
-    storedClubes.push(...clubesEstaticos); // Agregar clubes estáticos
+    
     setUsuarios(storedUsuarios);
     setClubesRegistrados(storedClubes);
   }, []);
@@ -39,14 +37,6 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
     if (clubEncontrado) {
       return { success: true, user: { ...clubEncontrado, tipo: 'club' } };
     }
-
-    // // Verificar credenciales en clubes estáticos para poder acceder con los clubes estaticos
-    // const clubEstaticoEncontrado = clubesEstaticos.find(
-    //   club => club.email === username && club.password === password
-    // );
-    // if (clubEstaticoEncontrado) {
-    //   return { success: true, user: { ...clubEstaticoEncontrado, tipo: 'club' } };
-    // }
 
     // Verificar credenciales en usuarios registrados
     const usuarioEncontrado = usuarios.find(
