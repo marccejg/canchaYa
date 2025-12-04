@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { deportes } from '../staticData';
 import './SportSelector.css';
 import futbol5 from "../imagenes/futbol5.png";
@@ -10,6 +10,7 @@ import voley from "../imagenes/voley.png";
 import padel from "../imagenes/padel.png";
 import natacion from "../imagenes/natacion.png";
 import golf from "../imagenes/golf.png";
+import Login from '../login/login';
 
 const sportImages = {
   "Futbol 5": futbol5,
@@ -22,7 +23,18 @@ const sportImages = {
   "Natacion": natacion,
   "Golf": golf
 };
-const inicio = ({ onSportSelect, onLogout, onShowReservas }) => {
+const inicio = ({ onSportSelect}) => {
+ const [mostrarOtroComponente, setMostrarOtroComponente] = useState(false);
+  const iniciarSesion = () => {
+    const valor = localStorage.getItem('isLoggedIn');
+    console.log(valor!=="true");
+    if (valor!=="true"){
+      return (setMostrarOtroComponente(true));
+    }
+  }
+  if (mostrarOtroComponente) {
+    return <Login />;
+  }else {
   return (
     <div className="sport-selector-container">
       <div className="sport-selector-header"> 
@@ -39,7 +51,8 @@ const inicio = ({ onSportSelect, onLogout, onShowReservas }) => {
         {deportes.map(sport => (
           <button
             key={sport.id}
-            onClick={() => onSportSelect(sport)}
+            onClick={() => iniciarSesion()}
+          
             className="sport-selector-item"
           > 
             <img
@@ -56,6 +69,6 @@ const inicio = ({ onSportSelect, onLogout, onShowReservas }) => {
   
   );
 };
-
+};
 
 export default inicio;

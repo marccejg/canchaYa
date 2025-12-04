@@ -19,7 +19,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import Inicio from './components/inicio/inicio.jsx';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const [showRegister, setShowRegister] = useState(false);
   const [showRegisterUser, setShowRegisterUser] = useState(false);
   const [showReservas, setShowReservas] = useState(false);
@@ -37,6 +37,7 @@ function App() {
     const storedUsuarios = JSON.parse(localStorage.getItem('usuariosRegistrados') || '[]');
     const storedClubes = JSON.parse(localStorage.getItem('clubesRegistrados') || '[]');
     const storedReservas = JSON.parse(localStorage.getItem('reservas') || '[]');
+    const isLogged = localStorage.setItem('isLoggedIn', "false");
 
     setUsuarios(storedUsuarios);
     setClubesRegistrados(storedClubes);
@@ -406,7 +407,7 @@ function App() {
   }
 
   // Si está logueado y es un club, mostrar su panel específico
-  if (isLoggedIn && currentUser && currentUser.tipo === 'club') {
+  if (localStorage.getItem('isLoggedIn') === "true" && currentUser && currentUser.tipo === 'club') {
     return (
       <Layout>
         <PanelDelClub
@@ -542,7 +543,7 @@ function App() {
   }
 
   // Mostrar el componente de login
-  if (!isLoggedIn) {
+  if (localStorage.getItem('isLoggedIn') !== "true") {
     return (
       <div className="app-container">
        <Inicio/>
