@@ -5,6 +5,8 @@ import Swal from 'sweetalert2';
 import './register.css';
 import Logo from './logo.jpg';
 import { deportes } from '../staticData';
+import { clubesEstaticos } from '../staticData';
+
 
 // Estructura de canchas predeterminadas por deporte
 const canchasPredeterminadas = {
@@ -79,7 +81,9 @@ const handleSubmit = (e) => {
   }
 
   try {
-    const clubesGuardados = JSON.parse(localStorage.getItem("clubesRegistrados")) || [];
+    const clubesDesdeStorage = JSON.parse(localStorage.getItem("clubesRegistrados")) || [];
+    // Combinar clubes estáticos con los guardados. Evita duplicados y facilita validaciones posteriores.
+    const clubesGuardados = [...clubesEstaticos, ...clubesDesdeStorage];
     const usuariosGuardados = JSON.parse(localStorage.getItem("usuariosRegistrados")) || [];
     const todosLosRegistros = [...clubesGuardados, ...usuariosGuardados];
 
@@ -113,7 +117,7 @@ const handleSubmit = (e) => {
       return;
     }
 
-    // Generar canchas automáticamente basadas en deportes seleccionados
+    // Generar las canchas
     const canchasGeneradas = [];
     const deportesUnicos = [...new Set(formData.canchas)]; // Evitar duplicados
     

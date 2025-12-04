@@ -144,7 +144,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
 
           {/* Título */}
           <div className="Titulo">
-            <h2 className="text-center titulo-principal">Software Para Clubes</h2>
+            <h2 className="text-center titulo-principal">Registro de Usuarios</h2>
             <h6 className="text-center mb-4 subtitulo-principal">
               Completa el siguiente formulario para formar parte de nuestra red de clubes.
             </h6>
