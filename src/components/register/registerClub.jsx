@@ -5,6 +5,8 @@ import Swal from 'sweetalert2';
 import './register.css';
 import Logo from './logo.jpg';
 import { deportes } from '../staticData';
+import { clubesEstaticos } from '../staticData';
+
 
 // Estructura de canchas predeterminadas por deporte
 const canchasPredeterminadas = {
@@ -79,6 +81,7 @@ const handleSubmit = (e) => {
   }
 
   try {
+    clubesGuardados = push(clubesEstaticos); // Agregado viernes para validacion mail clubes creados
     const clubesGuardados = JSON.parse(localStorage.getItem("clubesRegistrados")) || [];
     const usuariosGuardados = JSON.parse(localStorage.getItem("usuariosRegistrados")) || [];
     const todosLosRegistros = [...clubesGuardados, ...usuariosGuardados];
