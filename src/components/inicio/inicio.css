@@ -1,4 +1,15 @@
+
 /*estilo de botones en el index*/
+
+body {
+  background-image: url('backgroud1.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+height: 100vh;
+
+}
+
 
 .sport-selector-container {
   max-width: 960px; 

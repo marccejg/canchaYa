@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { deportes } from '../staticData';
-import './SportSelector.css';
+import './inicio.css';
 import futbol5 from "../imagenes/futbol5.png";
 /*import futbol7 from "../imagenes/handball.png";//esta va a ser f7 es para probar*/
 import futbol11 from "../imagenes/futbol11.png";
