@@ -13,9 +13,10 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
 
   // Cargar datos del localStorage al iniciar
   useEffect(() => {
+
     const storedUsuarios = JSON.parse(localStorage.getItem('usuariosRegistrados') || '[]');
     const storedClubes = JSON.parse(localStorage.getItem('clubesRegistrados') || '[]');
-    
+    storedClubes.push(...clubesEstaticos); // Agregar clubes estáticos
     setUsuarios(storedUsuarios);
     setClubesRegistrados(storedClubes);
   }, []);
