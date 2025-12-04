@@ -23,26 +23,22 @@ const sportImages = {
   "Natacion": natacion,
   "Golf": golf
 };
-const inicio = ({ onSportSelect}) => {
- const [mostrarOtroComponente, setMostrarOtroComponente] = useState(false);
-  const iniciarSesion = () => {
-    const valor = localStorage.getItem('isLoggedIn');
-    console.log(valor!=="true");
-    if (valor!=="true"){
-      return (setMostrarOtroComponente(true));
-    }
+
+const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
+  const [mostrarLogin, setMostrarLogin] = useState(false);
+
+  if (mostrarLogin) {
+    return <Login onLoginSuccess={onLoginSuccess} onRegister={onRegister} onRegisterClub={onRegisterClub} />;
   }
-  if (mostrarOtroComponente) {
-    return <Login />;
-  }else {
+
   return (
     <div className="sport-selector-container">
-      <div className="sport-selector-header"> 
+      <div className="sport-selector-header">
         <h1 className="sport-selector-title">
           Bienvenido a CanchasYA!
         </h1>
         <p className="sport-selector-subtitle">
-          Todos los deportes, todos los clubes al alcance de tus manos. 
+          Todos los deportes, todos los clubes al alcance de tus manos.
         </p>
       </div>
 
@@ -51,10 +47,9 @@ const inicio = ({ onSportSelect}) => {
         {deportes.map(sport => (
           <button
             key={sport.id}
-            onClick={() => iniciarSesion()}
-          
+            onClick={() => setMostrarLogin(true)}
             className="sport-selector-item"
-          > 
+          >
             <img
               src={sportImages[sport.nombre]}
               alt={sport.nombre}
@@ -64,11 +59,8 @@ const inicio = ({ onSportSelect}) => {
           </button>
         ))}
       </div>
-    
-        </div>
-  
+    </div>
   );
 };
-};
 
-export default inicio;
+export default Inicio;

@@ -1,20 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './login.css';
 import BannerVertical from '../bannerVertical/BannerVertical';
 import Layout from '../layout/layout';
 
-const Login = ({ onLogin, onRegister, onRegisterClub }) => {
+const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [usuarios, setUsuarios] = useState([]);
+  const [clubesRegistrados, setClubesRegistrados] = useState([]);
+
+  // Cargar datos del localStorage al iniciar
+  useEffect(() => {
+    const storedUsuarios = JSON.parse(localStorage.getItem('usuariosRegistrados') || '[]');
+    const storedClubes = JSON.parse(localStorage.getItem('clubesRegistrados') || '[]');
+    
+    setUsuarios(storedUsuarios);
+    setClubesRegistrados(storedClubes);
+  }, []);
+
+  const handleLogin = (username, password) => {
+    // Intentar validar contra usuario admin guardado (si existe) o contra credenciales por defecto
+    const savedUser = JSON.parse(localStorage.getItem('userData')) || JSON.parse(sessionStorage.getItem('userData')) || null;
+    const adminEmail = savedUser?.email ?? 'admin@admin.com';
+    const adminPassword = savedUser?.password ?? 'admin';
+
+    if (username === adminEmail && password === adminPassword) {
+      return { success: true, user: { email: adminEmail, tipo: 'admin' } };
+    }
+
+    // Verificar credenciales en clubes registrados primero (prioridad a clubs)
+    const clubEncontrado = clubesRegistrados.find(
+      club => (club.email === username || club.usuario === username) && club.password === password
+    );
+    if (clubEncontrado) {
+      return { success: true, user: { ...clubEncontrado, tipo: 'club' } };
+    }
+
+    // Verificar credenciales en usuarios registrados
+    const usuarioEncontrado = usuarios.find(
+      user => (user.email === username || user.usuario === username) && user.password === password
+    );
+    if (usuarioEncontrado) {
+      // Si accidentalmente un club quedó en usuarios, respetar su tipo
+      if (usuarioEncontrado.tipo === 'club') {
+        return { success: true, user: { ...usuarioEncontrado, tipo: 'club' } };
+      }
+
+      return { success: true, user: { ...usuarioEncontrado, tipo: 'usuario' } };
+    }
+
+    // Credenciales incorrectas
+    return { success: false };
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
     // Intentar login con las credenciales proporcionadas
-    const loginResult = onLogin(username, password);
+    const loginResult = handleLogin(username, password);
     
-    if (loginResult === false) {
+    if (loginResult.success) {
+      onLoginSuccess(loginResult.user);
+    } else {
       setError('Usuario o contraseña incorrectos');
     }
   };
@@ -74,7 +122,7 @@ const Login = ({ onLogin, onRegister, onRegisterClub }) => {
         </form>
       </div>
     </div>
-  </Layout>
+    </Layout>
   );
 };
 

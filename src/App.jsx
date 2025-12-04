@@ -30,6 +30,7 @@ function App() {
   const [reservas, setReservas] = useState([]);
   const [clubesRegistrados, setClubesRegistrados] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Cargar datos del localStorage al iniciar
   useEffect(() => {
@@ -37,11 +38,12 @@ function App() {
     const storedUsuarios = JSON.parse(localStorage.getItem('usuariosRegistrados') || '[]');
     const storedClubes = JSON.parse(localStorage.getItem('clubesRegistrados') || '[]');
     const storedReservas = JSON.parse(localStorage.getItem('reservas') || '[]');
-    const isLogged = localStorage.setItem('isLoggedIn', "false");
+    const isLogged = localStorage.getItem('isLoggedIn') === "true";
 
     setUsuarios(storedUsuarios);
     setClubesRegistrados(storedClubes);
     setReservas(storedReservas);
+    setIsLoggedIn(isLogged);
   }, []);
 
   // Guardar datos en localStorage cuando cambian
@@ -58,51 +60,14 @@ function App() {
     localStorage.setItem('clubesRegistrados', JSON.stringify(clubesRegistrados));
   }, [clubesRegistrados]);
 
-  const handleLogin = (username, password) => {
-    // Intentar validar contra usuario admin guardado (si existe) o contra credenciales por defecto
-    const savedUser = JSON.parse(localStorage.getItem('userData')) || JSON.parse(sessionStorage.getItem('userData')) || null;
-    const adminEmail = savedUser?.email ?? 'admin@admin.com';
-    const adminPassword = savedUser?.password ?? 'admin';
-
-    if (username === adminEmail && password === adminPassword) {
-      setIsLoggedIn(true);
-      setCurrentUser({ email: adminEmail, tipo: 'admin' });
-      return true;
-    }
-
-    // Verificar credenciales en clubes registrados primero (prioridad a clubs)
-    const clubEncontrado = clubesRegistrados.find(
-      club => (club.email === username || club.usuario === username) && club.password === password
-    );
-    if (clubEncontrado) {
-      setIsLoggedIn(true);
-      setCurrentUser({ ...clubEncontrado, tipo: 'club' });
-      return true;
-    }
-
-    // Verificar credenciales en usuarios registrados
-    const usuarioEncontrado = usuarios.find(
-      user => (user.email === username || user.usuario === username) && user.password === password
-    );
-    if (usuarioEncontrado) {
-      // Si accidentalmente un club quedó en usuarios, respetar su tipo
-      if (usuarioEncontrado.tipo === 'club') {
-        setIsLoggedIn(true);
-        setCurrentUser({ ...usuarioEncontrado, tipo: 'club' });
-        return true;
-      }
-
-      setIsLoggedIn(true);
-      // Asignar tipo 'usuario' para usuarios normales
-      setCurrentUser({ ...usuarioEncontrado, tipo: 'usuario' });
-      return true;
-    }
-
-    // Credenciales incorrectas
-    return false;
+  const handleLogin = (user) => {
+    localStorage.setItem('isLoggedIn', "true");
+    setIsLoggedIn(true);
+    setCurrentUser(user);
   };
 
   const handleLogout = () => {
+    localStorage.setItem('isLoggedIn', "false");
     setIsLoggedIn(false);
     setSelectedSport(null);
     setSelectedClub(null);
@@ -416,6 +381,7 @@ function App() {
           onLogout={handleLogout}
           onBackToMain={() => {
             // permitir al club ir a la vista pública del sitio
+            localStorage.setItem('isLoggedIn', "false");
             setIsLoggedIn(false);
             setCurrentUser(null);
           }}
@@ -542,16 +508,20 @@ function App() {
     );
   }
 
-  // Mostrar el componente de login
-  if (localStorage.getItem('isLoggedIn') !== "true") {
+  // Mostrar el componente de inicio (landing page) si no está logueado
+  if (!isLoggedIn && !selectedSport) {
     return (
       <div className="app-container">
-       <Inicio/>
+        <Inicio
+          onLoginSuccess={handleLogin}
+          onRegister={handleRegister}
+          onRegisterClub={handleRegisterClub}
+        />
       </div>
     );
   }
 
-  // Flujo después del login que ven los usuarios 
+  // Mostrar SportSelector después del login
   if (!selectedSport) {
     return (<Layout>
       <div className="app-container">
