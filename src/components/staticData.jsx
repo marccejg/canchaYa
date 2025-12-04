@@ -74,7 +74,7 @@ export const clubesEstaticos = [
     logoSrc: logosSrc['Costa Sud'],
         direccion : 'Mitre N° 1125, Tres Arroyos',
         descripcion: 'Club Atlético Costa Sud fundado en el año 1917, en primera instancia como un club de fútbol, para luego expandirse y comenzar a sumar deportes como natación, basquet, tennis, padel, voley, logrando consolidarse asi como uno de los clubes mas destacados de la ciudad.',
-    deportesIds: [1,2], 
+    deportesIds: [1,2,9,4,5,6,7,8], 
     horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
     email: 'costasud@gmail.com',
     password: '123'
@@ -118,7 +118,7 @@ export const clubesEstaticos = [
     logoSrc: logosSrc['La Barraca'],
         direccion : 'Humberto Primo N° 737, Tres Arroyos',
     descripcion: 'La Barraca es un centro deportivo que ofrece canchas de padel, futbol 5 y 7 y pileta de natación, pudiendo optar por clases o pileta libre. Es un centro de deportes que funciona en la ciudad desde el 12 de junio de 1933, siendo uno de los más antiguos de la ciudad.',
-    deportesIds: [1,2,6,4], 
+    deportesIds: [1,2,6,4,7], 
     horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
     email: 'labarraca@gmail.com',
     password: '123'
