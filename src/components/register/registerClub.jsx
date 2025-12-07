@@ -67,98 +67,107 @@ function Register({ onRegisterComplete, onCancelRegister }) {
     }
   };
 
-const handleSubmit = (e) => {
-  e.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  // Validar que las contraseñas coincidan
-  if (formData.password !== formData.confirmPassword) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Las contraseñas no coinciden.',
-    });
-    return;
-  }
-
-  try {
-    const clubesDesdeStorage = JSON.parse(localStorage.getItem("clubesRegistrados")) || [];
-    // Combinar clubes estáticos con los guardados. Evita duplicados y facilita validaciones posteriores.
-    const clubesGuardados = [...clubesEstaticos, ...clubesDesdeStorage];
-    const usuariosGuardados = JSON.parse(localStorage.getItem("usuariosRegistrados")) || [];
-    const todosLosRegistros = [...clubesGuardados, ...usuariosGuardados];
-
-    // Validar que email no esté duplicado
-    const emailExiste = todosLosRegistros.some(
-      item => item.email && item.email.toLowerCase() === formData.email.toLowerCase()
-    );
-
-    if (emailExiste) {
+    // Validar que las contraseñas coincidan
+    if (formData.password !== formData.confirmPassword) {
       Swal.fire({
-        icon: 'warning',
-        title: 'Email registrado',
-        text: 'Este email ya está registrado en la plataforma.',
-        confirmButtonText: 'Entendido',
+        icon: 'error',
+        title: 'Error',
+        text: 'Las contraseñas no coinciden.',
       });
       return;
     }
 
-    // Validar que CUIT no esté duplicado
-    const cuitExiste = todosLosRegistros.some(
-      item => item.CUIT && item.CUIT === formData.CUIT
-    );
 
-    if (cuitExiste) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'CUIT registrado',
-        text: 'Este CUIT ya está registrado en la plataforma.',
-        confirmButtonText: 'Entendido',
-      });
-      return;
-    }
+    try {
+      const clubesDesdeStorage = JSON.parse(localStorage.getItem("clubesRegistrados")) || [];
+      // Combinar clubes estáticos con los guardados. Evita duplicados y facilita validaciones posteriores.
+      const clubesGuardados = [...clubesEstaticos, ...clubesDesdeStorage];
+      const usuariosGuardados = JSON.parse(localStorage.getItem("usuariosRegistrados")) || [];
+      const todosLosRegistros = [...clubesGuardados, ...usuariosGuardados];
 
-    // Generar las canchas
-    const canchasGeneradas = [];
-    const deportesUnicos = [...new Set(formData.canchas)]; // Evitar duplicados
-    
-    deportesUnicos.forEach(deporteId => {
-      if (canchasPredeterminadas[deporteId]) {
-        canchasGeneradas.push(...canchasPredeterminadas[deporteId]);
+      // Validar que email no esté duplicado
+      const emailExiste = todosLosRegistros.some(
+        item => item.email && item.email.toLowerCase() === formData.email.toLowerCase()
+      );
+
+      if (emailExiste) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Email registrado',
+          text: 'Este email ya está registrado en la plataforma.',
+          confirmButtonText: 'Entendido',
+        });
+        return;
       }
-    });
+      //validar Formato de CUIT
+      if (formData.CUIT !== '' && !/^\d{2}-\d{8}-\d{1}$/.test(formData.CUIT)) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'El formato del CUIT es incorrecto. Debe ser XX-XXXXXXXX-X.',
+        });
+        return;
+      }
+      // Validar que CUIT no esté duplicado
+      const cuitExiste = todosLosRegistros.some(
+        item => item.CUIT && item.CUIT === formData.CUIT
+      );
 
-    // Crear el nuevo club con deportesIds y canchas
-    const nuevoClub = {
-      ...formData,
-      tipo: "club",
-      // Usar los deportes seleccionados como deportesIds
-      deportesIds: deportesUnicos,
-      // Agregar las canchas generadas
-      canchas: canchasGeneradas,
-      horariosDisponibles: [9,10,11,12,13,14,15,16,17,18,19,20,21,22]
-    };
-    
-    clubesGuardados.push(nuevoClub);
+      if (cuitExiste) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'CUIT registrado',
+          text: 'Este CUIT ya está registrado en la plataforma.',
+          confirmButtonText: 'Entendido',
+        });
+        return;
+      }
 
-    localStorage.setItem("clubesRegistrados", JSON.stringify(clubesGuardados));
+      // Generar las canchas
+      const canchasGeneradas = [];
+      const deportesUnicos = [...new Set(formData.canchas)]; // Evitar duplicados
 
-    if (onRegisterComplete) onRegisterComplete(nuevoClub);
+      deportesUnicos.forEach(deporteId => {
+        if (canchasPredeterminadas[deporteId]) {
+          canchasGeneradas.push(...canchasPredeterminadas[deporteId]);
+        }
+      });
 
-    Swal.fire({
-      title: "Registro completado",
-      text: "Ahora puede iniciar sesión con sus credenciales.",
-      icon: "success",
-      confirmButtonText: "Aceptar",
-    });
-  } catch (error) {
-    console.error("Error al registrar el club:", error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Hubo un error al registrar el club. Por favor, inténtelo de nuevo.',
-    });
-  }
-};
+      // Crear el nuevo club con deportesIds y canchas
+      const nuevoClub = {
+        ...formData,
+        tipo: "club",
+        // Usar los deportes seleccionados como deportesIds
+        deportesIds: deportesUnicos,
+        // Agregar las canchas generadas
+        canchas: canchasGeneradas,
+        horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+      };
+
+      clubesGuardados.push(nuevoClub);
+
+      localStorage.setItem("clubesRegistrados", JSON.stringify(clubesGuardados));
+
+      if (onRegisterComplete) onRegisterComplete(nuevoClub);
+
+      Swal.fire({
+        title: "Registro completado",
+        text: "Ahora puede iniciar sesión con sus credenciales.",
+        icon: "success",
+        confirmButtonText: "Aceptar",
+      });
+    } catch (error) {
+      console.error("Error al registrar el club:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un error al registrar el club. Por favor, inténtelo de nuevo.',
+      });
+    }
+  };
 
   return (
     <div className="register-container d-flex justify-content-center align-items-center vh-100">
@@ -237,16 +246,16 @@ const handleSubmit = (e) => {
               </div>
             </div>
 
-  <div class="mb-3">
-    <label for="formFile" className="form-label">Adjuntar Logo</label>
-    <input 
-    className="form-control" 
-    type="file" 
-    id="imgClub"
-    value={formData.imgVlub}
-    onChange={handleChange}
-    />
-  </div>
+            <div class="mb-3">
+              <label for="formFile" className="form-label">Adjuntar Logo</label>
+              <input
+                className="form-control"
+                type="file"
+                id="imgClub"
+                value={formData.imgVlub}
+                onChange={handleChange}
+              />
+            </div>
 
             {/* Teléfono y Email */}
             <div className="row mb-3">

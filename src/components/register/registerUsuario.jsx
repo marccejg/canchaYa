@@ -79,8 +79,20 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     });
     return;
   }
-
-  // Validar que CUIT/DNI no esté duplicado
+      //validar Formato de DNI
+      if (formData.CUIT !== '' &&  !/^\d{7,8}$/.test(formData.DNI)){
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'El formato del DNI es incorrecto. Debe ser Ej: 25854862',
+        });
+        return;
+      }
+      // Validar que el DNI no esté duplicado
+      const dniExiste = todosLosRegistros.some(
+        item => item.DNI && item.DNI === formData.DNI
+      );
+  // Validar que DNIno esté duplicado
   const cuitDniExiste = todosLosRegistros.some(
     item => item.CUIT && item.CUIT === formData.CUIT
   );
