@@ -12,9 +12,9 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas }) => {
         <h2 className='titulo'>Panel del Club</h2>
       <div className="panel-club-content">
         <div className="panel-club-info">
-        <p><strong>Club:</strong> {club?.razonSocial || club?.nombre || club?.email}</p>
-        <p><strong>Email:</strong> {club?.email}</p>
-        <p><strong>Dirección:</strong> {club.direccion||`Av. siempreviva 742`}</p>
+        <p><strong>Club:</strong> {club?.razonSocial || club?.nombre || club?.email} <i class="bi bi-trophy"></i> </p>
+        <p><strong>Email:</strong> {club?.email} <i class="bi bi-envelope"></i></p>
+        <p><strong>Dirección:</strong> {club.direccion||`Av. siempreviva 742`} <i class="bi bi-map"></i></p>
         </div>
         <div className='panel-club-logo-container'>
           <img
@@ -24,7 +24,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas }) => {
           />
           </div>
         </div>
-      <p className="panel-club-descripcion">{club.descripcion||`Un espacio pensado para quienes buscan crecer, superarse y disfrutar en un entorno activo. Nuestro club ofrece instalaciones modernas, actividades variadas y un ambiente que impulsa el trabajo en equipo, la disciplina y el compañerismo. Tanto quienes recién comienzan como quienes buscan mejorar su rendimiento encuentran aquí un lugar donde formarse, entrenar y compartir experiencias. El objetivo es fomentar un estilo de vida saludable, promover valores positivos y brindar un punto de encuentro donde cada persona pueda desarrollar su potencial al máximo.`}</p>
+      <p className="panel-club-descripcion">{club.descripcion||`Un espacio pensado para quienes buscan crecer, superarse y disfrutar en un entorno activo. Nuestro club ofrece instalaciones modernas, actividades variadas y un ambiente que impulsa el trabajo en equipo, la disciplina y el compañerismo. Tanto quienes recién comienzan como quienes buscan mejorar su rendimiento encuentran aquí un lugar donde formarse, entrenar y compartir experiencias. El objetivo es fomentar un estilo de vida saludable, promover valores positivos y brindar un punto de encuentro donde cada persona pueda desarrollar su potencial al máximo.`} <i class="bi bi-book"></i></p>
         </div>
         <div className='panel-reservas'>
           <h3>Reservas Realizadas</h3>
