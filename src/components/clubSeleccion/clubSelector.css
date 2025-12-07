@@ -1,6 +1,7 @@
 .club-selector-container {
   max-width: 800px;
   margin: 0 auto;
+  
 }
 
 .club-selector-actions {
@@ -73,8 +74,9 @@
 .club-selector-title {
   padding: 30px;
   text-align: center;
-  color: #007bff;
+  color: #000000;
   margin-bottom: 30px;
+  margin:20px;
 }
 
 .club-selector-subtitle {
