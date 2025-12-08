@@ -1,4 +1,4 @@
- canchaYa   ---   Trabajo Final FullStack  --   https://drive.google.com/drive/folders/1ERLAKYx2MZ3ad8WySdDEEBkI0lSLMc78
+  canchaYa   ---   Trabajo Final FullStack  --   https://drive.google.com/drive/folders/1ERLAKYx2MZ3ad8WySdDEEBkI0lSLMc78
 
 
 CanchaYa - Plataforma de Reserva de Canchas Deportivas
@@ -99,19 +99,35 @@ Para levantar el entorno de desarrollo local y empezar a contribuir, sigue estos
     git clone [URL-DEL-REPOSITORIO]
     cd canchaya
     ```
-
-2.  Instalar dependencias: Se utiliza `npm` como gestor de paquetes.
+2.  Tener instalado Node.js o instalarlo para utilizar comandos npm
+    ```
+    Ve al sitio web oficial de Node.js: nodejs.org
+    ```
+3.  Instalar dependencias: Se utiliza `npm` como gestor de paquetes.
     ```consola bash
-    npm install
+    npm install @vitejs/plugin-react --save-dev
+    npm bootstrap bootstrap-icons 
+    npm sweetalert2 
+    npm react-router-dom
+
+    version en una linea ( npm install @vitejs/plugin-react --save-dev bootstrap bootstrap-icons sweetalert2 react-router-dom )
     ```
 
-3.  Ejecutar el servidor de desarrollo:
+4.  Ejecutar el servidor de desarrollo:
     ```consola bash
     npm run dev
     ```
 
-4.  Abrir la aplicación: Abre [http://localhost:(tu direccion local)) en tu navegador para ver la aplicación en funcionamiento.
----
+5.  Abrir la aplicación: Abre [http://localhost:(http://localhost:5173/) en tu navegador para ver la aplicación en funcionamiento.
+
+6.  Dependencias de desarrollo (Versiones):
+    "react": "^19.1.1",
+    "react-bootstrap": "^2.10.10",
+    "react-dom": "^19.1.1"
+    "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
+    "sweetalert2": "^11.26.3",
+    "vite": "^7.1.7"
 
  🗺️ Hoja de Ruta (Épicas de Desarrollo)
 
