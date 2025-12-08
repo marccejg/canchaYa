@@ -1,4 +1,12 @@
-  canchaYa   ---   Trabajo Final FullStack  --   https://drive.google.com/drive/folders/1ERLAKYx2MZ3ad8WySdDEEBkI0lSLMc78
+  canchaYa   ---   Trabajo Final FullStack  --   
+  
+  Google Drive https://drive.google.com/drive/folders/1ERLAKYx2MZ3ad8WySdDEEBkI0lSLMc78
+  Trello https://trello.com/b/abW2Uxqt/tp-final
+  Prezzi https://prezi.com/p/edit/l3mnsysrfyi0/ (Presentacion producto)
+  Redes Sociales producto : Gmail.com:  icanchas@gmail.com
+                            Instagram: www.instagram.com/canchasyaa
+                            Facebook: www.
+  
 
 
 CanchaYa - Plataforma de Reserva de Canchas Deportivas
