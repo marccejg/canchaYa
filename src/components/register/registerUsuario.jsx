@@ -80,7 +80,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     return;
   }
       //validar Formato de DNI
-      if (formData.CUIT !== '' &&  !/^\d{7,8}$/.test(formData.DNI)){
+      if (formData.DNI !== '' &&  !/^\d{7,8}$/.test(formData.CUIT)){
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -90,7 +90,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
       }
       // Validar que el DNI no esté duplicado
       const dniExiste = todosLosRegistros.some(
-        item => item.DNI && item.DNI === formData.DNI
+        item => item.CUIT && item.CUIT === formData.CUIT
       );
   // Validar que DNIno esté duplicado
   const cuitDniExiste = todosLosRegistros.some(
