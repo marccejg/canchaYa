@@ -6,11 +6,11 @@ import Footer from '../footer/footer';
 import './Layout.css';
 
 
-const Layout = ({ children, currentUser }) => {
+const Layout = ({ children }) => {
   return (
     <>
       <div className="app-layout">
-        <Header currentUser={currentUser} />
+        <Header />
 
         <div className="layout">
           <BannerVertical side="left" />

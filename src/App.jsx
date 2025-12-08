@@ -343,23 +343,10 @@ function App() {
     setSelectedDate(null);
   };
 
-  // Mostrar el componente de login
-  if (!isLoggedIn) {
-    return (
-      <div className="app-container">
-        <Login
-          onLoginSuccess={handleLogin}
-          onRegister={handleRegister}
-          onRegisterClub={handleRegisterClub}
-        />
-      </div>
-    );
-  }
-
   // Mostrar el componente de registro de club
   if (showRegister) {
     return (
-      <Layout currentUser={currentUser}>
+      <Layout>
         <div className="app-container">
           <Register
             onRegisterComplete={handleRegisterComplete}
@@ -373,7 +360,7 @@ function App() {
   // Mostrar el componente de registro de usuario
   if (showRegisterUser) {
     return (
-      <Layout currentUser={currentUser}>
+      <Layout>
         <div className="app-container">
           <RegisterUser
             onRegisterComplete={handleRegisterComplete}
@@ -387,7 +374,7 @@ function App() {
   // Si está logueado y es un club, mostrar su panel específico
   if (localStorage.getItem('isLoggedIn') === "true" && currentUser && currentUser.tipo === 'club') {
     return (
-      <Layout currentUser={currentUser}>
+      <Layout>
         <PanelDelClub
           club={currentUser}
           reservas={reservas}
@@ -407,7 +394,7 @@ function App() {
   if (showReservas) {
     console.log('Mostrando reservas:', reservas);
     return (
-      <Layout currentUser={currentUser}>
+      <Layout>
         <div className="app-container">
           <div className="panel-reservas">
               <h2 className="titulo">Mis Reservas</h2>
@@ -509,7 +496,8 @@ function App() {
                         </div>
                       </layout>
                     );
-                  })}
+                  })
+                }
               </div>
             )}
           </div>
@@ -518,9 +506,22 @@ function App() {
     );
   }
 
-  // Flujo después del login que ven los usuarios 
+  // Mostrar el componente de inicio (landing page) si no está logueado
+  if (!isLoggedIn && !selectedSport) {
+    return (
+      <div className="app-container">
+        <Inicio
+          onLoginSuccess={handleLogin}
+          onRegister={handleRegister}
+          onRegisterClub={handleRegisterClub}
+        />
+      </div>
+    );
+  }
+
+  // Mostrar SportSelector después del login
   if (!selectedSport) {
-    return (<Layout currentUser={currentUser}>
+    return (<Layout>
       <div className="app-container">
         <SportSelector
           onSportSelect={handleSportSelect}
@@ -537,7 +538,7 @@ function App() {
   const enModoModificacion = !!reservaModificadaStr;
 
   if (!selectedClub && !enModoModificacion) {
-    return (<Layout currentUser={currentUser}>
+    return (<Layout>
       <div className="app-container">
         <ClubSelector
           selectedSport={selectedSport}
@@ -554,7 +555,7 @@ function App() {
   // Si estamos en modo modificación y ya tenemos el deporte pero no la fecha, continuar con el flujo
   if (enModoModificacion && selectedSport && !selectedDate) {
     // En modo de modificación, continuar directamente al calendario
-    return (<Layout currentUser={currentUser}>
+    return (<Layout>
       <div className="app-container">
         <Calendar
           onDateSelect={handleDateSelect}
@@ -566,7 +567,7 @@ function App() {
   }
 
   if (!selectedDate) {
-    return (<Layout currentUser={currentUser}>
+    return (<Layout>
       <div className="app-container">
       <CalendarView 
         club={selectedClub} 
@@ -579,7 +580,7 @@ function App() {
   }
 
   return (
-    <Layout currentUser={currentUser}>
+    <Layout>
       <div className="app-container">
         <TimeSlots
           date={selectedDate}
@@ -590,8 +591,7 @@ function App() {
           onAddReserva={handleAddReserva}
           onReservaComplete={handleReservaComplete}
         />
-      </div>
-    </Layout>
+      </div></Layout>
 
   );
 }
