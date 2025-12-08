@@ -1,7 +1,7 @@
 import "./header.css";
 import logo from "./logo_blanco_720.png";
 
-export default function Header() {
+export default function Header({ currentUser }) {
     return (
     <header className="header-container">
 
@@ -37,17 +37,24 @@ export default function Header() {
         </a>
     </div>
 
-    {/*parte derecha(registrate aca)*/}
+    {/*parte derecha(muestra email de usuario logueado o registrate)*/}
     <div className="header-derecha">
-        <a
-        href="Mandar a seccion registro"
-        className="header-derecha-link"
-        target="_blank"
-        rel="noopener noreferrer"
-        >
-        <i className="bi bi-person"></i>
-        <span className="header-texto-derecha">Regístrate acá</span>
-        </a>
+        {currentUser ? (
+            <div className="header-derecha-link">
+                <i className="bi bi-person"></i>
+                <span className="header-texto-derecha">{currentUser.email || currentUser.usuario}</span>
+            </div>
+        ) : (
+            <a
+            href="Mandar a seccion registro"
+            className="header-derecha-link"
+            target="_blank"
+            rel="noopener noreferrer"
+            >
+            <i className="bi bi-person"></i>
+            <span className="header-texto-derecha">Regístrate acá</span>
+            </a>
+        )}
     </div>
 
     </header>
