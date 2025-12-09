@@ -28,7 +28,7 @@ export default function Header() {
         </a>
                 {/*Facebook*/}
         <a
-        href="https://www.instagram.com/canchasyaa/"
+        href="https://www.facebook.com/canchasyaa/"
         target="_blank"
         rel="noopener noreferrer"
         className="header-centro-link"
