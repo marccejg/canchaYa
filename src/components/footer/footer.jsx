@@ -40,7 +40,7 @@ export default function Footer() {
         <h3>Legal</h3>
         <ul>
         <li>     <a
-        href="https://www.linkejemplo.com"
+        href="https://www.argentina.gob.ar/terminos-y-condiciones"
         className="header-derecha-link"
         target="_blank"
         rel="noopener noreferrer"

@@ -28,7 +28,7 @@ export default function Header() {
         </a>
                 {/*Facebook*/}
         <a
-        href="https://www.instagram.com/canchasyaa/"
+        href="https://www.facebook.com/canchasyaa/"
         target="_blank"
         rel="noopener noreferrer"
         className="header-centro-link"
@@ -38,7 +38,7 @@ export default function Header() {
     </div>
 
     {/*parte derecha(registrate aca)*/}
-    <div className="header-derecha">
+    {/* <div className="header-derecha">
         <a
         href="Mandar a seccion registro"
         className="header-derecha-link"
@@ -48,7 +48,7 @@ export default function Header() {
         <i className="bi bi-person"></i>
         <span className="header-texto-derecha">Regístrate acá</span>
         </a>
-    </div>
+    </div> */}
 
     </header>
 );

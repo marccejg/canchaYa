@@ -21,12 +21,11 @@ const ClubSelector = ({ selectedSport, onClubSelect, onBack, clubesRegistrados})
             onClick={() => onClubSelect(club)}
             className="club-selector-item"
           >            <img
-              src={club.logoSrc}
+              src={club.logoSrc||`https://img.freepik.com/vector-premium/diseno-camiseta-deportiva-logotipo-deporte-deporte-muestra-triangulo-medio_856405-2413.jpg?semt=ais_hybrid&w=740&q=80`}
               alt={club.nombre}
               className="club-icon"
             />
-
-            {club.razonSocial}
+            {club.razonSocial||club.nombre}
           </button>
         ))}
       </div>

@@ -396,9 +396,8 @@ function App() {
     return (
       <Layout>
         <div className="app-container">
-          <div className="card">
-            <div className="nav-container">
-              <h2 className="nav-title">Mis Reservas</h2>
+          <div className="panel-reservas">
+              <h2 className="titulo">Mis Reservas</h2>
               <div className="nav-actions">
                 <button
                   onClick={handleHideReservas}
@@ -406,7 +405,6 @@ function App() {
                 >
                   Volver
                 </button>
-              </div>
             </div>
 
 
@@ -424,7 +422,7 @@ function App() {
                       return (<layout>
                         <div
                           key={index}
-                          className="card"
+                          className="card mb-3 p-3"
                         >
                           <p><strong>Reserva inválida:</strong> Datos incompletos</p>
                         </div>
@@ -447,7 +445,7 @@ function App() {
                       <layout>
                         <div
                           key={reserva.id || index}
-                          className="card"
+                          className="card mb-3 p-3"
                         >
                           <p><strong>Deporte:</strong> {reserva.deporte || 'No especificado'}</p>
                           <p><strong>Club:</strong> {reserva.club || 'No especificado'}</p>

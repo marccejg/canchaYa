@@ -79,8 +79,20 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     });
     return;
   }
-
-  // Validar que CUIT/DNI no esté duplicado
+      //validar Formato de DNI
+      if (formData.DNI !== '' &&  !/^\d{7,8}$/.test(formData.CUIT)){
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'El formato del DNI es incorrecto. Debe ser Ej: 25854862',
+        });
+        return;
+      }
+      // Validar que el DNI no esté duplicado
+      const dniExiste = todosLosRegistros.some(
+        item => item.CUIT && item.CUIT === formData.CUIT
+      );
+  // Validar que DNIno esté duplicado
   const cuitDniExiste = todosLosRegistros.some(
     item => item.CUIT && item.CUIT === formData.CUIT
   );
@@ -183,11 +195,11 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
               </div>
             </div>
 
-            {/* CUIT y Teléfono */}
+            {/* DNI y Teléfono */}
             <div className="row mb-3">
 
               <div className="col-md-6 position-relative">
-                <label htmlFor="CUIT" className="form-label">DNI / CUIT / CUIL</label>
+                <label htmlFor="CUIT" className="form-label">DNI</label>
                 <input
                   type="text"
                   className="form-control form-control-lg input-with-icon"
