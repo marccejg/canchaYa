@@ -113,12 +113,14 @@ Para levantar el entorno de desarrollo local y empezar a contribuir, sigue estos
     ```
 3.  Instalar dependencias: Se utiliza `npm` como gestor de paquetes.
     ```consola bash
+
     npm install @vitejs/plugin-react --save-dev
     npm bootstrap bootstrap-icons 
     npm sweetalert2 
     npm react-router-dom
 
     version en una linea ( npm install @vitejs/plugin-react --save-dev bootstrap bootstrap-icons sweetalert2 react-router-dom )
+
     ```
 
 4.  Ejecutar el servidor de desarrollo:
