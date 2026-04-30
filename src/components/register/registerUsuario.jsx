@@ -10,7 +10,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
-    CUIT: '',
+    DNI: '',
     telefono: '',
     email: '',
     password: '',
@@ -47,53 +47,87 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     }
   };
 
- const handleSubmit = (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  // 1) Traer usuarios existentes
-  const usuariosGuardados = JSON.parse(localStorage.getItem("usuariosRegistrados")) || [];
+    // Validaciones básicas
+    if (formData.password !== formData.confirmPassword) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Las contraseñas no coinciden.',
+      });
+      return;
+    }
 
-  // 2) Crear nuevo usuario con tipo
-  const nuevoUsuario = {
-    ...formData,
-    tipo: "usuario"
+    if (!/^\d{7,8}$/.test(formData.DNI)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'El DNI debe tener 7 u 8 números.',
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:3000/usuario", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre_usuario: formData.nombre,
+          apellido_usuario: formData.apellido,
+          email_usuario: formData.email,
+          dni_usuario: formData.DNI,
+          password_usuario: formData.password,
+          telefono_usuario: formData.telefono,
+          ciudad_usuario: formData.ciudad,
+          provincia_usuario: formData.provincia,
+          cp_usuario: formData.cp,
+          canchas_usuario: formData.canchas
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Error al registrar");
+      }
+
+      Swal.fire({
+        title: "Registro completado",
+        text: "Ahora puede iniciar sesión con sus credenciales.",
+        icon: "success",
+        confirmButtonText: "Aceptar",
+      });
+
+      if (onRegisterComplete) {
+        onRegisterComplete(data);
+      }
+
+      setFormData({
+        nombre: '',
+        apellido: '',
+        DNI: '',
+        telefono: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        ciudad: '',
+        provincia: '',
+        cp: '',
+        canchas: []
+      });
+
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message,
+      });
+    }
   };
-
-  // 3) Guardar dentro del array
-  usuariosGuardados.push(nuevoUsuario);
-
-  // 4) Guardar en localStorage
-  localStorage.setItem("usuariosRegistrados", JSON.stringify(usuariosGuardados));
-
-  // 5) Notificar al componente padre
-  if (onRegisterComplete) {
-    onRegisterComplete(nuevoUsuario);
-  }
-
-  // 6) Alerta
-  Swal.fire({
-    title: "Registro completado",
-    text: "Ahora puede iniciar sesión con sus credenciales.",
-    icon: "success",
-    confirmButtonText: "Aceptar",
-  });
-
-  // 7) Limpiar formulario
-  setFormData({
-    nombre: '',
-    apellido: '',
-    CUIT: '',
-    telefono: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    ciudad: '',
-    provincia: '',
-    cp: '',
-    canchas: []
-  });
-};
-
 
   return (
     <div className="register-container d-flex justify-content-center align-items-center vh-100">
@@ -102,7 +136,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
 
           {/* Título */}
           <div className="Titulo">
-            <h2 className="text-center titulo-principal">Software Para Clubes</h2>
+            <h2 className="text-center titulo-principal">Registro de Usuarios</h2>
             <h6 className="text-center mb-4 subtitulo-principal">
               Completa el siguiente formulario para formar parte de nuestra red de clubes.
             </h6>
@@ -141,17 +175,16 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
               </div>
             </div>
 
-            {/* CUIT y Teléfono */}
+            {/* DNI y Teléfono */}
             <div className="row mb-3">
-
               <div className="col-md-6 position-relative">
-                <label htmlFor="CUIT" className="form-label">DNI / CUIT / CUIL</label>
+                <label htmlFor="DNI" className="form-label">DNI</label>
                 <input
                   type="text"
                   className="form-control form-control-lg input-with-icon"
-                  id="CUIT"
+                  id="DNI"
                   placeholder="27234567"
-                  value={formData.CUIT}
+                  value={formData.DNI}
                   onChange={handleChange}
                   required
                 />
@@ -171,7 +204,6 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
                 />
                 <i className="bi bi-telephone icon-inside"></i>
               </div>
-
             </div>
 
             {/* Email */}
@@ -182,7 +214,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
                   type="email"
                   className="form-control form-control-lg input-with-icon"
                   id="email"
-                  placeholder="Ej: club@gmail.com"
+                  placeholder="Ej: MiUsuario@gmail.com"
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -192,7 +224,6 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
             </div>
 
             {/* Canchas */}
-            {/* Canchas que alquila */}
             <div className="card-canchas p-3 mb-3">
               <h5 className="mb-3">Canchas de interes</h5>
               <div className="row">
@@ -304,25 +335,18 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
 
             {/* Acepto términos */}
             <div className="form-check mb-4">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="invalidCheck2"
-                required
-              />
-              <label className="form-check-label" htmlFor="invalidCheck2">
+              <input className="form-check-input" type="checkbox" required />
+              <label className="form-check-label">
                 Acepto términos y condiciones
               </label>
             </div>
 
-            {/* Botón enviar */}
             <button className="btn btn-primary btn-lg w-100" type="submit">
               Enviar Formulario
             </button>
 
           </form>
 
-          {/* Botón volver */}
           <button
             className="btn btn-primary btn-lg w-100 mt-3"
             onClick={onCancelRegister}
@@ -330,17 +354,11 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
             Volver al Login
           </button>
 
-          {/* Pie */}
-
           <h5 className="text-center mb-1 mt-3 ">
             Gracias por interesarse en{' '}
-            <img
-              src={Logo}
-              alt="Logo"
-              width="210"
-              style={{ verticalAlign: 'middle', marginLeft: '8px' }}
-            />
+            <img src={Logo} alt="Logo" width="210" style={{ marginLeft: '8px' }} />
           </h5>
+
         </div>
       </div>
     </div>
