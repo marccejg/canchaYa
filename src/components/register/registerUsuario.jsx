@@ -50,62 +50,8 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
  const handleSubmit = (e) => {
   e.preventDefault();
 
-  // Validar que las contraseñas coincidan
-  if (formData.password !== formData.confirmPassword) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Las contraseñas no coinciden.',
-    });
-    return;
-  }
-
-  // 1) Traer usuarios y clubes existentes
+  // 1) Traer usuarios existentes
   const usuariosGuardados = JSON.parse(localStorage.getItem("usuariosRegistrados")) || [];
-  const clubesGuardados = JSON.parse(localStorage.getItem("clubesRegistrados")) || [];
-  const todosLosRegistros = [...usuariosGuardados, ...clubesGuardados];
-
-  // Validar que email no esté duplicado
-  const emailExiste = todosLosRegistros.some(
-    item => item.email && item.email.toLowerCase() === formData.email.toLowerCase()
-  );
-
-  if (emailExiste) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Email registrado',
-      text: 'Este email ya está registrado en la plataforma.',
-      confirmButtonText: 'Entendido',
-    });
-    return;
-  }
-      //validar Formato de DNI
-      if (formData.DNI !== '' &&  !/^\d{7,8}$/.test(formData.CUIT)){
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'El formato del DNI es incorrecto. Debe ser Ej: 25854862',
-        });
-        return;
-      }
-      // Validar que el DNI no esté duplicado
-      const dniExiste = todosLosRegistros.some(
-        item => item.CUIT && item.CUIT === formData.CUIT
-      );
-  // Validar que DNIno esté duplicado
-  const cuitDniExiste = todosLosRegistros.some(
-    item => item.CUIT && item.CUIT === formData.CUIT
-  );
-
-  if (cuitDniExiste) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'DNI/CUIT registrado',
-      text: 'Este DNI o CUIT ya está registrado en la plataforma.',
-      confirmButtonText: 'Entendido',
-    });
-    return;
-  }
 
   // 2) Crear nuevo usuario con tipo
   const nuevoUsuario = {
@@ -156,7 +102,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
 
           {/* Título */}
           <div className="Titulo">
-            <h2 className="text-center titulo-principal">Registro de Usuarios</h2>
+            <h2 className="text-center titulo-principal">Software Para Clubes</h2>
             <h6 className="text-center mb-4 subtitulo-principal">
               Completa el siguiente formulario para formar parte de nuestra red de clubes.
             </h6>
@@ -195,11 +141,11 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
               </div>
             </div>
 
-            {/* DNI y Teléfono */}
+            {/* CUIT y Teléfono */}
             <div className="row mb-3">
 
               <div className="col-md-6 position-relative">
-                <label htmlFor="CUIT" className="form-label">DNI</label>
+                <label htmlFor="CUIT" className="form-label">DNI / CUIT / CUIL</label>
                 <input
                   type="text"
                   className="form-control form-control-lg input-with-icon"
@@ -236,7 +182,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
                   type="email"
                   className="form-control form-control-lg input-with-icon"
                   id="email"
-                  placeholder="Ej: MiUsuario@gmail.com"
+                  placeholder="Ej: club@gmail.com"
                   value={formData.email}
                   onChange={handleChange}
                   required
