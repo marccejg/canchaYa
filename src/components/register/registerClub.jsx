@@ -65,6 +65,10 @@ function Register({ onRegisterComplete, onCancelRegister }) {
       });
     }
 
+console.log('FORM DATA ANTES DE ENVIAR:', formData);
+console.log('CANCHAS SELECCIONADAS:', formData.canchas);
+
+
     try {
       const response = await fetch('http://localhost:3000/dueno-cancha/register', {
         method: 'POST',
@@ -82,6 +86,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
           provincia: formData.provincia,
           cp: formData.cp,
           cuit: formData.CUIT,
+           canchas: formData.canchas,
         }),
       });
 
