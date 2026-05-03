@@ -103,12 +103,18 @@ const ClubSelector = ({ selectedSport, onClubSelect, onBack }) => {
             >
               <img
                 src={
-                  club?.logo_club ||
-                  'https://img.freepik.com/vector-premium/diseno-camiseta-deportiva-logotipo-deporte-deporte-muestra-triangulo-medio_856405-2413.jpg?semt=ais_hybrid&w=740&q=80'
+                  club.logo_club
+                    ? `http://localhost:3000${club.logo_club}`
+                    : 'https://img.freepik.com/vector-premium/diseno-camiseta-deportiva-logotipo-deporte-deporte-muestra-triangulo-medio_856405-2413.jpg?semt=ais_hybrid&w=740&q=80'
                 }
-                alt={nombreClub}
+                alt={club.nombre_club}
                 className="club-icon"
-              />
+              
+
+              onError={(e) => {
+                e.currentTarget.src = 'https://img.freepik.com/vector-premium/diseno-camiseta-deportiva-logotipo-deporte-deporte-muestra-triangulo-medio_856405-2413.jpg?semt=ais_hybrid&w=740&q=80';
+              }}
+                />
 
               <div>
                 <strong>{nombreClub}</strong>

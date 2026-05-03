@@ -7,27 +7,28 @@ import Logo from './logo.jpg';
 
 function Register({ onRegisterComplete, onCancelRegister }) {
   const [formData, setFormData] = useState({
-  nombre: '',
-  apellido: '',
-  razonSocial: '',
-  CUIT: '',
-  telefono: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
-  ciudad: '',
-  provincia: '',
-  cp: '',
-  imgClub: '',
-  canchas: [],
-});
+    nombre: '',
+    apellido: '',
+    razonSocial: '',
+    CUIT: '',
+    telefono: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    ciudad: '',
+    provincia: '',
+    cp: '',
+    imgClub: '',
+    logo: null,
+    canchas: [],
+  });
 
   const handleChange = (e) => {
-    const { id, value } = e.target;
+    const { id, value, files, type } = e.target;
 
     setFormData((prev) => ({
       ...prev,
-      [id]: value,
+      [id]: type === 'file' ? files[0] : value,
     }));
   };
 
@@ -65,35 +66,38 @@ function Register({ onRegisterComplete, onCancelRegister }) {
       });
     }
 
-console.log('FORM DATA ANTES DE ENVIAR:', formData);
-console.log('CANCHAS SELECCIONADAS:', formData.canchas);
+    console.log('FORM DATA ANTES DE ENVIAR:', formData);
+    console.log('CANCHAS SELECCIONADAS:', formData.canchas);
 
 
     try {
+      const formDataToSend = new FormData();
+
+      formDataToSend.append('nombre', formData.nombre);
+      formDataToSend.append('apellido', formData.apellido);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('password', formData.password);
+      formDataToSend.append('telefono', formData.telefono);
+      formDataToSend.append('razonSocial', formData.razonSocial);
+      formDataToSend.append('ciudad', formData.ciudad);
+      formDataToSend.append('provincia', formData.provincia);
+      formDataToSend.append('cp', formData.cp);
+      formDataToSend.append('cuit', formData.CUIT);
+      formDataToSend.append('canchas', JSON.stringify(formData.canchas));
+
+      if (formData.logo) {
+        formDataToSend.append('logo', formData.logo);
+      }
+
       const response = await fetch('http://localhost:3000/dueno-cancha/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nombre: formData.nombre,
-          apellido: formData.apellido,
-          email: formData.email,
-          password: formData.password,
-          telefono: formData.telefono,
-          razonSocial: formData.razonSocial,
-          ciudad: formData.ciudad,
-          provincia: formData.provincia,
-          cp: formData.cp,
-          cuit: formData.CUIT,
-           canchas: formData.canchas,
-        }),
+        body: formDataToSend,
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Error al registrar el club.');
+        throw new Error(result.message || 'Error al registrar el club.');
       }
 
       Swal.fire({
@@ -120,7 +124,7 @@ console.log('CANCHAS SELECCIONADAS:', formData.canchas);
       });
 
       if (onRegisterComplete) {
-        onRegisterComplete(data);
+        onRegisterComplete(result);
       }
 
     } catch (error) {
@@ -269,6 +273,22 @@ console.log('CANCHAS SELECCIONADAS:', formData.canchas);
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            <div className="row mb-3">
+              <div className="col-md-12 position-relative">
+                <label htmlFor="logo" className="form-label">
+                  Adjuntar Logo
+                </label>
+
+                <input
+                  type="file"
+                  className="form-control form-control-lg"
+                  id="logo"
+                  accept="image/*"
+                  onChange={handleChange}
+                />
               </div>
             </div>
 
