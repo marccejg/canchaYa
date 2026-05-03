@@ -7,33 +7,48 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  const loginRequest = async (url) => {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: username,
+        password,
+      }),
+    });
+
+    const data = await response.json();
+
+    return {
+      ok: response.ok,
+      data,
+    };
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3000/dueno-cancha/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: username,
-          password,
-        }),
-      });
+      // 1. Intentar login como dueño de cancha
+      const duenoLogin = await loginRequest('http://localhost:3000/dueno-cancha/login');
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || 'Usuario o contraseña incorrectos');
+      if (duenoLogin.ok) {
+        onLoginSuccess(duenoLogin.data.user);
         return;
       }
 
-      onLoginSuccess({
-        ...data.user,
-        tipo: 'club',
-      });
+      // 2. Intentar login como usuario común
+      const usuarioLogin = await loginRequest('http://localhost:3000/usuario/login');
+
+      if (usuarioLogin.ok) {
+        onLoginSuccess(usuarioLogin.data.user);
+        return;
+      }
+
+      setError('Usuario o contraseña incorrectos');
 
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
