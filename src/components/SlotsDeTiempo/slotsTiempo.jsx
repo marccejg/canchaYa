@@ -3,148 +3,139 @@ import Swal from 'sweetalert2';
 import { horarios } from '../staticData';
 import './slotTiempo.css';
 
-const TimeSlots = ({ date, sport, club, reservas, onBack, onAddReserva, onReservaComplete }) => {  
-  const [horariosReservados, setHorariosReservados] = useState([]); // este maneja los estados de los horarios ya reservados
+const TimeSlots = ({
+  date,
+  sport,
+  club,
+  reservas = [],
+  onBack,
+  onAddReserva,
+  onReservaComplete,
+}) => {
+  const [horariosReservados, setHorariosReservados] = useState([]);
 
-  // Efecto para depurar las props
+  const nombreClub = club?.razonSocial || club?.nombre || 'Club';
+  const nombreDeporte = club?.deporte || sport?.nombre || 'Deporte';
+
+  const idCancha = club?.id_cancha; // 🔥 CLAVE
+
   useEffect(() => {
-    console.log('Props recibidas en TimeSlots:', { date, sport, club, reservas });
-  }, [date, sport, club, reservas]);
+    console.log('TimeSlots DATA:', { club, idCancha, reservas });
+  }, [club, reservas]);
 
-  
-  const horariosDisponibles = horarios.map(horario => {
-    const clubTieneHorario = club.horariosDisponibles.includes(horario.id);
-    const reservado = horariosReservados.includes(horario.id);
-    
-    // Verificar si el horario está ocupado por otra reserva en la misma fecha y club
+  const horariosDisponibles = horarios.map((horario) => {
+    const reservadoLocal = horariosReservados.includes(horario.id);
+
     let ocupadoPorReserva = false;
-    
-    if (reservas && reservas.length > 0 && date) {
-      const nombreClub = club.razonSocial || club.nombre;
-      const fechaSeleccionadaStr = date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
-      
-      ocupadoPorReserva = reservas.some(reserva => {
-        if (!reserva.fecha || !reserva.hora || !reserva.club) return false;
-        
-        // Convertir la fecha de la reserva a formato YYYY-MM-DD
-        const fechaReserva = new Date(reserva.fecha);
-        const fechaReservaStr = fechaReserva.toISOString().split('T')[0];
-        
-        const mismoClub = reserva.club === nombreClub;
+
+    if (reservas.length > 0 && date && idCancha) {
+      const fechaSeleccionadaStr = date.toISOString().split('T')[0];
+
+      ocupadoPorReserva = reservas.some((reserva) => {
+        if (!reserva.fecha || !reserva.hora) return false;
+
+        const fechaReservaStr = new Date(reserva.fecha)
+          .toISOString()
+          .split('T')[0];
+
+        const mismaCancha = reserva.id_cancha === idCancha;
         const mismaFecha = fechaReservaStr === fechaSeleccionadaStr;
         const mismaHora = reserva.hora === horario.hora;
-        
-        const resultado = mismoClub && mismaFecha && mismaHora;
-        
-        if (resultado) {
-          console.log('Horario ocupado encontrado:', {
-            horario: horario.hora,
-            clubReserva: reserva.club,
-            clubActual: nombreClub,
-            fechaReserva: fechaReservaStr,
-            fechaActual: fechaSeleccionadaStr
-          });
-        }
-        
-        return resultado;
+
+        return mismaCancha && mismaFecha && mismaHora;
       });
     }
-    
-    // Verificar si el horario está disponible en el día actual
+
+    // lógica horario pasado
     let horarioDisponibleHoy = true;
     let horarioPasado = false;
-    
+
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
-    
+
     const fechaSeleccionada = new Date(date);
     fechaSeleccionada.setHours(0, 0, 0, 0);
-    
+
     if (fechaSeleccionada.getTime() === hoy.getTime()) {
       const horaActual = new Date().getHours();
       const [horaHorario] = horario.hora.split(':').map(Number);
+
       horarioDisponibleHoy = horaHorario > horaActual;
       horarioPasado = horaHorario <= horaActual;
     }
-    
-    const disponible = clubTieneHorario && !reservado && !ocupadoPorReserva && horarioDisponibleHoy;
-    
+
+    const disponible =
+      !reservadoLocal &&
+      !ocupadoPorReserva &&
+      horarioDisponibleHoy;
+
     return {
       ...horario,
       disponible,
-      reservado,
       ocupado: ocupadoPorReserva,
-      horarioPasado
+      horarioPasado,
     };
   });
 
-  
   const handleReservarHorario = (horario) => {
-    if (horario.disponible) {
-      Swal.fire({
-        title: 'Turno reservado',
-        html: `<p><strong>Deporte:</strong> ${sport.nombre}</p>
-               <p><strong>Club:</strong> ${club.razonSocial || club.nombre}</p>
-               <p><strong>Fecha:</strong> ${date.toLocaleDateString('es-ES')}</p>
-               <p><strong>Horario:</strong> ${horario.hora}</p>`,
-        icon: 'success',
-        confirmButtonText: 'Aceptar'
+    if (!horario.disponible) return;
+
+    Swal.fire({
+      title: 'Turno reservado',
+      html: `
+        <p><strong>Cancha:</strong> ${club.nombre_cancha}</p>
+        <p><strong>Club:</strong> ${nombreClub}</p>
+        <p><strong>Fecha:</strong> ${date.toLocaleDateString('es-ES')}</p>
+        <p><strong>Horario:</strong> ${horario.hora}</p>
+      `,
+      icon: 'success',
+      confirmButtonText: 'Aceptar',
+    });
+
+    setHorariosReservados((prev) => [...prev, horario.id]);
+
+    if (onAddReserva) {
+      onAddReserva({
+        id_cancha: idCancha, // 🔥 ahora guardamos esto
+        nombre_cancha: club.nombre_cancha,
+        club: nombreClub,
+        deporte: nombreDeporte,
+        fecha: date.toISOString(),
+        hora: horario.hora,
       });
-      
-      setHorariosReservados([...horariosReservados, horario.id]);
-      
-      if (onAddReserva) {
-        onAddReserva({
-          deporte: sport.nombre,
-          club: club.razonSocial || club.nombre,
-          fecha: date.toISOString(),
-          hora: horario.hora
-        });
-      }
-      
-      if (onReservaComplete) {
-        onReservaComplete();
-      }
-    } else {
-      console.log('Intento de reservar horario no disponible:', horario);
+    }
+
+    if (onReservaComplete) {
+      onReservaComplete();
     }
   };
 
   return (
     <div className="time-slots-container">
       <h2 className="time-slots-title">Horarios Disponibles</h2>
-      <p className="time-slots-info"><strong>Deporte:</strong> {sport.nombre}</p>
-      <p className="time-slots-info"><strong>Club:</strong> {club.razonSocial || club.nombre}</p>
-      <p className="time-slots-info"><strong>Fecha:</strong> {date.toLocaleDateString('es-ES')}</p>
-      
+
+      <p><strong>Club:</strong> {nombreClub}</p>
+      <p><strong>Cancha:</strong> {club.nombre_cancha}</p>
+      <p><strong>Deporte:</strong> {nombreDeporte}</p>
+
       <div className="time-slots-grid">
-        {horariosDisponibles.map(slot => (
+        {horariosDisponibles.map((horario) => (
           <button
-            key={slot.id}
-            onClick={() => handleReservarHorario(slot)}
-            disabled={!slot.disponible}
-            className={`time-slot-button 
-              ${slot.reservado ? 'time-slot-reserved' : ''} 
-              ${slot.ocupado ? 'time-slot-occupied' : ''}
-              ${slot.disponible ? 'time-slot-available' : ''} 
-              ${!slot.disponible && !slot.reservado && !slot.ocupado ? 'time-slot-unavailable' : ''}
-              ${slot.horarioPasado ? 'time-slot-past' : ''}
-              ${slot.disponible && !slot.horarioPasado ? 'time-slot-future' : ''}`}
+            key={horario.id}
+            disabled={!horario.disponible}
+            onClick={() => handleReservarHorario(horario)}
+            className={`time-slot-btn ${
+              horario.disponible ? 'available' : 'occupied'
+            }`}
           >
-            {slot.hora}
-            {(slot.reservado || slot.ocupado) && ' ✓'}
+            {horario.hora}
           </button>
         ))}
       </div>
-      
-      <div className="time-slots-back-container">
-        <button
-          onClick={onBack}
-          className="time-slots-back-button"
-        >
-          Volver
-        </button>
-      </div>
+
+      <button onClick={onBack} className="back-button">
+        Volver
+      </button>
     </div>
   );
 };

@@ -1,60 +1,118 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './PanelDelClub.css';
 
 const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
+  const [canchas, setCanchas] = useState([]);
+
   const clubPrincipal = club?.club;
 
   const nombreClub =
     clubPrincipal?.nombre_club ||
     club?.razonSocial ||
-    club?.razon_social ||
     club?.nombre_club ||
     'Nombre del Club';
 
   const nombreDueno =
     club?.nombre ||
     club?.nombre_dueno ||
-    club?.dueno?.nombre_dueno ||
     'dueño';
 
-  const deportesSeleccionados =
-    clubPrincipal?.deportes_club ||
-    club?.deportes_club ||
-    club?.canchas ||
-    club?.deportes ||
-    [];
+  useEffect(() => {
+    const fetchCanchas = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3000/cancha/club/${clubPrincipal?.id_club}`
+        );
 
-  console.log('CLUB COMPLETO:', club);
-  console.log('CLUB PRINCIPAL:', clubPrincipal);
-  console.log('DEPORTES SELECCIONADOS:', deportesSeleccionados);
+        const data = await response.json();
+        setCanchas(data);
+      } catch (error) {
+        console.error('Error cargando canchas:', error);
+      }
+    };
 
-  const reservasDelClub = reservas.filter(
-    (reserva) => reserva.club === nombreClub
+    if (clubPrincipal?.id_club) {
+      fetchCanchas();
+    }
+  }, [clubPrincipal?.id_club]);
+
+  const normalizarFecha = (fecha) => {
+    const date = new Date(fecha);
+    if (isNaN(date.getTime())) return null;
+    return date.toISOString().split('T')[0];
+  };
+
+  const formatearFecha = (fecha) => {
+    const date = new Date(fecha);
+    if (isNaN(date.getTime())) return 'Fecha inválida';
+    return date.toLocaleDateString('es-ES');
+  };
+
+  const hoy = normalizarFecha(new Date());
+
+  const reservasDelClub = reservas.filter((reserva) => reserva.club === nombreClub);
+
+  const reservasDeHoy = reservasDelClub.filter(
+    (reserva) => normalizarFecha(reserva.fecha) === hoy
   );
 
   const imagenesPorDeporte = {
     'Fútbol 5': 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=500',
     'Fútbol 7': 'https://images.unsplash.com/photo-1459865264687-595d652de67e?w=500',
     'Fútbol 11': 'https://images.unsplash.com/photo-1556056504-5c7696c4c28d?w=500',
-    'Básquet': 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=500',
-    'Tenis': 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=500',
-    'Vóley': 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=500',
-    'Pádel': 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=500',
-    'Natación': 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=500',
-    'Golf': 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=500',
+    Básquet: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=500',
+    Tenis: 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=500',
+    Vóley: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=500',
+    Pádel: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=500',
+    Natación: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=500',
+    Golf: 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=500',
   };
 
-  const canchasDelClub = deportesSeleccionados.map((deporte, index) => ({
-    id: index + 1,
-    nombre: `Cancha ${index + 1}`,
-    deporte,
-    reservasHoy: 0,
-    proxima: 'Sin reservas',
-    ocupacion: 0,
-    img:
-      imagenesPorDeporte[deporte] ||
-      'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=400',
-  }));
+  const canchasProcesadas = canchas.map((cancha) => {
+    const nombreDeporte = cancha.deporte?.nombre_deporte || 'Deporte';
+
+    const reservasDeLaCancha = reservas.filter(
+      (reserva) => reserva.id_cancha === cancha.id_cancha
+    );
+
+    const reservasHoyDeLaCancha = reservasDeLaCancha.filter(
+      (reserva) => normalizarFecha(reserva.fecha) === hoy
+    );
+
+    const proximaReserva = reservasDeLaCancha
+      .filter((reserva) => {
+        const fecha = normalizarFecha(reserva.fecha);
+        return fecha && fecha >= hoy;
+      })
+      .sort((a, b) => {
+        const fechaA = new Date(`${normalizarFecha(a.fecha)}T${a.hora || '00:00'}`);
+        const fechaB = new Date(`${normalizarFecha(b.fecha)}T${b.hora || '00:00'}`);
+        return fechaA - fechaB;
+      })[0];
+
+    return {
+      ...cancha,
+      deporte: nombreDeporte,
+      reservasHoy: reservasHoyDeLaCancha.length,
+      proxima: proximaReserva
+        ? `${formatearFecha(proximaReserva.fecha)} - ${proximaReserva.hora}`
+        : 'Sin reservas',
+      img:
+        imagenesPorDeporte[nombreDeporte] ||
+        'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=500',
+    };
+  });
+
+  const reservasProximas = reservasDelClub
+    .filter((reserva) => {
+      const fecha = normalizarFecha(reserva.fecha);
+      return fecha && fecha >= hoy;
+    })
+    .sort((a, b) => {
+      const fechaA = new Date(`${normalizarFecha(a.fecha)}T${a.hora || '00:00'}`);
+      const fechaB = new Date(`${normalizarFecha(b.fecha)}T${b.hora || '00:00'}`);
+      return fechaA - fechaB;
+    });
 
   return (
     <div className="owner-dashboard">
@@ -82,8 +140,8 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
           </div>
           <div>
             <p>Canchas totales</p>
-            <h3>{canchasDelClub.length}</h3>
-            <span>{canchasDelClub.length} activas</span>
+            <h3>{canchasProcesadas.length}</h3>
+            <span>{canchasProcesadas.length} activas</span>
           </div>
         </div>
 
@@ -93,8 +151,12 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
           </div>
           <div>
             <p>Reservas hoy</p>
-            <h3>{reservasDelClub.length}</h3>
-            <span>Próxima reserva</span>
+            <h3>{reservasDeHoy.length}</h3>
+            <span>
+              {reservasDeHoy[0]
+                ? `Próxima: ${reservasDeHoy[0].hora}`
+                : 'Sin reservas hoy'}
+            </span>
           </div>
         </div>
 
@@ -103,8 +165,8 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             <i className="bi bi-people"></i>
           </div>
           <div>
-            <p>Reservas mañana</p>
-            <h3>0</h3>
+            <p>Reservas totales</p>
+            <h3>{reservasDelClub.length}</h3>
             <span>Total programadas</span>
           </div>
         </div>
@@ -122,21 +184,19 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
       </section>
 
       <section className="dashboard-main-grid">
-        <div className="dashboard-panel courts-panel">
+        <div className="dashboard-panel">
           <div className="panel-header">
             <h3>Canchas de tu club</h3>
           </div>
 
-          {canchasDelClub.length === 0 ? (
-            <p className="alert alert-info">
-              Este club todavía no tiene canchas/deportes cargados.
-            </p>
+          {canchasProcesadas.length === 0 ? (
+            <p className="alert alert-info">No hay canchas cargadas.</p>
           ) : (
-            canchasDelClub.map((cancha) => (
-              <div className="court-row" key={cancha.id}>
+            canchasProcesadas.map((cancha) => (
+              <div className="court-row" key={cancha.id_cancha}>
                 <img
                   src={cancha.img}
-                  alt={cancha.nombre}
+                  alt={cancha.nombre_cancha}
                   onError={(e) => {
                     e.currentTarget.src =
                       'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=500';
@@ -144,7 +204,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
                 />
 
                 <div className="court-info">
-                  <h4>{cancha.nombre}</h4>
+                  <h4>{cancha.nombre_cancha}</h4>
                   <p>{cancha.deporte}</p>
                   <span>Activa</span>
                 </div>
@@ -154,40 +214,28 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
                   <strong>{cancha.reservasHoy}</strong>
                   <small>Próxima: {cancha.proxima}</small>
                 </div>
-
-                <div className="occupation">
-                  <div className="occupation-circle">
-                    {cancha.ocupacion}%
-                    <small>ocupación</small>
-                  </div>
-                </div>
-
-                <i className="bi bi-chevron-right court-arrow"></i>
               </div>
             ))
           )}
         </div>
 
-        <div className="dashboard-panel reservations-panel">
+        <div className="dashboard-panel">
           <div className="panel-header">
             <h3>Próximas reservas</h3>
             <button className="light-button">
-              Ver calendario
-              <i className="bi bi-calendar-event"></i>
+              Ver calendario <i className="bi bi-calendar-event"></i>
             </button>
           </div>
 
-          <div className="reservation-day">Hoy</div>
-
-          {reservasDelClub.length === 0 ? (
-            <p className="alert alert-info">No hay reservas todavía.</p>
+          {reservasProximas.length === 0 ? (
+            <p className="alert alert-info">No hay próximas reservas.</p>
           ) : (
-            reservasDelClub.map((reserva, index) => (
+            reservasProximas.map((reserva, index) => (
               <div className="reservation-row" key={reserva.id || index}>
-                <span>{reserva.hora || 'Horario'}</span>
+                <span>{reserva.hora}</span>
                 <div>
-                  <strong>{reserva.deporte || 'Deporte'}</strong>
-                  <p>{reserva.nombre || reserva.usuario || 'Cliente'}</p>
+                  <strong>{reserva.deporte}</strong>
+                  <p>{formatearFecha(reserva.fecha)}</p>
                 </div>
                 <small className="confirmed">Confirmada</small>
               </div>
@@ -212,9 +260,18 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             <div className="donut"></div>
 
             <div className="status-list">
-              <p><span className="dot green-dot"></span>Confirmadas <strong>0%</strong></p>
-              <p><span className="dot yellow-dot"></span>Pendientes <strong>0%</strong></p>
-              <p><span className="dot gray-dot"></span>Canceladas <strong>0%</strong></p>
+              <p>
+                <span className="dot green-dot"></span>
+                Confirmadas <strong>{reservasDelClub.length > 0 ? '100%' : '0%'}</strong>
+              </p>
+              <p>
+                <span className="dot yellow-dot"></span>
+                Pendientes <strong>0%</strong>
+              </p>
+              <p>
+                <span className="dot gray-dot"></span>
+                Canceladas <strong>0%</strong>
+              </p>
               <h4>Total: {reservasDelClub.length} reservas</h4>
             </div>
           </div>
