@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Archivos de configuración
+package.json
+package-lock.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +26,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+package-lock.json
+package.json
+settings.json
+tsconfig.json
