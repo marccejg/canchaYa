@@ -9,7 +9,6 @@ function Register({ onRegisterComplete, onCancelRegister }) {
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
-    direccion:  'colon 600', 
     razonSocial: '',
     CUIT: '',
     telefono: '',
@@ -25,13 +24,12 @@ function Register({ onRegisterComplete, onCancelRegister }) {
   });
 
   const handleChange = (e) => {
-    const { id, value, files } = e.target;
+    const { id, value, files, type } = e.target;
 
-    if (id === "imgClub") {
-      setFormData({ ...formData, imgClub: files[0] });
-    } else {
-      setFormData({ ...formData, [id]: value });
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [id]: type === 'file' ? files[0] : value,
+    }));
   };
 
   const handleCanchaChange = (e) => {
@@ -68,52 +66,39 @@ function Register({ onRegisterComplete, onCancelRegister }) {
       });
     }
 
+    console.log('FORM DATA ANTES DE ENVIAR:', formData);
+    console.log('CANCHAS SELECCIONADAS:', formData.canchas);
+
+
     try {
-      // Generar canchas
-      const canchasGeneradas = [];
-      const deportesUnicos = [...new Set(formData.canchas)];
+      const formDataToSend = new FormData();
 
-      deportesUnicos.forEach(deporteId => {
-        if (canchasPredeterminadas[deporteId]) {
-          canchasGeneradas.push(...canchasPredeterminadas[deporteId]);
-        }
-      });
+      formDataToSend.append('nombre', formData.nombre);
+      formDataToSend.append('apellido', formData.apellido);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('password', formData.password);
+      formDataToSend.append('telefono', formData.telefono);
+      formDataToSend.append('razonSocial', formData.razonSocial);
+      formDataToSend.append('ciudad', formData.ciudad);
+      formDataToSend.append('provincia', formData.provincia);
+      formDataToSend.append('cp', formData.cp);
+      formDataToSend.append('cuit', formData.CUIT);
+      formDataToSend.append('canchas', JSON.stringify(formData.canchas));
 
-      // FETCH
-      const response = await fetch("http://localhost:3000/dueno-cancha", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nombre_dueno: formData.nombre,
-          apellido_dueno: formData.apellido,
-          email_dueno: formData.email,
-          cuit_dueno: formData.CUIT,
-          password_dueno: formData.password,
-          telefono_dueno: formData.telefono,
-          ciudad_dueno: formData.ciudad,
-          provincia_dueno: formData.provincia,
-          cp_dueno: formData.cp,
-          canchas_dueno: canchasGeneradas
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Error en el servidor");
+      if (formData.logo) {
+        formDataToSend.append('logo', formData.logo);
       }
 
-      const nuevoClub = {
-        ...formData,
-        tipo: "club",
-        deportesIds: deportesUnicos,
-        canchas: canchasGeneradas,
-        horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
-      };
+      const response = await fetch('http://localhost:3000/dueno-cancha/register', {
+        method: 'POST',
+        body: formDataToSend,
+      });
 
-      if (onRegisterComplete) onRegisterComplete(nuevoClub);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Error al registrar el club.');
+      }
 
       Swal.fire({
         title: 'Registro completado',
