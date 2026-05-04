@@ -12,6 +12,8 @@ import { clubesEstaticos } from './components/staticData';
 import CalendarView from './components/calendario/tarjetaCalendario.jsx';
 import Layout from './components/layout/layout';
 import Inicio from './components/inicio/inicio.jsx';
+import AdminLogin from './components/admin/AdminLogin';
+import AdminPanel from './components/admin/AdminPanel';
 
 
 import './App.css';
@@ -22,6 +24,7 @@ function App() {
   const [showRegister, setShowRegister] = useState(false);
   const [showRegisterUser, setShowRegisterUser] = useState(false);
   const [showReservas, setShowReservas] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
 
   const [selectedSport, setSelectedSport] = useState(null);
   const [selectedClub, setSelectedClub] = useState(null);
@@ -33,6 +36,7 @@ function App() {
 
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [adminUser, setAdminUser] = useState(null);
 
 
   useEffect(() => {
@@ -53,6 +57,15 @@ function App() {
     setShowReservas(false);
     setCurrentUser(null);
 
+  };
+
+  const handleAdminLogin = (admin) => {
+    setAdminUser(admin);
+    setShowAdminLogin(false);
+  };
+
+  const handleAdminLogout = () => {
+    setAdminUser(null);
   };
 
   const handleRegister = () => {
@@ -259,6 +272,26 @@ function App() {
     setSelectedDate(null);
   };
 
+  if (showAdminLogin) {
+    return (
+      <AdminLogin
+        onAdminLoginSuccess={handleAdminLogin}
+        onBackToMain={() => setShowAdminLogin(false)}
+      />
+    );
+  }
+
+  if (adminUser) {
+    return (
+      <AdminPanel
+        adminUser={adminUser}
+        onLogout={handleAdminLogout}
+        clubesRegistrados={clubesRegistrados}
+        setClubesRegistrados={setClubesRegistrados}
+      />
+    );
+  }
+
   if (showRegister) {
     return (
       <Layout>
@@ -402,6 +435,7 @@ function App() {
           onLoginSuccess={handleLogin}
           onRegister={handleRegister}
           onRegisterClub={handleRegisterClub}
+          onAdminLogin={() => setShowAdminLogin(true)}
         />
       </div>
     );

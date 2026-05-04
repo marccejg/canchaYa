@@ -1,8 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import './PanelDelClub.css';
+import { horarios } from '../staticData';
 
 const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   const [canchas, setCanchas] = useState([]);
+  const [showSettings, setShowSettings] = useState(false);
+  const [horariosDisponibles, setHorariosDisponibles] = useState(
+    horarios.map(h => h.id)
+  );
+  const [showAddCancha, setShowAddCancha] = useState(false);
+  const [newCancha, setNewCancha] = useState({
+    nombre: '',
+    deporte: '',
+    superficie: ''
+  });
 
   const clubPrincipal = club?.club;
 
@@ -35,6 +46,26 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
       fetchCanchas();
     }
   }, [clubPrincipal?.id_club]);
+
+  const toggleHorario = (horarioId) => {
+    setHorariosDisponibles(prev =>
+      prev.includes(horarioId)
+        ? prev.filter(id => id !== horarioId)
+        : [...prev, horarioId]
+    );
+  };
+
+  const handleAddCancha = (e) => {
+    e.preventDefault();
+    if (!newCancha.nombre || !newCancha.deporte) {
+      alert('Por favor completa los campos requeridos');
+      return;
+    }
+    // Aquí se agregará la cancha (por ahora solo simulamos)
+    alert(`Cancha "${newCancha.nombre}" agregada exitosamente`);
+    setNewCancha({ nombre: '', deporte: '', superficie: '' });
+    setShowAddCancha(false);
+  };
 
   const normalizarFecha = (fecha) => {
     const date = new Date(fecha);
@@ -127,11 +158,127 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
           <p>¡Hola {nombreDueno}!</p>
         </div>
 
-        <button className="date-button">
-          <i className="bi bi-calendar-event"></i>
-          Hoy
-        </button>
+        <div className="dashboard-header-actions">
+          <button 
+            className="settings-button"
+            onClick={() => setShowSettings(!showSettings)}
+            title="Configuración"
+          >
+            <i className="bi bi-gear"></i> Settings
+          </button>
+          <button className="date-button">
+            <i className="bi bi-calendar-event"></i>
+            Hoy
+          </button>
+        </div>
       </div>
+
+      {/* SETTINGS SECTION */}
+      {showSettings && (
+        <section className="settings-section">
+          <div className="settings-container">
+            <h2>Configuración del Club</h2>
+
+            {/* Selector de Horarios */}
+            <div className="settings-box">
+              <h3>Selecciona tus horarios disponibles</h3>
+              <p className="settings-description">
+                Elige en qué horas tu club estará disponible para reservas
+              </p>
+              <div className="horarios-grid">
+                {horarios.map(horario => (
+                  <label key={horario.id} className="horario-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={horariosDisponibles.includes(horario.id)}
+                      onChange={() => toggleHorario(horario.id)}
+                    />
+                    <span className="horario-label">{horario.hora}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Opción de Agregar Cancha */}
+            <div className="settings-box">
+              <h3>Gestionar canchas</h3>
+              {!showAddCancha ? (
+                <button 
+                  className="btn-add-cancha"
+                  onClick={() => setShowAddCancha(true)}
+                >
+                  <i className="bi bi-plus-circle"></i> Agregar nueva cancha
+                </button>
+              ) : (
+                <form onSubmit={handleAddCancha} className="add-cancha-form">
+                  <div className="form-group">
+                    <label>Nombre de la cancha:</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Cancha A, Cancha de Padel 1"
+                      value={newCancha.nombre}
+                      onChange={(e) => setNewCancha({...newCancha, nombre: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Deporte:</label>
+                    <select
+                      value={newCancha.deporte}
+                      onChange={(e) => setNewCancha({...newCancha, deporte: e.target.value})}
+                      required
+                    >
+                      <option value="">Selecciona un deporte</option>
+                      <option value="1">Futbol 5</option>
+                      <option value="2">Futbol 7</option>
+                      <option value="3">Futbol 11</option>
+                      <option value="4">Tenis</option>
+                      <option value="5">Voley</option>
+                      <option value="6">Padel</option>
+                      <option value="7">Natacion</option>
+                      <option value="8">Golf</option>
+                      <option value="9">Basquet</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Superficie (opcional):</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Cemento, Pasto sintético, etc"
+                      value={newCancha.superficie}
+                      onChange={(e) => setNewCancha({...newCancha, superficie: e.target.value})}
+                    />
+                  </div>
+                  <div className="form-actions">
+                    <button type="submit" className="btn-success">
+                      Agregar cancha
+                    </button>
+                    <button 
+                      type="button" 
+                      className="btn-cancel"
+                      onClick={() => setShowAddCancha(false)}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+
+            <div className="settings-actions">
+              <button 
+                className="btn-save-settings"
+                onClick={() => {
+                  setShowSettings(false);
+                  alert('Configuración guardada exitosamente');
+                }}
+              >
+                Guardar cambios
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="stats-grid">
         <div className="stat-card">

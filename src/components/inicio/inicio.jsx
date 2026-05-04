@@ -24,7 +24,7 @@ const sportImages = {
   "Golf": golf
 };
 
-const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
+const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub, onAdminLogin }) => {
   const [mostrarLogin, setMostrarLogin] = useState(false);
 
   if (mostrarLogin) {
@@ -33,6 +33,17 @@ const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
 
   return (
     <div className="sport-selector-container">
+      {/* Botón Admin en la esquina superior derecha */}
+      {onAdminLogin && (
+        <button
+          className="admin-access-btn"
+          onClick={onAdminLogin}
+          title="Acceso de Administrador"
+        >
+          <i className="bi bi-shield-lock"></i>
+        </button>
+      )}
+
       <div className="sport-selector-header">
         <h1 className="sport-selector-title">
           Bienvenido a CanchasYA!
