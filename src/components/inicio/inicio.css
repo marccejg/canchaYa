@@ -146,3 +146,34 @@ body {
   font-weight: 300;
   margin-bottom: 5px; 
 }
+
+/* Botón Admin */
+.admin-access-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #667eea;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.admin-access-btn:hover {
+  background-color: #5568d3;
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+}
+
+.admin-access-btn:active {
+  transform: scale(0.95);
+}
