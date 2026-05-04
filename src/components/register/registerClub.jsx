@@ -25,6 +25,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
+    direccion:  'colon 600', 
     razonSocial: '',
     CUIT: '',
     telefono: '',
@@ -43,15 +44,25 @@ function Register({ onRegisterComplete, onCancelRegister }) {
     if (savedData) setFormData(JSON.parse(savedData));
   }, []);
 
-  const handleChange = (e) => {
-    const { id, value, files } = e.target;
+const handleChange = (e) => {
+  const { id, value, files } = e.target;
 
-    if (id === "imgClub") {
-      setFormData({ ...formData, imgClub: files[0] });
-    } else {
-      setFormData({ ...formData, [id]: value });
-    }
-  };
+  if (id === "imgClub") {
+    const file = files[0];
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+
+    reader.onloadend = () => {
+      setFormData({
+        ...formData,
+        imgClub: reader.result, // ✅ ahora sí es base64
+      });
+    };
+  } else {
+    setFormData({ ...formData, [id]: value });
+  }
+};  
 
   const handleCanchaChange = (e) => {
     const value = parseInt(e.target.value);
@@ -97,7 +108,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
       });
 
       // FETCH
-      const response = await fetch("http://localhost:3000/dueno-cancha", {
+      let dueno = await fetch("http://localhost:3000/dueno-cancha", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -107,18 +118,40 @@ function Register({ onRegisterComplete, onCancelRegister }) {
           apellido_dueno: formData.apellido,
           email_dueno: formData.email,
           cuit_dueno: formData.CUIT,
+          //razon_social_dueno: formData.razonSocial,
+          //img_dueno: formData.imgClub,
           password_dueno: formData.password,
           telefono_dueno: formData.telefono,
           ciudad_dueno: formData.ciudad,
           provincia_dueno: formData.provincia,
           cp_dueno: formData.cp,
-          canchas_dueno: canchasGeneradas
+          //canchas_dueno: canchasGeneradas
+        }),
+      });
+      const club = await fetch("http://localhost:3000/club", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+
+          nombre_club: formData.razonSocial,
+          direccion_club: formData.direccion,
+          telefono_club: formData.telefono,
+          email_club: formData.email,
+          ciudad_club: formData.ciudad,
+          logo_club: formData.imgClub,
+
+          provincia_club: formData.provincia,
+          cp_club: formData.cp,
+
+    
         }),
       });
 
-      const data = await response.json();
+      const data = await club.json();
 
-      if (!response.ok) {
+      if (!club.ok) {
         throw new Error(data.message || "Error en el servidor");
       }
 
@@ -129,6 +162,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
         canchas: canchasGeneradas,
         horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
       };
+
 
       if (onRegisterComplete) onRegisterComplete(nuevoClub);
 
