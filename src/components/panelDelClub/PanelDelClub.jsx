@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './PanelDelClub.css';
 import { horarios } from '../staticData';
+import Swal from 'sweetalert2';
 
 const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   const [canchas, setCanchas] = useState([]);
@@ -10,9 +11,10 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   );
   const [showAddCancha, setShowAddCancha] = useState(false);
   const [newCancha, setNewCancha] = useState({
-    nombre: '',
-    deporte: '',
-    superficie: ''
+    'id_club': '',
+    'id_deporte': '',
+    'nombre_cancha': '',
+    'descripcion_cancha': '',
   });
 
   const clubPrincipal = club?.club;
@@ -55,17 +57,57 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     );
   };
 
-  const handleAddCancha = (e) => {
+  const handleAddCancha = async (e) => {
     e.preventDefault();
-    if (!newCancha.nombre || !newCancha.deporte) {
+    if (!newCancha.nombre_cancha || !newCancha.id_deporte) {
       alert('Por favor completa los campos requeridos');
       return;
     }
-    // Aquí se agregará la cancha (por ahora solo simulamos)
-    alert(`Cancha "${newCancha.nombre}" agregada exitosamente`);
-    setNewCancha({ nombre: '', deporte: '', superficie: '' });
-    setShowAddCancha(false);
+    try {
+      const formDataToSend = {
+          id_club:Number(clubPrincipal.id_club),
+          id_deporte:Number(newCancha.id_deporte),
+          nombre_cancha: newCancha.nombre_cancha,
+          descripcion_cancha: newCancha.descripcion_cancha,      
+      }
+
+
+      const response = await fetch('http://localhost:3000/cancha', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(formDataToSend),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Error al registrar la cancha.');
+      }
+
+      Swal.fire({
+        title: 'Registro completado',
+        text: 'La cancha fue creada correctamente.',
+        icon: 'success',
+        confirmButtonText: 'Aceptar',
+      });
+
+      setNewCancha({ nombre: '', deporte: '', superficie: '' });
+      setShowAddCancha(false);
+
+
+    } catch (error) {
+      console.error('Error al registrar:', error);
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Hubo un error al registrar la cancha.',
+      });
+    }
   };
+
 
   const normalizarFecha = (fecha) => {
     const date = new Date(fecha);
@@ -145,6 +187,8 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
       return fechaA - fechaB;
     });
 
+
+
   return (
     <div className="owner-dashboard">
       <div className="dashboard-header">
@@ -159,7 +203,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
         </div>
 
         <div className="dashboard-header-actions">
-          <button 
+          <button
             className="settings-button"
             onClick={() => setShowSettings(!showSettings)}
             title="Configuración"
@@ -203,7 +247,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             <div className="settings-box">
               <h3>Gestionar canchas</h3>
               {!showAddCancha ? (
-                <button 
+                <button
                   className="btn-add-cancha"
                   onClick={() => setShowAddCancha(true)}
                 >
@@ -216,16 +260,16 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
                     <input
                       type="text"
                       placeholder="Ej: Cancha A, Cancha de Padel 1"
-                      value={newCancha.nombre}
-                      onChange={(e) => setNewCancha({...newCancha, nombre: e.target.value})}
+                      value={newCancha.nombre_cancha}
+                      onChange={(e) => setNewCancha({ ...newCancha, nombre_cancha: e.target.value })}
                       required
                     />
                   </div>
                   <div className="form-group">
                     <label>Deporte:</label>
                     <select
-                      value={newCancha.deporte}
-                      onChange={(e) => setNewCancha({...newCancha, deporte: e.target.value})}
+                      value={newCancha.id_deporte}
+                      onChange={(e) => setNewCancha({ ...newCancha, id_deporte: e.target.value })}
                       required
                     >
                       <option value="">Selecciona un deporte</option>
@@ -245,16 +289,16 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
                     <input
                       type="text"
                       placeholder="Ej: Cemento, Pasto sintético, etc"
-                      value={newCancha.superficie}
-                      onChange={(e) => setNewCancha({...newCancha, superficie: e.target.value})}
+                      value={newCancha.descripcion_cancha}
+                      onChange={(e) => setNewCancha({ ...newCancha, descripcion_cancha: e.target.value })}
                     />
                   </div>
                   <div className="form-actions">
                     <button type="submit" className="btn-success">
                       Agregar cancha
                     </button>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="btn-cancel"
                       onClick={() => setShowAddCancha(false)}
                     >
@@ -266,7 +310,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             </div>
 
             <div className="settings-actions">
-              <button 
+              <button
                 className="btn-save-settings"
                 onClick={() => {
                   setShowSettings(false);
@@ -437,4 +481,5 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   );
 };
 
-export default PanelDelClub;
+
+  export default PanelDelClub;

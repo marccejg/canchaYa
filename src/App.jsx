@@ -32,7 +32,13 @@ function App() {
 
   const [usuarios, setUsuarios] = useState([]);
   const [reservas, setReservas] = useState([]);
-  const [clubesRegistrados, setClubesRegistrados] = useState([]);
+  const [clubesRegistrados, setClubesRegistrados] = useState([
+    { id: 1, nombre: 'Club1', razonSocial: 'Club1', aprobado: false, activo: false },
+    { id: 2, nombre: 'Club2', razonSocial: 'Club2', aprobado: false, activo: false },
+    { id: 3, nombre: 'Club3', razonSocial: 'Club3', aprobado: false, activo: false },
+    { id: 4, nombre: 'Club4', razonSocial: 'Club4', aprobado: false, activo: false },
+    { id: 5, nombre: 'Club5', razonSocial: 'Club5', aprobado: false, activo: false },
+  ]);
 
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
