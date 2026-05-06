@@ -14,8 +14,8 @@ import golfIcon from '../imagenes/golf.png';
 import futbol11Icon from '../imagenes/futbol11.png';
 
 /*
-  Datos mockeados del dashboard.
-  Más adelante estos datos deberían venir desde el backend.
+  Lista temporal de deportes.
+  Más adelante debería venir desde el backend con un GET /deportes.
 */
 const DEPORTES = [
   { id: 1, nombre: 'Fútbol 5', icono: futbol5Icon },
@@ -30,10 +30,9 @@ const DEPORTES = [
 ];
 
 /*
-  Clubes mockeados.
-  Cada club indica qué deportes acepta.
-  La cancha final se calcula según el deporte elegido,
-  no desde una propiedad fija del club.
+  Lista temporal de clubes.
+  Cada club indica qué deportes tiene disponibles.
+  Más adelante esto debería venir desde el backend filtrado por deporte.
 */
 const CLUBES = [
   {
@@ -80,23 +79,18 @@ const CLUBES = [
   },
 ];
 
-const DIAS = [
-  { dia: 'Dom', numero: '3' },
-  { dia: 'Lun', numero: '4' },
-  { dia: 'Mar', numero: '5' },
-  { dia: 'Mié', numero: '7' },
-  { dia: 'Jue', numero: '8' },
-  { dia: 'Vie', numero: '9' },
-  { dia: 'Sáb', numero: '10' },
-];
-
+/*
+  Horarios temporales.
+  Más adelante deberían venir desde el backend según:
+  deporte + club + cancha + fecha.
+*/
 const HORARIOS = [
-  { hora: '09:00', disponible: false },
-  { hora: '10:00', disponible: false },
-  { hora: '11:00', disponible: false },
-  { hora: '12:00', disponible: false },
-  { hora: '13:00', disponible: false },
-  { hora: '14:00', disponible: false },
+  { hora: '09:00', disponible: true },
+  { hora: '10:00', disponible: true },
+  { hora: '11:00', disponible: true },
+  { hora: '12:00', disponible: true },
+  { hora: '13:00', disponible: true },
+  { hora: '14:00', disponible: true },
   { hora: '15:00', disponible: true },
   { hora: '16:00', disponible: true },
   { hora: '17:00', disponible: true },
@@ -107,62 +101,249 @@ const HORARIOS = [
   { hora: '22:00', disponible: true },
 ];
 
-const RESERVAS_MOCK = [
-  {
-    id: 1,
-    diaSemana: 'DOM',
-    dia: '04',
-    mes: 'MAY',
-    hora: '16:00',
-    deporte: 'Fútbol 5',
-    club: 'La Ola',
-    cancha: 'Cancha Fútbol 5',
-    estado: 'Confirmada',
-    puedeGestionar: true,
-    limite: '03/05 16:00 hs',
-  },
-  {
-    id: 2,
-    diaSemana: 'SÁB',
-    dia: '10',
-    mes: 'MAY',
-    hora: '18:00',
-    deporte: 'Pádel',
-    club: 'Kiwi Padel',
-    cancha: 'Cancha Pádel',
-    estado: 'Confirmada',
-    puedeGestionar: true,
-    limite: '09/05 18:00 hs',
-  },
-  {
-    id: 3,
-    diaSemana: 'DOM',
-    dia: '18',
-    mes: 'MAY',
-    hora: '20:00',
-    deporte: 'Fútbol 5',
-    club: 'Padel Total',
-    cancha: 'Cancha Fútbol 5',
-    estado: 'Pendiente',
-    puedeGestionar: true,
-    limite: '17/05 20:00 hs',
-  },
-  {
-    id: 4,
-    diaSemana: 'SÁB',
-    dia: '24',
-    mes: 'MAY',
-    hora: '16:00',
-    deporte: 'Fútbol 5',
-    club: 'Villa del Parque',
-    cancha: 'Cancha Fútbol 5',
-    estado: 'No disponible',
-    puedeGestionar: false,
-    limite: null,
-  },
-];
+/*
+  Devuelve una fecha en formato dd/mm/yyyy.
+  Es el formato visual que usamos en el dashboard.
+*/
+const formatearFecha = (fecha) => {
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  const anio = fecha.getFullYear();
 
-function DashboardUsuario({ usuario, onLogout, onAddReserva }) {
+  return `${dia}/${mes}/${anio}`;
+};
+
+/*
+  Convierte una fecha en formato dd/mm/yyyy a Date.
+  Se usa para comparar fechas, ordenar reservas y bloquear días pasados.
+*/
+const crearFechaDesdeTexto = (fechaTexto) => {
+  if (!fechaTexto) return null;
+
+  const [dia, mes, anio] = fechaTexto.split('/').map(Number);
+
+  if (!dia || !mes || !anio) return null;
+
+  return new Date(anio, mes - 1, dia);
+};
+
+/*
+  Convierte una fecha y una hora en un objeto Date completo.
+  Se usa para ordenar reservas y detectar horarios vencidos.
+*/
+const crearFechaHoraDesdeReserva = (fechaTexto, horaTexto) => {
+  const fecha = crearFechaDesdeTexto(fechaTexto);
+
+  if (!fecha || !horaTexto) return null;
+
+  const [hora, minutos] = horaTexto.split(':').map(Number);
+
+  if (Number.isNaN(hora)) return null;
+
+  fecha.setHours(hora, minutos || 0, 0, 0);
+
+  return fecha;
+};
+
+/*
+  Genera los próximos 7 días a partir de hoy.
+  Esto evita mostrar días anteriores al día actual.
+*/
+const generarDiasDisponibles = () => {
+  const nombresDias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const hoy = new Date();
+
+  hoy.setHours(0, 0, 0, 0);
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const fecha = new Date(hoy);
+    fecha.setDate(hoy.getDate() + index);
+
+    return {
+      dia: nombresDias[fecha.getDay()],
+      numero: String(fecha.getDate()),
+      fecha: formatearFecha(fecha),
+      fechaDate: fecha,
+    };
+  });
+};
+
+/*
+  Devuelve el nombre del mes en español.
+  Se usa como título del selector de fechas.
+*/
+const obtenerTituloMes = (diasDisponibles) => {
+  const primerDia = diasDisponibles[0]?.fechaDate;
+
+  if (!primerDia) return '';
+
+  const meses = [
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre',
+  ];
+
+  return `${meses[primerDia.getMonth()]} ${primerDia.getFullYear()}`;
+};
+
+/*
+  Devuelve el mes abreviado en español.
+  Se usa en las cards de reservas del panel derecho.
+*/
+const obtenerMesCorto = (fecha) => {
+  const meses = [
+    'ENE',
+    'FEB',
+    'MAR',
+    'ABR',
+    'MAY',
+    'JUN',
+    'JUL',
+    'AGO',
+    'SEP',
+    'OCT',
+    'NOV',
+    'DIC',
+  ];
+
+  if (!(fecha instanceof Date) || Number.isNaN(fecha.getTime())) return 'MES';
+
+  return meses[fecha.getMonth()];
+};
+
+/*
+  Devuelve el día de la semana abreviado.
+  Se usa en la columna izquierda de cada reserva.
+*/
+const obtenerDiaSemanaCorto = (fecha) => {
+  const dias = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+
+  if (!(fecha instanceof Date) || Number.isNaN(fecha.getTime())) return 'RES';
+
+  return dias[fecha.getDay()];
+};
+
+/*
+  Indica si una fecha ya pasó.
+  Compara solo día, mes y año, sin considerar la hora.
+*/
+const esFechaPasada = (fechaTexto) => {
+  const fecha = crearFechaDesdeTexto(fechaTexto);
+
+  if (!fecha) return true;
+
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  fecha.setHours(0, 0, 0, 0);
+
+  return fecha < hoy;
+};
+
+/*
+  Indica si una fecha corresponde al día actual.
+*/
+const esFechaDeHoy = (fechaTexto) => {
+  const fecha = crearFechaDesdeTexto(fechaTexto);
+
+  if (!fecha) return false;
+
+  const hoy = new Date();
+
+  return (
+    fecha.getDate() === hoy.getDate() &&
+    fecha.getMonth() === hoy.getMonth() &&
+    fecha.getFullYear() === hoy.getFullYear()
+  );
+};
+
+/*
+  Indica si un horario ya pasó para la fecha seleccionada.
+  Solo bloquea horarios pasados cuando la fecha elegida es hoy.
+*/
+const esHorarioPasado = (fechaTexto, horaTexto) => {
+  if (!fechaTexto || !horaTexto) return false;
+
+  if (!esFechaDeHoy(fechaTexto)) return false;
+
+  const [hora, minutos] = horaTexto.split(':').map(Number);
+  const ahora = new Date();
+
+  const horario = new Date();
+  horario.setHours(hora, minutos || 0, 0, 0);
+
+  return horario <= ahora;
+};
+
+/*
+  Busca un club por nombre.
+  Se usa para recuperar dirección y datos auxiliares del club.
+*/
+const buscarClubPorNombre = (nombreClub) => {
+  return CLUBES.find((club) => club.nombre === nombreClub) || null;
+};
+
+/*
+  Devuelve la clase visual del estado de una reserva.
+*/
+const obtenerClaseEstadoReserva = (estado) => {
+  if (estado === 'Confirmada') return 'status status--confirmed';
+  if (estado === 'Pendiente') return 'status status--pending';
+
+  return 'status status--blocked';
+};
+
+/*
+  Normaliza una reserva para que el panel derecho pueda renderizarla.
+  Soporta reservas nuevas generadas por este dashboard y futuras reservas
+  que puedan venir del backend con un formato parecido.
+*/
+const normalizarReserva = (reserva) => {
+  if (!reserva) return null;
+
+  const fechaDate = crearFechaDesdeTexto(reserva.fecha);
+  const fechaHoraDate = crearFechaHoraDesdeReserva(reserva.fecha, reserva.hora);
+  const clubEncontrado = buscarClubPorNombre(reserva.club);
+
+  return {
+    ...reserva,
+    id: reserva.id || `${reserva.club}-${reserva.fecha}-${reserva.hora}`,
+    diaSemana:
+      reserva.diaSemana || obtenerDiaSemanaCorto(fechaDate),
+    dia:
+      reserva.dia ||
+      (fechaDate ? String(fechaDate.getDate()).padStart(2, '0') : '--'),
+    mes:
+      reserva.mes || obtenerMesCorto(fechaDate),
+    estado:
+      reserva.estado || 'Confirmada',
+    puedeGestionar:
+      reserva.puedeGestionar ?? true,
+    limite:
+      reserva.limite || '24 hs antes del turno',
+    direccion:
+      reserva.direccion || clubEncontrado?.direccion || '',
+    fechaDate,
+    fechaHoraDate,
+  };
+};
+
+/*
+  DashboardUsuario.
+  Permite a un usuario común reservar una cancha en un flujo guiado:
+  deporte → club → fecha → horario → confirmación.
+  También muestra las reservas reales recibidas desde App.jsx.
+*/
+function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
   /*
     Estados principales del wizard.
     Cada selección habilita el paso siguiente.
@@ -174,21 +355,35 @@ function DashboardUsuario({ usuario, onLogout, onAddReserva }) {
 
   /*
     Estado del modal.
-    mostrarModalReserva controla si el modal se ve o no.
-    reservaConfirmada guarda los datos que se muestran dentro del modal.
+    mostrarModalReserva controla si el modal se ve.
+    reservaConfirmada guarda los datos mostrados dentro del modal.
   */
   const [mostrarModalReserva, setMostrarModalReserva] = useState(false);
   const [reservaConfirmada, setReservaConfirmada] = useState(null);
 
   /*
     Referencia al carrusel de deportes.
-    Permite desplazar horizontalmente el contenedor con botones.
+    Permite desplazar horizontalmente la fila con los botones laterales.
   */
   const sportsCarouselRef = useRef(null);
 
   /*
+    Días disponibles para reservar.
+    Se generan desde hoy hacia adelante para no permitir fechas pasadas.
+  */
+  const diasDisponibles = useMemo(() => generarDiasDisponibles(), []);
+
+  /*
+    Título visible del selector de fecha.
+  */
+  const tituloMes = useMemo(
+    () => obtenerTituloMes(diasDisponibles),
+    [diasDisponibles]
+  );
+
+  /*
     Filtra los clubes disponibles según el deporte elegido.
-    Si no hay deporte seleccionado, no muestra clubes.
+    Si no hay deporte seleccionado, la lista queda vacía.
   */
   const clubesFiltrados = useMemo(() => {
     if (!deporteSeleccionado) return [];
@@ -199,13 +394,59 @@ function DashboardUsuario({ usuario, onLogout, onAddReserva }) {
   }, [deporteSeleccionado]);
 
   /*
-    Devuelve el nombre de la cancha según el deporte elegido.
-    En el mock no usamos una cancha fija del club porque un mismo club
-    puede tener canchas para varios deportes.
+    Busca el objeto completo del club seleccionado.
+    Sirve para agregar dirección a la reserva confirmada.
+  */
+  const clubActual = useMemo(() => {
+    if (!clubSeleccionado) return null;
+
+    return buscarClubPorNombre(clubSeleccionado);
+  }, [clubSeleccionado]);
+
+  /*
+    Devuelve el nombre visual de la cancha según el deporte elegido.
+    En este mock no usamos una cancha fija del club porque un mismo club
+    puede tener varias canchas para distintos deportes.
   */
   const canchaSeleccionada = deporteSeleccionado
     ? `Cancha ${deporteSeleccionado}`
     : '—';
+
+  /*
+    Normaliza y ordena las reservas reales recibidas desde App.jsx.
+    Este bloque reemplaza el viejo RESERVAS_MOCK.
+  */
+  const reservasDelUsuario = useMemo(() => {
+    return reservas
+      .map(normalizarReserva)
+      .filter(Boolean)
+      .sort((a, b) => {
+        const fechaA = a.fechaHoraDate?.getTime?.() || 0;
+        const fechaB = b.fechaHoraDate?.getTime?.() || 0;
+
+        return fechaA - fechaB;
+      });
+  }, [reservas]);
+
+  /*
+    Calcula las reservas futuras.
+    Se usan para mostrar correctamente la próxima reserva.
+  */
+  const reservasFuturas = useMemo(() => {
+    const ahora = new Date();
+
+    return reservasDelUsuario.filter((reserva) => {
+      if (!reserva.fechaHoraDate) return false;
+
+      return reserva.fechaHoraDate >= ahora;
+    });
+  }, [reservasDelUsuario]);
+
+  /*
+    Obtiene la próxima reserva del usuario.
+    Es la primera reserva futura ordenada por fecha y hora.
+  */
+  const proximaReserva = reservasFuturas[0] || null;
 
   /*
     Calcula cuál es el paso activo.
@@ -225,7 +466,7 @@ function DashboardUsuario({ usuario, onLogout, onAddReserva }) {
     Devuelve la clase visual de cada punto del indicador superior.
     active = paso actual
     done = paso ya completado
-    waiting = paso pendiente
+    waiting = paso pendiente.
   */
   const obtenerEstadoPaso = (numeroPaso) => {
     if (pasoActual === numeroPaso) return 'active';
@@ -236,7 +477,7 @@ function DashboardUsuario({ usuario, onLogout, onAddReserva }) {
 
   /*
     Arma las clases CSS de cada línea del wizard.
-    Solo el paso activo mantiene opacidad completa.
+    Solo el paso activo queda con opacidad completa.
   */
   const obtenerClaseLinea = (numeroPaso, extra = '') => {
     const clases = ['booking-step'];
@@ -254,7 +495,7 @@ function DashboardUsuario({ usuario, onLogout, onAddReserva }) {
 
   /*
     Desplaza horizontalmente el carrusel de deportes.
-    direction puede ser 'left' o 'right'.
+    direction puede ser left o right.
   */
   const scrollSports = (direction) => {
     if (!sportsCarouselRef.current) return;
@@ -269,7 +510,7 @@ function DashboardUsuario({ usuario, onLogout, onAddReserva }) {
 
   /*
     Selecciona deporte y reinicia las selecciones posteriores.
-    Es importante resetear porque un club anterior puede no tener el nuevo deporte.
+    Esto evita inconsistencias si el usuario cambia de deporte.
   */
   const seleccionarDeporte = (deporte) => {
     setDeporteSeleccionado(deporte.nombre);
@@ -279,8 +520,8 @@ function DashboardUsuario({ usuario, onLogout, onAddReserva }) {
   };
 
   /*
-    Selecciona club solo cuando el paso 2 está activo.
-    Luego reinicia fecha y horario.
+    Selecciona club solo cuando corresponde el paso 2.
+    Luego limpia fecha y horario.
   */
   const seleccionarClub = (club) => {
     if (pasoActual !== 2) return;
@@ -291,21 +532,25 @@ function DashboardUsuario({ usuario, onLogout, onAddReserva }) {
   };
 
   /*
-    Selecciona fecha solo cuando el paso 3 está activo.
-    Luego reinicia horario.
+    Selecciona fecha solo cuando corresponde el paso 3.
+    No permite seleccionar fechas pasadas.
+    Luego limpia el horario porque depende del día elegido.
   */
   const seleccionarFecha = (fecha) => {
     if (pasoActual !== 3) return;
+    if (esFechaPasada(fecha)) return;
 
     setFechaSeleccionada(fecha);
     setHorarioSeleccionado(null);
   };
 
   /*
-    Selecciona horario solo cuando el paso 4 está activo.
+    Selecciona horario solo cuando corresponde el paso 4.
+    No permite seleccionar horarios pasados del día actual.
   */
   const seleccionarHorario = (hora) => {
     if (pasoActual !== 4) return;
+    if (esHorarioPasado(fechaSeleccionada, hora)) return;
 
     setHorarioSeleccionado(hora);
   };
@@ -322,18 +567,27 @@ function DashboardUsuario({ usuario, onLogout, onAddReserva }) {
   };
 
   /*
-    Confirma la reserva cuando todos los pasos están completos.
-    Abre un modal visual propio en lugar de usar alert().
+    Confirma la reserva.
+    Envía la nueva reserva hacia App.jsx mediante onAddReserva
+    y abre el modal de confirmación visual.
   */
   const confirmarReserva = () => {
     if (pasoActual !== 5) return;
 
+    if (esFechaPasada(fechaSeleccionada)) return;
+    if (esHorarioPasado(fechaSeleccionada, horarioSeleccionado)) return;
+
     const nuevaReserva = {
+      id: Date.now(),
       deporte: deporteSeleccionado,
       club: clubSeleccionado,
       cancha: canchaSeleccionada,
       fecha: fechaSeleccionada,
       hora: horarioSeleccionado,
+      estado: 'Confirmada',
+      puedeGestionar: true,
+      limite: '24 hs antes del turno',
+      direccion: clubActual?.direccion || '',
     };
 
     if (onAddReserva) {
@@ -346,6 +600,7 @@ function DashboardUsuario({ usuario, onLogout, onAddReserva }) {
 
   /*
     Cierra el modal de confirmación y reinicia el formulario.
+    La reserva no se pierde porque ya fue enviada a App.jsx.
   */
   const cerrarModalReserva = () => {
     setMostrarModalReserva(false);
@@ -541,32 +796,34 @@ function DashboardUsuario({ usuario, onLogout, onAddReserva }) {
 
                   <div className="date-selector">
                     <div className="date-selector__month">
-                      <button type="button" disabled={pasoActual !== 3}>
+                      <button type="button" disabled>
                         ‹
                       </button>
 
-                      <strong>Mayo 2026</strong>
+                      <strong>{tituloMes}</strong>
 
-                      <button type="button" disabled={pasoActual !== 3}>
+                      <button type="button" disabled>
                         ›
                       </button>
                     </div>
 
                     <div className="date-selector__days">
-                      {DIAS.map((dia) => {
-                        const fechaActual = `${dia.numero.padStart(2, '0')}/05/2026`;
+                      {diasDisponibles.map((dia) => {
+                        const fechaBloqueada = esFechaPasada(dia.fecha);
 
                         return (
                           <button
-                            key={dia.numero}
+                            key={dia.fecha}
                             type="button"
                             className={
-                              fechaSeleccionada === fechaActual
+                              fechaSeleccionada === dia.fecha
                                 ? 'day-card selected'
-                                : 'day-card'
+                                : fechaBloqueada
+                                  ? 'day-card disabled'
+                                  : 'day-card'
                             }
-                            onClick={() => seleccionarFecha(fechaActual)}
-                            disabled={pasoActual !== 3}
+                            onClick={() => seleccionarFecha(dia.fecha)}
+                            disabled={pasoActual !== 3 || fechaBloqueada}
                           >
                             <small>{dia.dia}</small>
                             <strong>{dia.numero}</strong>
@@ -587,21 +844,29 @@ function DashboardUsuario({ usuario, onLogout, onAddReserva }) {
                   </aside>
 
                   <div className="time-grid">
-                    {HORARIOS.map((horario) => (
-                      <button
-                        key={horario.hora}
-                        type="button"
-                        disabled={pasoActual !== 4 || !horario.disponible}
-                        className={
-                          horarioSeleccionado === horario.hora
-                            ? 'time-card selected'
-                            : 'time-card'
-                        }
-                        onClick={() => seleccionarHorario(horario.hora)}
-                      >
-                        {horario.hora}
-                      </button>
-                    ))}
+                    {HORARIOS.map((horario) => {
+                      const horarioBloqueado =
+                        !horario.disponible ||
+                        esHorarioPasado(fechaSeleccionada, horario.hora);
+
+                      return (
+                        <button
+                          key={horario.hora}
+                          type="button"
+                          disabled={pasoActual !== 4 || horarioBloqueado}
+                          className={
+                            horarioSeleccionado === horario.hora
+                              ? 'time-card selected'
+                              : horarioBloqueado
+                                ? 'time-card disabled'
+                                : 'time-card'
+                          }
+                          onClick={() => seleccionarHorario(horario.hora)}
+                        >
+                          {horario.hora}
+                        </button>
+                      );
+                    })}
 
                     <div className="time-grid__legend">
                       <span>
@@ -690,67 +955,93 @@ function DashboardUsuario({ usuario, onLogout, onAddReserva }) {
                   <button type="button">Ver historial</button>
                 </div>
 
-                <div className="next-reservation">
-                  <div>
-                    <h3>Próxima reserva</h3>
-                    <span className="status status--confirmed">Confirmada</span>
-                  </div>
-
-                  <div className="next-reservation__body">
-                    <div className="next-reservation__logo">LO</div>
-
+                {proximaReserva ? (
+                  <div className="next-reservation">
                     <div>
-                      <strong>Mañana · 16:00 hs</strong>
-                      <p>Fútbol 5 · Cancha Fútbol 5</p>
-                      <small>📍 La Ola, Av. Siempreviva 742</small>
+                      <h3>Próxima reserva</h3>
+                      <span className={obtenerClaseEstadoReserva(proximaReserva.estado)}>
+                        {proximaReserva.estado}
+                      </span>
+                    </div>
+
+                    <div className="next-reservation__body">
+                      <div className="next-reservation__logo">
+                        {proximaReserva.club?.slice(0, 2).toUpperCase() || 'CY'}
+                      </div>
+
+                      <div>
+                        <strong>
+                          {proximaReserva.fecha} · {proximaReserva.hora} hs
+                        </strong>
+                        <p>
+                          {proximaReserva.deporte} · {proximaReserva.cancha}
+                        </p>
+                        <small>
+                          📍 {proximaReserva.club}
+                          {proximaReserva.direccion
+                            ? `, ${proximaReserva.direccion}`
+                            : ''}
+                        </small>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="next-reservation next-reservation--empty">
+                    <div>
+                      <h3>Próxima reserva</h3>
+                    </div>
 
-                <h3 className="reservations-panel__subtitle">Todas mis reservas</h3>
+                    <p>Todavía no tenés reservas activas.</p>
+                  </div>
+                )}
+
+                <h3 className="reservations-panel__subtitle">
+                  Todas mis reservas
+                </h3>
 
                 <div className="reservations-list">
-                  {RESERVAS_MOCK.map((reserva) => (
-                    <article key={reserva.id} className="reservation-card">
-                      <div className="reservation-card__date">
-                        <small>{reserva.diaSemana}</small>
-                        <strong>{reserva.dia}</strong>
-                        <small>{reserva.mes}</small>
-                      </div>
+                  {reservasDelUsuario.length > 0 ? (
+                    reservasDelUsuario.map((reserva) => (
+                      <article key={reserva.id} className="reservation-card">
+                        <div className="reservation-card__date">
+                          <small>{reserva.diaSemana}</small>
+                          <strong>{reserva.dia}</strong>
+                          <small>{reserva.mes}</small>
+                        </div>
 
-                      <div className="reservation-card__info">
-                        <strong>{reserva.hora} hs</strong>
-                        <p>
-                          {reserva.deporte} · {reserva.club}
-                        </p>
-                        <small>{reserva.cancha}</small>
-                      </div>
+                        <div className="reservation-card__info">
+                          <strong>{reserva.hora} hs</strong>
+                          <p>
+                            {reserva.deporte} · {reserva.club}
+                          </p>
+                          <small>{reserva.cancha}</small>
+                        </div>
 
-                      <div className="reservation-card__actions">
-                        <span
-                          className={
-                            reserva.estado === 'Confirmada'
-                              ? 'status status--confirmed'
-                              : reserva.estado === 'Pendiente'
-                                ? 'status status--pending'
-                                : 'status status--blocked'
-                          }
-                        >
-                          {reserva.estado}
-                        </span>
+                        <div className="reservation-card__actions">
+                          <span className={obtenerClaseEstadoReserva(reserva.estado)}>
+                            {reserva.estado}
+                          </span>
 
-                        {reserva.puedeGestionar ? (
-                          <small>
-                            Podés cancelar o modificar hasta {reserva.limite}
-                          </small>
-                        ) : (
-                          <small>Menos de 24hs de anticipación</small>
-                        )}
+                          {reserva.puedeGestionar ? (
+                            <small>
+                              Podés cancelar o modificar hasta {reserva.limite}
+                            </small>
+                          ) : (
+                            <small>Menos de 24hs de anticipación</small>
+                          )}
 
-                        <button type="button">⋮</button>
-                      </div>
-                    </article>
-                  ))}
+                          <button type="button">⋮</button>
+                        </div>
+                      </article>
+                    ))
+                  ) : (
+                    <div className="reservations-empty">
+                      <strong>No tenés reservas todavía</strong>
+                      <small>
+                        Cuando confirmes una reserva, va a aparecer acá.
+                      </small>
+                    </div>
+                  )}
                 </div>
 
                 <button type="button" className="see-all-button">
