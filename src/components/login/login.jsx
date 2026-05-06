@@ -2,11 +2,24 @@ import React, { useState } from 'react';
 import './login.css';
 import Layout from '../layout/layout';
 
+/*
+  Componente Login.
+  Permite iniciar sesión tanto como dueño de cancha como usuario común.
+  Primero intenta autenticar contra el endpoint de dueño.
+  Si falla, intenta autenticar contra el endpoint de usuario.
+*/
 const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  /*
+    Realiza una petición POST al endpoint recibido.
+    Envía email y password en el body.
+    Devuelve un objeto normalizado con:
+    - ok: si la respuesta fue exitosa
+    - data: respuesta del backend
+  */
   const loginRequest = async (url) => {
     const response = await fetch(url, {
       method: 'POST',
@@ -27,12 +40,16 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
     };
   };
 
+  /*
+    Maneja el envío del formulario.
+    Intenta iniciar sesión primero como dueño de cancha.
+    Si no funciona, intenta como usuario común.
+  */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     try {
-      // 1. Intentar login como dueño de cancha
       const duenoLogin = await loginRequest('http://localhost:3000/dueno-cancha/login');
 
       if (duenoLogin.ok) {
@@ -40,7 +57,6 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
         return;
       }
 
-      // 2. Intentar login como usuario común
       const usuarioLogin = await loginRequest('http://localhost:3000/usuario/login');
 
       if (usuarioLogin.ok) {
@@ -49,7 +65,6 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
       }
 
       setError('Usuario o contraseña incorrectos');
-
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
       setError('No se pudo conectar con el servidor');
@@ -58,16 +73,20 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
 
   return (
     <Layout>
-      <div className="login-page-container">
-        <div className="login-container">
+      <main className="login-page-container">
+        <section className="login-container">
           <h2 className="login-title">Iniciar Sesión</h2>
 
           <form onSubmit={handleSubmit} className="login-form">
             {error && <p className="login-error">{error}</p>}
 
             <div className="login-form-group">
-              <label className="login-label">Mail:</label>
+              <label htmlFor="login-email" className="login-label">
+                Mail:
+              </label>
+
               <input
+                id="login-email"
                 type="email"
                 placeholder="Mail registrado"
                 value={username}
@@ -78,8 +97,12 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
             </div>
 
             <div className="login-form-group">
-              <label className="login-label">Contraseña:</label>
+              <label htmlFor="login-password" className="login-label">
+                Contraseña:
+              </label>
+
               <input
+                id="login-password"
                 type="password"
                 placeholder="tu contraseña"
                 value={password}
@@ -115,8 +138,8 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
               </div>
             </div>
           </form>
-        </div>
-      </div>
+        </section>
+      </main>
     </Layout>
   );
 };
