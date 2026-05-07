@@ -14,6 +14,40 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
     }
   ]);
   const [successMessage, setSuccessMessage] = useState('');
+  const [clubesPendientes, setClubesPendientes] = useState([]);
+  const [clubesAceptados, setClubesAceptados] = useState([]);
+
+  // Cargar clubes pendientes desde la base de datos
+  const fetchClubesPendientes = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/dueno-cancha/pendientes');
+      if (response.ok) {
+        const data = await response.json();
+        setClubesPendientes(data);
+      }
+    } catch (error) {
+      console.error('Error al cargar clubes pendientes:', error);
+    }
+  };
+
+  // Cargar clubes aceptados desde la base de datos
+  const fetchClubesAceptados = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/dueno-cancha/aceptados');
+      if (response.ok) {
+        const data = await response.json();
+        setClubesAceptados(data);
+      }
+    } catch (error) {
+      console.error('Error al cargar clubes aceptados:', error);
+    }
+  };
+
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    fetchClubesPendientes();
+    fetchClubesAceptados();
+  }, []);
 
   const handleAddAdmin = (e) => {
     e.preventDefault();
@@ -37,44 +71,65 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
     setTimeout(() => setSuccessMessage(''), 3000);
   };
 
-  const toggleClubStatus = (clubId) => {
-    if (setClubesRegistrados) {
-      setClubesRegistrados(prev =>
-        prev.map(club =>
-          club.id === clubId
-            ? { ...club, activo: !club.activo }
-            : club
-        )
-      );
+  const toggleClubStatus = async (clubId, currentActivo) => {
+    try {
+      const response = await fetch(`http://localhost:3000/dueno-cancha/${clubId}/toggle-status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activo: !currentActivo })
+      });
+
+      if (response.ok) {
+        setClubesAceptados(prev => 
+          prev.map(club => 
+            club.id === clubId ? { ...club, activo: !currentActivo } : club
+          )
+        );
+      } else {
+        console.error('Error al cambiar estado');
+      }
+    } catch (error) {
+      console.error('Error al cambiar el estado del club:', error);
     }
   };
 
-  const acceptClub = (clubId) => {
-    if (setClubesRegistrados) {
-      setClubesRegistrados(prev =>
-        prev.map(club =>
-          club.id === clubId
-            ? { ...club, estado: 'aceptado', activo: true }
-            : club
-        )
-      );
+  const acceptClub = async (clubId) => {
+    try {
+      const response = await fetch(`http://localhost:3000/dueno-cancha/${clubId}/aceptar`, {
+        method: 'PUT'
+      });
+
+      if (response.ok) {
+        // Actualizar la lista de clubes pendientes y aceptados
+        fetchClubesPendientes();
+        fetchClubesAceptados();
+      } else {
+        console.error('Error al aceptar el club');
+      }
+    } catch (error) {
+      console.error('Error al aceptar el club:', error);
     }
   };
 
-  const rejectClub = (clubId) => {
-    if (setClubesRegistrados) {
-      setClubesRegistrados(prev =>
-        prev.map(club =>
-          club.id === clubId
-            ? { ...club, estado: 'rechazado', activo: false }
-            : club
-        )
-      );
+  const rejectClub = async (clubId) => {
+    try {
+      const response = await fetch(`http://localhost:3000/dueno-cancha/${clubId}/rechazar`, {
+        method: 'PUT'
+      });
+
+      if (response.ok) {
+        // Actualizar la lista de clubes pendientes
+        fetchClubesPendientes();
+      } else {
+        console.error('Error al rechazar el club');
+      }
+    } catch (error) {
+      console.error('Error al rechazar el club:', error);
     }
   };
 
-  const clubesPendientes = clubesRegistrados.filter(club => club.estado === 'pendiente');
-  const clubesAceptados = clubesRegistrados.filter(club => club.estado === 'aceptado');
+  // Los clubes pendientes y aceptados ahora se cargan desde la base de datos
+  // No es necesario filtrar clubesRegistrados
 
   return (
     <div className="admin-panel-container">
@@ -180,10 +235,9 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
                   <span className="admin-badge-pending">Pendiente</span>
                 </div>
                 <div className="admin-club-details">
-                  <p><strong>Email:</strong> {club.email}</p>
+                  <p><strong>Email:</strong> {club.email || 'No disponible'}</p>
                   <p><strong>Teléfono:</strong> {club.telefono || 'No disponible'}</p>
-                  <p><strong>Dirección:</strong> {club.direccion || 'No disponible'}</p>
-                  <p><strong>Deportes:</strong> {club.deportesIds?.join(', ') || 'No especificados'}</p>
+                  <p><strong>Deportes:</strong> {club.canchas?.join(', ') || 'No especificados'}</p>
                 </div>
                 <div className="admin-club-actions">
                   <button
@@ -232,7 +286,7 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
                     <input
                       type="checkbox"
                       checked={club.activo || false}
-                      onChange={() => toggleClubStatus(club.id)}
+                      onChange={() => toggleClubStatus(club.id, club.activo)}
                       className="admin-toggle-input"
                     />
                     <span className="admin-toggle-slider"></span>

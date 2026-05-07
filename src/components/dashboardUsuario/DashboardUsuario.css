@@ -1,0 +1,1388 @@
+/* =========================================================
+   1. CONFIGURACIÓN GENERAL DEL DASHBOARD
+   Define variables globales, fuente base, fondo principal,
+   banners laterales y evita desbordes horizontales.
+========================================================= */
+
+.dashboard-usuario,
+.dashboard-usuario * {
+  box-sizing: border-box;
+}
+
+.dashboard-usuario {
+  --azul-principal: #087bff;
+  --azul-oscuro: #005de0;
+  --azul-texto: #071f4d;
+  --azul-secundario: #39527a;
+  --borde-suave: #d8e2f0;
+  --fondo-card: rgba(255, 255, 255, 0.94);
+
+  --dashboard-side-banner-width: 135px;
+  --dashboard-center-max-width: 1900px;
+ background-image:
+    linear-gradient(rgba(190, 220, 235, 0.42), rgba(170, 210, 180, 0.42)),
+    url('../../inicio/backgroud1.png');
+  position: relative;
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--azul-texto);
+  overflow-x: hidden;
+}
+
+
+/* =========================================================
+   2. BANNERS LATERALES DEL DASHBOARD
+   Se dibujan como fondo propio del dashboard para no romper
+   el componente BannerVertical ni otras pantallas.
+========================================================= */
+
+.dashboard-usuario::before,
+.dashboard-usuario::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: var(--dashboard-side-banner-width);
+  z-index: 1;
+  background-image: url('../bannerVertical/banners/img1.png');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: #3b1513;
+}
+
+.dashboard-usuario::before {
+  left: 0;
+}
+
+.dashboard-usuario::after {
+  right: 0;
+}
+
+
+/* =========================================================
+   3. CAPA GENERAL SOBRE EL FONDO
+   Mantiene el fondo de cancha visible y pone el contenido
+   por encima de los banners laterales.
+========================================================= */
+
+.dashboard-usuario__overlay {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+
+/* =========================================================
+   4. ESTRUCTURA PRINCIPAL DEL CONTENIDO
+   El contenido central respeta los banners y ocupa alto útil.
+========================================================= */
+
+.dashboard-shell {
+  display: block;
+  min-height: 100vh;
+}
+
+.dashboard-shell::before,
+.dashboard-shell::after {
+  display: none !important;
+  content: none !important;
+}
+
+.dashboard-ad,
+.dashboard-shell__banner {
+  display: none !important;
+}
+
+.dashboard-shell__main {
+  width: min(calc(100vw - (var(--dashboard-side-banner-width) * 2) - 16px),
+      var(--dashboard-center-max-width));
+  min-height: 100vh;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 0 6px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* =========================================================
+   5. HEADER SUPERIOR
+   Barra azul con logo, redes, usuario y botón salir.
+========================================================= */
+
+.dashboard-header {
+  width: 100%;
+  height: 58px;
+  margin: 0 auto;
+  padding: 0 24px;
+  background: linear-gradient(135deg, var(--azul-principal), var(--azul-oscuro));
+  color: #ffffff;
+  border-radius: 0 0 12px 12px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  box-shadow: 0 10px 30px rgba(0, 93, 224, 0.3);
+  flex-shrink: 0;
+}
+
+.dashboard-header__brand {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.dashboard-header__logo-img {
+  height: 42px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.dashboard-header__social {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  font-size: 18px;
+}
+
+.dashboard-header__user {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.dashboard-header__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--azul-principal);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+}
+
+.dashboard-header__logout {
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dashboard-header__logout:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+
+/* =========================================================
+   6. LAYOUT CENTRAL DEL DASHBOARD
+   Divide el contenido en panel principal y panel Mis Reservas.
+   Ambos paneles se estiran al mismo alto.
+========================================================= */
+
+.dashboard-layout {
+  width: 100%;
+  margin: 14px auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 14px;
+  align-items: stretch;
+  flex: 1;
+  min-height: calc(100vh - 58px - 14px - 72px - 18px);
+}
+
+.booking-panel,
+.reservations-panel,
+.dashboard-benefits {
+  background: var(--fondo-card);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(220, 230, 245, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 18px 45px rgba(9, 37, 76, 0.18);
+}
+
+.booking-panel,
+.reservations-panel {
+  height: 100%;
+}
+
+.booking-panel {
+  min-width: 0;
+  padding: 18px 20px 16px;
+}
+
+.reservations-panel {
+  min-width: 0;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   7. CABECERA DEL PANEL DE RESERVA
+   Título principal y barra superior de pasos.
+========================================================= */
+
+.booking-panel__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: start;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #dfe7f2;
+}
+
+.booking-panel h1,
+.reservations-panel h2 {
+  margin: 0;
+  font-size: 26px;
+  color: var(--azul-texto);
+}
+
+.booking-panel p,
+.reservations-panel p {
+  margin: 6px 0 0;
+  color: var(--azul-secundario);
+  font-size: 14px;
+}
+
+.steps-indicator {
+  min-width: 360px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.step {
+  text-align: center;
+  color: #7d8ba3;
+  position: relative;
+}
+
+.step::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: -50%;
+  width: 100%;
+  height: 2px;
+  background: #cad5e4;
+  z-index: 0;
+}
+
+.step:first-child::before {
+  display: none;
+}
+
+.step span {
+  width: 30px;
+  height: 30px;
+  margin: 0 auto 5px;
+  border-radius: 50%;
+  border: 2px solid #cad5e4;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  position: relative;
+  z-index: 1;
+}
+
+.step small {
+  display: block;
+  font-size: 12px;
+}
+
+.step.waiting {
+  color: #9aa8bf;
+}
+
+.step.waiting span {
+  background: #ffffff;
+  border-color: #cad5e4;
+  color: #8b98ad;
+}
+
+.step.active {
+  color: #0b64e5;
+}
+
+.step.active span {
+  background: var(--azul-principal);
+  border-color: var(--azul-principal);
+  color: #ffffff;
+}
+
+.step.done {
+  color: #16a34a;
+}
+
+.step.done span {
+  background: #16b95f;
+  border-color: #16b95f;
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   8. ESTRUCTURA DE CADA PASO DEL WIZARD
+   Solo el paso activo mantiene opacidad completa y funcionalidad.
+========================================================= */
+
+.booking-step {
+  display: grid;
+  grid-template-columns: 155px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  padding: 14px 0;
+  border-bottom: 1px solid #dfe7f2;
+  transition: opacity 0.25s ease, filter 0.25s ease;
+}
+
+.booking-step--sports {
+  align-items: center;
+}
+
+.booking-step--confirm {
+  border-bottom: none;
+  padding-bottom: 12px;
+}
+
+.booking-step.is-active {
+  opacity: 1;
+  filter: none;
+}
+
+.booking-step.is-inactive {
+  opacity: 0.35;
+  filter: grayscale(0.1);
+}
+
+.booking-step.is-inactive button,
+.booking-step.is-inactive .day-card,
+.booking-step.is-inactive .time-card,
+.booking-step.is-inactive .sport-card,
+.booking-step.is-inactive .club-card {
+  pointer-events: none;
+}
+
+.booking-step__label {
+  display: flex;
+  gap: 10px;
+}
+
+.booking-step__label>span {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 8px;
+  background: var(--azul-principal);
+  color: #ffffff;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+
+.booking-step__label h3 {
+  margin: 2px 0 5px;
+  font-size: 18px;
+  color: var(--azul-texto);
+}
+
+.booking-step__label p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--azul-secundario);
+}
+
+
+/* =========================================================
+   9. CARRUSEL DE DEPORTES CON BOTONES
+   Mantiene los deportes en una sola línea horizontal.
+   Los botones laterales desplazan el carrusel.
+========================================================= */
+
+.sports-carousel-wrapper {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 46px;
+  gap: 12px;
+  align-items: center;
+}
+
+.sports-carousel {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.sports-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.sports-carousel__track {
+  display: flex;
+  gap: 12px;
+  min-width: max-content;
+  padding: 4px 2px;
+}
+
+.sports-carousel__nav {
+  width: 46px;
+  height: 46px;
+  border: 1px solid #c9d8ec;
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--azul-principal);
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-shadow: 0 6px 14px rgba(8, 123, 255, 0.08);
+}
+
+.sports-carousel__nav:hover {
+  border-color: var(--azul-principal);
+  background: #eef6ff;
+  transform: translateY(-1px);
+}
+
+.sports-carousel__nav:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.sports-grid {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 2px;
+}
+
+.sport-card {
+  width: 168px;
+  min-width: 168px;
+  min-height: 112px;
+  padding: 14px 12px;
+  border: 1px solid var(--borde-suave);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.98);
+  color: var(--azul-texto);
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+  transition: 0.2s ease;
+}
+
+.sport-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--azul-principal);
+  box-shadow: 0 8px 20px rgba(8, 123, 255, 0.12);
+}
+
+.sport-card.selected {
+  border-color: var(--azul-principal);
+  background: linear-gradient(180deg,
+      rgba(232, 243, 255, 0.98),
+      rgba(255, 255, 255, 0.98));
+}
+
+.sport-card.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--azul-principal);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.sport-card__icon {
+  width: 62px;
+  height: 62px;
+  border-radius: 16px;
+  background: #f4fbff;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.sport-card__image {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  display: block;
+}
+
+.sport-card strong {
+  font-size: 15px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+
+/* =========================================================
+   10. GRILLA DE CLUBES
+   Muestra clubes filtrados según el deporte elegido.
+========================================================= */
+
+.clubs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(135px, 1fr));
+  gap: 10px;
+}
+
+.club-card {
+  min-height: 120px;
+  padding: 12px;
+  border: 1px solid var(--borde-suave);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--azul-texto);
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.club-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--azul-principal);
+  box-shadow: 0 8px 20px rgba(8, 123, 255, 0.12);
+}
+
+.club-card.selected {
+  border-color: var(--azul-principal);
+  background: linear-gradient(180deg,
+      rgba(232, 243, 255, 0.96),
+      rgba(255, 255, 255, 0.96));
+}
+
+.club-card__logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--azul-oscuro), #00a3ff);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.club-card strong {
+  font-size: 13px;
+}
+
+.club-card small,
+.club-card span {
+  color: var(--azul-secundario);
+  font-size: 11px;
+}
+
+.empty-clubs-message {
+  grid-column: 1 / -1;
+  min-height: 120px;
+  border: 1px dashed #9bbbe8;
+  border-radius: 10px;
+  background: rgba(232, 243, 255, 0.7);
+  color: #0d4fa8;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 16px;
+}
+
+
+/* =========================================================
+   11. SELECTOR DE FECHA
+   Muestra mes y días rápidos seleccionables.
+========================================================= */
+
+.date-selector {
+  display: grid;
+  gap: 10px;
+}
+
+.date-selector__month {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  font-size: 18px;
+  color: var(--azul-principal);
+}
+
+.date-selector__month button {
+  border: none;
+  background: transparent;
+  color: var(--azul-principal);
+  font-size: 25px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.date-selector__days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+.day-card {
+  height: 56px;
+  border: 1px solid var(--borde-suave);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--azul-texto);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.day-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--azul-principal);
+}
+
+.day-card small {
+  color: var(--azul-secundario);
+  font-size: 11px;
+}
+
+.day-card strong {
+  font-size: 18px;
+}
+
+.day-card.selected {
+  background: var(--azul-principal);
+  color: #ffffff;
+  border-color: var(--azul-principal);
+}
+
+.day-card.selected small {
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   12. SELECTOR DE HORARIOS
+   Botones disponibles y deshabilitados.
+========================================================= */
+
+.time-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.time-card {
+  height: 33px;
+  border: 1px solid var(--borde-suave);
+  border-radius: 6px;
+  background: #ffffff;
+  color: var(--azul-texto);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.time-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--azul-principal);
+}
+
+.time-card:disabled {
+  cursor: not-allowed;
+  color: #a9b1bd;
+  background: #eeeeee;
+  border-color: #eeeeee;
+  transform: none;
+  box-shadow: none;
+}
+
+.time-card.selected {
+  background: var(--azul-principal);
+  color: #ffffff;
+  border-color: var(--azul-principal);
+}
+
+.time-grid__legend {
+  grid-column: 1 / -1;
+  justify-self: end;
+  display: flex;
+  gap: 22px;
+  color: var(--azul-secundario);
+  font-size: 12px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.legend-dot.available {
+  background: #20b45b;
+}
+
+.legend-dot.unavailable {
+  background: #a9b1bd;
+}
+
+
+/* =========================================================
+   13. RESUMEN DE CONFIRMACIÓN
+   Muestra datos elegidos y acciones finales.
+========================================================= */
+
+.booking-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(88px, 1fr)) minmax(180px, auto);
+  gap: 8px;
+  align-items: stretch;
+}
+
+.summary-item {
+  min-height: 54px;
+  padding: 7px 8px;
+  border-left: 1px solid #dfe7f2;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 6px;
+  align-items: center;
+}
+
+.summary-item span {
+  grid-row: span 2;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #eef5ff;
+  display: grid;
+  place-items: center;
+}
+
+.summary-item small {
+  color: #6a7890;
+  font-size: 11px;
+}
+
+.summary-item strong {
+  color: var(--azul-texto);
+  font-size: 12px;
+  word-break: break-word;
+}
+
+/* =========================================================
+   ACCIONES DE CONFIRMACIÓN
+   El botón principal se destaca más que Reiniciar.
+========================================================= */
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  align-content: center;
+}
+
+.confirm-button {
+  min-width: 170px;
+  min-height: 46px;
+  border: none;
+  border-radius: 10px;
+  background: #16b95f;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  padding: 0 16px;
+}
+
+.confirm-button:hover {
+  background: #0da950;
+  transform: translateY(-2px);
+}
+
+.confirm-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+.reset-button {
+  justify-self: center;
+  min-width: 115px;
+  min-height: 30px;
+  border: 1px solid #c8d6e8;
+  background: #ffffff;
+  color: var(--azul-secundario);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.reset-button:hover {
+  border-color: var(--azul-principal);
+  color: var(--azul-principal);
+}
+
+.booking-warning {
+  margin-top: 8px;
+  padding: 9px 12px;
+  background: #eaf4ff;
+  color: #0d4fa8;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   14. PANEL DERECHO: MIS RESERVAS
+   Ocupa el mismo alto que el panel principal.
+========================================================= */
+
+.reservations-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reservations-panel__header button,
+.see-all-button {
+  border: 1px solid var(--azul-principal);
+  background: #ffffff;
+  color: var(--azul-principal);
+  border-radius: 7px;
+  padding: 9px 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.next-reservation {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid #9adbb9;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f3fff8, #ffffff);
+  box-shadow: none;
+}
+
+.next-reservation>div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.next-reservation h3 {
+  margin: 0;
+  color: #16964e;
+  font-size: 20px;
+}
+
+.next-reservation__body {
+  margin-top: 10px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.next-reservation__logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--azul-oscuro), #00a3ff);
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+}
+
+.next-reservation__body strong {
+  font-size: 15px;
+}
+
+.next-reservation__body p {
+  margin: 6px 0;
+  font-size: 12px;
+}
+
+.next-reservation__body small {
+  font-size: 12px;
+  color: var(--azul-secundario);
+}
+
+.reservations-panel__subtitle {
+  margin: 14px 0 8px;
+  font-size: 20px;
+}
+
+
+/* =========================================================
+   15. CARDS DE RESERVAS
+   Lista compacta para que el panel derecho no desborde.
+========================================================= */
+
+.reservations-list {
+  display: grid;
+  gap: 8px;
+}
+
+.reservation-card {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 120px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #dfe7f2;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.reservation-card__date {
+  min-height: 58px;
+  border-radius: 8px;
+  background: #f3f7ff;
+  display: grid;
+  place-items: center;
+  color: var(--azul-principal);
+  font-weight: 800;
+}
+
+.reservation-card__date strong {
+  font-size: 23px;
+  line-height: 1;
+}
+
+.reservation-card__date small {
+  font-size: 10px;
+}
+
+.reservation-card__info strong,
+.reservation-card__info p,
+.reservation-card__info small,
+.reservation-card__actions small {
+  font-size: 10px;
+}
+
+.reservation-card__info p {
+  margin: 5px 0;
+  color: #1b3765;
+}
+
+.reservation-card__info small {
+  color: var(--azul-secundario);
+}
+
+.reservation-card__actions {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+
+.reservation-card__actions small {
+  color: #1b3765;
+  line-height: 1.35;
+}
+
+.reservation-card__actions button {
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--azul-texto);
+}
+
+.see-all-button {
+  width: 100%;
+  margin-top: auto;
+  background: #ffffff;
+}
+
+
+/* =========================================================
+   16. BADGES DE ESTADO
+   Colores para confirmada, pendiente o bloqueada.
+========================================================= */
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.status--confirmed {
+  background: #e6faee;
+  color: #13a352;
+}
+
+.status--pending {
+  background: #fff3dc;
+  color: #e58a00;
+}
+
+.status--blocked {
+  background: #ffe8e8;
+  color: #f33434;
+}
+
+
+/* =========================================================
+   17. FOOTER DE BENEFICIOS
+   Queda debajo del dashboard y no ocupa espacio variable.
+========================================================= */
+
+.dashboard-benefits {
+  width: 100%;
+  margin: 12px auto 0;
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.dashboard-benefits div {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 12px;
+  align-items: center;
+}
+
+.dashboard-benefits span {
+  grid-row: span 2;
+  font-size: 22px;
+}
+
+.dashboard-benefits strong {
+  color: #0b3b86;
+  font-size: 13px;
+}
+
+.dashboard-benefits small {
+  color: var(--azul-secundario);
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   18. RESPONSIVE PARA PANTALLAS MEDIANAS
+   Reduce banners y ajusta columnas.
+========================================================= */
+
+@media (max-width: 1550px) {
+  .dashboard-usuario {
+    --dashboard-side-banner-width: 118px;
+  }
+
+  .dashboard-layout {
+    grid-template-columns: minmax(0, 1fr) 380px;
+  }
+
+  .sport-card {
+    width: 148px;
+    min-width: 148px;
+  }
+
+  .clubs-grid {
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
+  }
+
+  .booking-summary {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .confirm-button {
+    min-height: 46px;
+  }
+}
+
+
+/* =========================================================
+   19. RESPONSIVE PARA NOTEBOOKS Y TABLETS
+   Oculta banners y pasa todo a una columna.
+========================================================= */
+
+@media (max-width: 1250px) {
+
+  .dashboard-usuario::before,
+  .dashboard-usuario::after {
+    display: none;
+  }
+
+  .dashboard-shell__main {
+    width: min(96vw, 1120px);
+    padding: 0 12px 24px;
+  }
+
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .reservations-panel {
+    order: -1;
+  }
+}
+
+
+/* =========================================================
+   20. RESPONSIVE PARA CELULARES
+   Todo pasa a una sola columna compacta.
+========================================================= */
+
+@media (max-width: 760px) {
+  .dashboard-shell__main {
+    width: 100%;
+    padding: 0 12px 18px;
+  }
+
+  .dashboard-header {
+    height: auto;
+    padding: 14px;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .dashboard-header__brand,
+  .dashboard-header__social,
+  .dashboard-header__user {
+    justify-content: center;
+    justify-self: center;
+  }
+
+  .booking-panel,
+  .reservations-panel {
+    padding: 18px;
+  }
+
+  .booking-panel__top {
+    grid-template-columns: 1fr;
+  }
+
+  .steps-indicator {
+    min-width: 0;
+  }
+
+  .booking-step {
+    grid-template-columns: 1fr;
+  }
+
+  .sports-carousel-wrapper {
+    grid-template-columns: 38px minmax(0, 1fr) 38px;
+    gap: 8px;
+  }
+
+  .sports-carousel__nav {
+    width: 38px;
+    height: 38px;
+    font-size: 24px;
+  }
+
+  .sport-card {
+    width: 136px;
+    min-width: 136px;
+    min-height: 100px;
+  }
+
+  .sport-card__icon {
+    width: 54px;
+    height: 54px;
+  }
+
+  .sport-card__image {
+    width: 38px;
+    height: 38px;
+  }
+
+  .clubs-grid,
+  .date-selector__days,
+  .time-grid,
+  .booking-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .reservation-card {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-benefits {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   21. MODAL DE RESERVA CONFIRMADA
+   Reemplaza el alert() nativo del navegador por un modal
+   visual acorde al diseño del dashboard.
+========================================================= */
+
+.reserva-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 20, 44, 0.45);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.reserva-modal {
+  width: min(100%, 480px);
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px 24px 24px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.28);
+  text-align: center;
+  animation: modalFadeIn 0.25s ease;
+}
+
+.reserva-modal__icon {
+  width: 74px;
+  height: 74px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #16b95f, #0f9c4f);
+  color: #ffffff;
+  font-size: 34px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 25px rgba(22, 185, 95, 0.28);
+}
+
+.reserva-modal h2 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  color: var(--azul-texto);
+}
+
+.reserva-modal__subtitle {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: var(--azul-secundario);
+}
+
+.reserva-modal__details {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 22px;
+  text-align: left;
+}
+
+.reserva-modal__details div {
+  padding: 12px 14px;
+  border: 1px solid #dce7f3;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.reserva-modal__details span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: #6d7d96;
+}
+
+.reserva-modal__details strong {
+  font-size: 15px;
+  color: var(--azul-texto);
+}
+
+.reserva-modal__button {
+  flex: 1;
+  min-height: 46px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--azul-principal), var(--azul-oscuro));
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.reserva-modal__button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(8, 123, 255, 0.22);
+}
+
+.reserva-modal__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.reserva-modal__button--secondary {
+  background: #ffffff;
+  color: var(--azul-principal);
+  border: 1px solid var(--azul-principal);
+}
+
+.reserva-modal__button--secondary:hover {
+  background: #f0f7ff;
+  box-shadow: none;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

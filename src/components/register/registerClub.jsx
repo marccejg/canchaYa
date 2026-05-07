@@ -124,7 +124,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
       });
 
       if (onRegisterComplete) {
-        onRegisterComplete(result);
+        onRegisterComplete({ ...result, tipo: 'club' });
       }
 
     } catch (error) {

@@ -6,6 +6,9 @@
     padding: 1.5rem 1rem;
     margin-top: 130px;
     padding-bottom: 2rem;
+    position: sticky;
+    top: 55px;
+    align-self: flex-start;
 }
 
 
@@ -56,7 +59,8 @@
     height: 20px;
     cursor: pointer;
     transition: all 0.2s ease;
-    z-index: 1; /* que no tape títulos */
+    z-index: 1;
+    /* que no tape títulos */
 }
 
 /* Cuando está marcado */
@@ -64,7 +68,9 @@
     background-color: white;
     border-color: white;
     box-shadow: none;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='rgb(33,79,168)' stroke='rgb(33,79,168)' stroke-width='3' d='M4 12l6 6L20 6'/%3e%3c/svg%3e");
+    background-image:
+    linear-gradient(rgba(120, 145, 155, 0.45), rgba(120, 145, 155, 0.45)),
+    url('src/components/inicio/backgroud1.png');
     background-repeat: no-repeat;
     background-position: center;
     background-size: 70%;
@@ -95,6 +101,7 @@
     font-weight: 600;
     transition: all 0.3s ease;
 }
+
 .card-custom .btn-primary {
     background-color: white;
     color: rgb(33, 79, 168);
@@ -112,7 +119,8 @@
 
 /* Íconos dentro del input */
 .input-with-icon {
-    padding-right: 40px; /* Espacio para el ícono */
+    padding-right: 40px;
+    /* Espacio para el ícono */
     position: relative;
 }
 
@@ -124,17 +132,20 @@
     color: white;
     pointer-events: none;
     font-size: 1.2rem;
-    z-index: 1; /* menor que título */
+    z-index: 1;
+    /* menor que título */
 }
 
 /* Título */
 .Titulo {
     position: relative;
-    z-index: 10; /* sobre todos los inputs */
+    z-index: 10;
+    /* sobre todos los inputs */
     margin-bottom: 2rem;
 }
 
-.Titulo h2, .Titulo h6 {
+.Titulo h2,
+.Titulo h6 {
     color: white;
     text-align: center;
 }
@@ -149,7 +160,7 @@
 
 /* Rectángulo decorativo abajo */
 .card-bottom-rectangle {
-    height: 50px; 
+    height: 50px;
     background-color: rgb(20, 60, 130);
     width: 100%;
     border-bottom-left-radius: 0;
