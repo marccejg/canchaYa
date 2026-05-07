@@ -2,13 +2,13 @@
 export const deportes = [
   { id: 1, nombre: 'Futbol 5' },
   { id: 2, nombre: 'Futbol 7' },
-  { id: 9, nombre: 'Basquet' },
-  { id: 4, nombre: 'Tenis' },
-  { id: 5, nombre: 'Voley' },
-  { id: 6, nombre: 'Padel' },
-  { id: 7, nombre: 'Natacion' },
-  { id: 8, nombre: 'Golf' },
-  { id: 3, nombre: 'Futbol 11' }
+   { id: 3, nombre: 'Futbol 11' },
+  { id: 4, nombre: 'Basquet' },
+  { id: 5, nombre: 'Tenis' },
+  { id: 6, nombre: 'Voley' },
+  { id: 7, nombre: 'Padel' },
+  { id: 8, nombre: 'Natacion' },
+  { id: 9, nombre: 'Golf' }  
 ];
 
 // Arreglo de horarios desde 9 AM a 10 PM (cada club puede elegir que horarios utiliza)

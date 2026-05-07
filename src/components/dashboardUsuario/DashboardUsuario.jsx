@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import './DashboardUsuario.css';
 
 import logoCanchasYa from '../../assets/logo_blanco_720.png';
@@ -29,55 +29,7 @@ const DEPORTES = [
   { id: 9, nombre: 'Fútbol 11', icono: futbol11Icon },
 ];
 
-/*
-  Lista temporal de clubes.
-  Cada club indica qué deportes tiene disponibles.
-  Más adelante esto debería venir desde el backend filtrado por deporte.
-*/
-const CLUBES = [
-  {
-    id: 1,
-    nombre: 'La Ola',
-    direccion: 'Av. Siempreviva 742',
-    distancia: '3.2 km',
-    deportes: ['Fútbol 5', 'Fútbol 7'],
-  },
-  {
-    id: 2,
-    nombre: 'Kiwi Padel',
-    direccion: 'Av. Los Andes 1500',
-    distancia: '4.7 km',
-    deportes: ['Pádel', 'Fútbol 5'],
-  },
-  {
-    id: 3,
-    nombre: 'Padel Total',
-    direccion: 'San Martín 3250',
-    distancia: '4.1 km',
-    deportes: ['Pádel', 'Fútbol 5'],
-  },
-  {
-    id: 4,
-    nombre: 'Villa del Parque',
-    direccion: 'Bv. Rondeau 2100',
-    distancia: '6.3 km',
-    deportes: ['Fútbol 5', 'Fútbol 7', 'Fútbol 11'],
-  },
-  {
-    id: 5,
-    nombre: 'Club Norte',
-    direccion: 'Av. Libertador 1230',
-    distancia: '5.1 km',
-    deportes: ['Básquet', 'Vóley'],
-  },
-  {
-    id: 6,
-    nombre: 'Tenis Center',
-    direccion: 'Mitre 820',
-    distancia: '2.8 km',
-    deportes: ['Tenis'],
-  },
-];
+
 
 /*
   Horarios temporales.
@@ -103,7 +55,7 @@ const HORARIOS = [
 
 /*
   Devuelve una fecha en formato dd/mm/yyyy.
-  Es el formato visual que usamos en el dashboard.
+  Es el formato visual que usamos en el dashboard del usuario.
 */
 const formatearFecha = (fecha) => {
   const dia = String(fecha.getDate()).padStart(2, '0');
@@ -120,7 +72,22 @@ const formatearFecha = (fecha) => {
 const crearFechaDesdeTexto = (fechaTexto) => {
   if (!fechaTexto) return null;
 
-  const [dia, mes, anio] = fechaTexto.split('/').map(Number);
+  // Soporte para formato DD/MM/YYYY (frontend) y YYYY-MM-DD (backend/ISO)
+  let dia, mes, anio;
+
+  if (fechaTexto.includes('-')) {
+    // Formato YYYY-MM-DD (posiblemente con tiempo T00:00...)
+    const partes = fechaTexto.split('T')[0].split('-');
+    anio = Number(partes[0]);
+    mes = Number(partes[1]);
+    dia = Number(partes[2]);
+  } else if (fechaTexto.includes('/')) {
+    // Formato DD/MM/YYYY
+    const partes = fechaTexto.split('/');
+    dia = Number(partes[0]);
+    mes = Number(partes[1]);
+    anio = Number(partes[2]);
+  }
 
   if (!dia || !mes || !anio) return null;
 
@@ -285,11 +252,12 @@ const esHorarioPasado = (fechaTexto, horaTexto) => {
 };
 
 /*
-  Busca un club por nombre.
+  Busca un club por nombre dentro de una lista de clubes.
   Se usa para recuperar dirección y datos auxiliares del club.
 */
-const buscarClubPorNombre = (nombreClub) => {
-  return CLUBES.find((club) => club.nombre === nombreClub) || null;
+const buscarClubPorNombre = (nombreClub, listaClubes = []) => {
+  if (!nombreClub || !Array.isArray(listaClubes)) return null;
+  return listaClubes.find((club) => club.nombre === nombreClub) || null;
 };
 
 /*
@@ -307,12 +275,13 @@ const obtenerClaseEstadoReserva = (estado) => {
   Soporta reservas nuevas generadas por este dashboard y futuras reservas
   que puedan venir del backend con un formato parecido.
 */
-const normalizarReserva = (reserva) => {
+const normalizarReserva = (reserva, listaClubes = []) => {
   if (!reserva) return null;
 
-  const fechaDate = crearFechaDesdeTexto(reserva.fecha);
-  const fechaHoraDate = crearFechaHoraDesdeReserva(reserva.fecha, reserva.hora);
-  const clubEncontrado = buscarClubPorNombre(reserva.club);
+  const fechaStr = reserva.fecha instanceof Date ? formatearFecha(reserva.fecha) : reserva.fecha;
+  const fechaDate = crearFechaDesdeTexto(fechaStr);
+  const fechaHoraDate = crearFechaHoraDesdeReserva(fechaStr, reserva.hora);
+  const clubEncontrado = buscarClubPorNombre(reserva.club, listaClubes);
 
   return {
     ...reserva,
@@ -353,6 +322,48 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [horarioSeleccionado, setHorarioSeleccionado] = useState(null);
 
+  const [clubesActivos, setClubesActivos] = useState([]);
+
+  useEffect(() => {
+    const fetchClubes = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/dueno-cancha/aceptados');
+        if (response.ok) {
+          const data = await response.json();
+          const activos = data
+            .filter((c) => c.activo)
+            .map((c) => ({
+              id: c.id,
+              nombre: c.nombre || 'Club sin nombre',
+              direccion: c.direccion || 'Sin dirección',
+              email: c.email || 'No disponible',
+              telefono: c.telefono || 'No disponible',
+              distancia: 'A calcular',
+              deportes: c.canchas || [],
+              detallesCanchas: c.detallesCanchas || [],
+            }));
+          setClubesActivos(activos);
+        }
+      } catch (error) {
+        console.error('Error al cargar clubes en el dashboard:', error);
+      }
+    };
+
+    fetchClubes();
+  }, [usuario]);
+
+  // Filtrar deportes que existen en los clubes activos
+  const deportesDisponibles = useMemo(() => {
+    if (clubesActivos.length === 0) return [];
+    const setDeportes = new Set();
+    clubesActivos.forEach(club => {
+      if (Array.isArray(club.deportes)) {
+        club.deportes.forEach(d => setDeportes.add(d));
+      }
+    });
+    return DEPORTES.filter(d => setDeportes.has(d.nombre));
+  }, [clubesActivos]);
+
   /*
     Estado del modal.
     mostrarModalReserva controla si el modal se ve.
@@ -388,10 +399,10 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
   const clubesFiltrados = useMemo(() => {
     if (!deporteSeleccionado) return [];
 
-    return CLUBES.filter((club) =>
+    return clubesActivos.filter((club) =>
       club.deportes.includes(deporteSeleccionado)
     );
-  }, [deporteSeleccionado]);
+  }, [deporteSeleccionado, clubesActivos]);
 
   /*
     Busca el objeto completo del club seleccionado.
@@ -400,8 +411,8 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
   const clubActual = useMemo(() => {
     if (!clubSeleccionado) return null;
 
-    return buscarClubPorNombre(clubSeleccionado);
-  }, [clubSeleccionado]);
+    return clubesActivos.find((club) => club.nombre === clubSeleccionado) || null;
+  }, [clubSeleccionado, clubesActivos]);
 
   /*
     Devuelve el nombre visual de la cancha según el deporte elegido.
@@ -418,7 +429,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
   */
   const reservasDelUsuario = useMemo(() => {
     return reservas
-      .map(normalizarReserva)
+      .map((reserva) => normalizarReserva(reserva, clubesActivos))
       .filter(Boolean)
       .sort((a, b) => {
         const fechaA = a.fechaHoraDate?.getTime?.() || 0;
@@ -556,6 +567,22 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
   };
 
   /*
+    Indica si un horario ya está reservado para el club, deporte y fecha seleccionados.
+    Evita que se pisen reservas en el mismo slot.
+  */
+  const esHorarioOcupado = (hora) => {
+    if (!clubSeleccionado || !fechaSeleccionada || !deporteSeleccionado) return false;
+
+    return reservas.some(
+      (r) =>
+        r.club === clubSeleccionado &&
+        r.fecha === fechaSeleccionada &&
+        r.hora === hora &&
+        r.deporte === deporteSeleccionado
+    );
+  };
+
+  /*
     Reinicia el wizard completo.
     Vuelve al paso 1.
   */
@@ -571,31 +598,82 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
     Envía la nueva reserva hacia App.jsx mediante onAddReserva
     y abre el modal de confirmación visual.
   */
-  const confirmarReserva = () => {
+  const confirmarReserva = async () => {
     if (pasoActual !== 5) return;
 
     if (esFechaPasada(fechaSeleccionada)) return;
     if (esHorarioPasado(fechaSeleccionada, horarioSeleccionado)) return;
+    if (esHorarioOcupado(horarioSeleccionado)) return;
 
-    const nuevaReserva = {
-      id: Date.now(),
-      deporte: deporteSeleccionado,
-      club: clubSeleccionado,
-      cancha: canchaSeleccionada,
-      fecha: fechaSeleccionada,
-      hora: horarioSeleccionado,
-      estado: 'Confirmada',
-      puedeGestionar: true,
-      limite: '24 hs antes del turno',
-      direccion: clubActual?.direccion || '',
-    };
+    // Función para normalizar texto (quitar acentos y pasar a minúsculas)
+    const normalizar = (str) =>
+      str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
-    if (onAddReserva) {
-      onAddReserva(nuevaReserva);
+    // Buscar la cancha real en el club seleccionado para el deporte elegido
+    const clubData = clubesActivos.find(c => c.nombre === clubSeleccionado);
+    
+    // Buscamos coincidencia por el campo 'deporte' o por el 'nombre' de la cancha
+    const canchaReal = clubData?.detallesCanchas?.find(c => 
+      normalizar(c.deporte) === normalizar(deporteSeleccionado) ||
+      normalizar(c.nombre) === normalizar(deporteSeleccionado) ||
+      normalizar(c.nombre).includes(normalizar(deporteSeleccionado))
+    );
+
+    if (!canchaReal) {
+      alert('No se encontró una cancha disponible para este deporte en el club seleccionado.');
+      return;
     }
 
-    setReservaConfirmada(nuevaReserva);
-    setMostrarModalReserva(true);
+    const [dia, mes, anio] = fechaSeleccionada.split('/');
+    const fechaSQL = `${anio}-${mes}-${dia}`;
+
+    // Preparar datos para el backend
+    const reservaDTO = {
+      id_usuario: usuario.id_usuario,
+      id_cancha: canchaReal.id,
+      fecha: fechaSQL,
+      hora_inicio: `${horarioSeleccionado}:00`,
+      hora_fin: `${parseInt(horarioSeleccionado.split(':')[0]) + 1}:00:00`,
+      monto_total: canchaReal.precio || 0,
+      estado: 'confirmada'
+    };
+
+    try {
+      const response = await fetch('http://localhost:3000/reserva', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reservaDTO),
+      });
+
+      if (response.ok) {
+        const guardada = await response.json();
+        
+        const nuevaReserva = {
+          id: guardada.id_reserva || Date.now(),
+          deporte: deporteSeleccionado,
+          club: clubSeleccionado,
+          cancha: canchaSeleccionada,
+          fecha: fechaSeleccionada,
+          hora: horarioSeleccionado,
+          estado: 'Confirmada',
+          puedeGestionar: true,
+          limite: '24 hs antes del turno',
+          direccion: clubActual?.direccion || '',
+        };
+
+        if (onAddReserva) {
+          onAddReserva(nuevaReserva);
+        }
+
+        setReservaConfirmada(nuevaReserva);
+        setMostrarModalReserva(true);
+      } else {
+        alert('Error al procesar la reserva en el servidor.');
+      }
+    } catch (error) {
+      console.error('Error al confirmar reserva:', error);
+      alert('Error de conexión con el servidor.');
+    }
   };
 
   /*
@@ -705,29 +783,35 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
 
                     <div className="sports-carousel" ref={sportsCarouselRef}>
                       <div className="sports-carousel__track">
-                        {DEPORTES.map((deporte) => (
-                          <button
-                            key={deporte.id}
-                            type="button"
-                            className={
-                              deporteSeleccionado === deporte.nombre
-                                ? 'sport-card selected'
-                                : 'sport-card'
-                            }
-                            onClick={() => seleccionarDeporte(deporte)}
-                            disabled={pasoActual !== 1}
-                          >
-                            <span className="sport-card__icon">
-                              <img
-                                src={deporte.icono}
-                                alt={deporte.nombre}
-                                className="sport-card__image"
-                              />
-                            </span>
+                        {deportesDisponibles.length > 0 ? (
+                          deportesDisponibles.map((deporte) => (
+                            <button
+                              key={deporte.id}
+                              type="button"
+                              className={
+                                deporteSeleccionado === deporte.nombre
+                                  ? 'sport-card selected'
+                                  : 'sport-card'
+                              }
+                              onClick={() => seleccionarDeporte(deporte)}
+                              disabled={pasoActual !== 1}
+                            >
+                              <span className="sport-card__icon">
+                                <img
+                                  src={deporte.icono}
+                                  alt={deporte.nombre}
+                                  className="sport-card__image"
+                                />
+                              </span>
 
-                            <strong>{deporte.nombre}</strong>
-                          </button>
-                        ))}
+                              <strong>{deporte.nombre}</strong>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="empty-clubs-message" style={{ padding: '20px' }}>
+                            No hay deportes disponibles en este momento.
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -772,6 +856,8 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
 
                           <strong>{club.nombre}</strong>
                           <small>{club.direccion}</small>
+                          <small>📞 {club.telefono}</small>
+                          <small>✉️ {club.email}</small>
                           <span>📍 {club.distancia}</span>
                         </button>
                       ))
@@ -847,7 +933,8 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
                     {HORARIOS.map((horario) => {
                       const horarioBloqueado =
                         !horario.disponible ||
-                        esHorarioPasado(fechaSeleccionada, horario.hora);
+                        esHorarioPasado(fechaSeleccionada, horario.hora) ||
+                        esHorarioOcupado(horario.hora);
 
                       return (
                         <button
@@ -1111,13 +1198,23 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
               </div>
             </div>
 
-            <button
-              type="button"
-              className="reserva-modal__button"
-              onClick={cerrarModalReserva}
-            >
-              Aceptar
-            </button>
+            <div className="reserva-modal__actions">
+              <button
+                type="button"
+                className="reserva-modal__button"
+                onClick={cerrarModalReserva}
+              >
+                Nueva reserva
+              </button>
+
+              <button
+                type="button"
+                className="reserva-modal__button reserva-modal__button--secondary"
+                onClick={cerrarModalReserva}
+              >
+                Ver mis reservas
+              </button>
+            </div>
           </div>
         </div>
       )}

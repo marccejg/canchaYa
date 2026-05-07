@@ -1341,7 +1341,7 @@
 }
 
 .reserva-modal__button {
-  min-width: 180px;
+  flex: 1;
   min-height: 46px;
   border: none;
   border-radius: 12px;
@@ -1356,6 +1356,23 @@
 .reserva-modal__button:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 24px rgba(8, 123, 255, 0.22);
+}
+
+.reserva-modal__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.reserva-modal__button--secondary {
+  background: #ffffff;
+  color: var(--azul-principal);
+  border: 1px solid var(--azul-principal);
+}
+
+.reserva-modal__button--secondary:hover {
+  background: #f0f7ff;
+  box-shadow: none;
 }
 
 @keyframes modalFadeIn {

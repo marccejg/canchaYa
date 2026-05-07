@@ -77,6 +77,13 @@ const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub, onAdminLogin }) =>
             >
               Ingresar
             </button>
+            <button
+              type="button"
+              className="inicio-admin-btn"
+              onClick={onAdminLogin}
+            >
+              Admin
+            </button>
           </nav>
         </header>
 

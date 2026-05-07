@@ -53,6 +53,32 @@ function App() {
   */
   const handleLogin = (user) => {
     setCurrentUser(user);
+    if (user && user.tipo === 'usuario') {
+      fetchReservas(user.id_usuario);
+    }
+  };
+
+  const fetchReservas = async (idUsuario) => {
+    try {
+      const response = await fetch(`http://localhost:3000/reserva/usuario/${idUsuario}`);
+      if (response.ok) {
+        const data = await response.json();
+        const reservasMapeadas = data.map(r => ({
+          id: r.id_reserva,
+          deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
+          club: r.cancha?.club?.nombre_club || 'Club',
+          cancha: r.cancha?.nombre_cancha || 'Cancha',
+          fecha: r.fecha,
+          hora: r.hora_inicio.slice(0, 5),
+          estado: r.estado.charAt(0).toUpperCase() + r.estado.slice(1),
+          direccion: r.cancha?.club?.direccion_club || '',
+          precio: r.monto_total
+        }));
+        setReservas(reservasMapeadas);
+      }
+    } catch (error) {
+      console.error('Error al cargar reservas iniciales:', error);
+    }
   };
 
   /*
@@ -99,7 +125,7 @@ function App() {
   */
   const handleRegisterComplete = (nuevoUsuario) => {
     if (nuevoUsuario && nuevoUsuario.tipo === 'club') {
-      setClubesRegistrados((prev) => [...prev, nuevoUsuario]);
+      setClubesRegistrados((prev) => [...prev, { ...nuevoUsuario, estado: 'pendiente', activo: false }]);
     } else {
       setUsuarios((prev) => [...prev, nuevoUsuario]);
     }
