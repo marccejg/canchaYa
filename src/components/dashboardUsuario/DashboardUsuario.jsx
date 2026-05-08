@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Swal from 'sweetalert2';
 import './DashboardUsuario.css';
 
 import logoCanchasYa from '../../assets/logo_blanco_720.png';
@@ -312,7 +313,7 @@ const normalizarReserva = (reserva, listaClubes = []) => {
   deporte → club → fecha → horario → confirmación.
   También muestra las reservas reales recibidas desde App.jsx.
 */
-function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
+function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDeleteReserva }) {
   /*
     Estados principales del wizard.
     Cada selección habilita el paso siguiente.
@@ -321,6 +322,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
   const [clubSeleccionado, setClubSeleccionado] = useState(null);
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [horarioSeleccionado, setHorarioSeleccionado] = useState(null);
+  const [menuAbiertoId, setMenuAbiertoId] = useState(null);
 
   const [clubesActivos, setClubesActivos] = useState([]);
 
@@ -619,18 +621,13 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
       normalizar(c.nombre).includes(normalizar(deporteSeleccionado))
     );
 
-    if (!canchaReal) {
-      alert('No se encontró una cancha disponible para este deporte en el club seleccionado.');
-      return;
-    }
-
     const [dia, mes, anio] = fechaSeleccionada.split('/');
     const fechaSQL = `${anio}-${mes}-${dia}`;
 
     // Preparar datos para el backend
     const reservaDTO = {
       id_usuario: usuario.id_usuario,
-      id_cancha: canchaReal.id,
+      id_cancha: canchaReal.id_cancha || canchaReal.id,
       fecha: fechaSQL,
       hora_inicio: `${horarioSeleccionado}:00`,
       hora_fin: `${parseInt(horarioSeleccionado.split(':')[0]) + 1}:00:00`,
@@ -668,12 +665,86 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
         setReservaConfirmada(nuevaReserva);
         setMostrarModalReserva(true);
       } else {
-        alert('Error al procesar la reserva en el servidor.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error al procesar la reserva en el servidor.'
+        });
       }
     } catch (error) {
       console.error('Error al confirmar reserva:', error);
-      alert('Error de conexión con el servidor.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de conexión',
+        text: 'No se pudo contactar con el servidor.'
+      });
     }
+  };
+
+  const eliminarReserva = async (reservaId, puedeGestionar) => {
+    if (!puedeGestionar) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acción no permitida',
+        text: 'No podés eliminar esta reserva con menos de 24hs de anticipación.'
+      });
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: "Esta acción no se puede deshacer.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+      if (!reservaId) {
+        Swal.fire('Error', 'No se pudo encontrar el ID de la reserva.', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:3000/reserva/${reservaId}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          if (onDeleteReserva) {
+            onDeleteReserva(reservaId);
+          }
+          setMenuAbiertoId(null);
+          Swal.fire(
+            '¡Eliminada!',
+            'Tu reserva ha sido cancelada correctamente.',
+            'success'
+          );
+        } else {
+          const errorData = await response.json().catch(() => ({ message: response.statusText }));
+          Swal.fire('Error', `No se pudo eliminar la reserva: ${errorData.message || 'Error del servidor'}`, 'error');
+        }
+      } catch (error) {
+        console.error('Error al eliminar reserva:', error);
+        Swal.fire('Error', 'Hubo un problema de conexión al intentar eliminar la reserva.', 'error');
+      }
+    }
+  };
+
+  const modificarReserva = (reserva, puedeGestionar) => {
+    if (!puedeGestionar) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acción no permitida',
+        text: 'No podés modificar esta reserva con menos de 24hs de anticipación.'
+      });
+      return;
+    }
+    Swal.fire('Próximamente', 'La función de modificación estará disponible pronto.', 'info');
+    setMenuAbiertoId(null);
   };
 
   /*
@@ -870,6 +941,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
                     )}
                   </div>
                 </div>
+
 
                 <div className={obtenerClaseLinea(3)}>
                   <aside className="booking-step__label">
@@ -1117,7 +1189,33 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
                             <small>Menos de 24hs de anticipación</small>
                           )}
 
-                          <button type="button">⋮</button>
+                          <div className="actions-menu-container">
+                            <button 
+                              type="button" 
+                              onClick={() => setMenuAbiertoId(menuAbiertoId === (reserva.id || reserva.id_reserva) ? null : (reserva.id || reserva.id_reserva))}
+                            >
+                              ⋮
+                            </button>
+                            
+                            {menuAbiertoId === (reserva.id || reserva.id_reserva) && (
+                              <div className="actions-dropdown">
+                                <button 
+                                  className="dropdown-item"
+                                  onClick={() => modificarReserva(reserva, reserva.puedeGestionar)}
+                                  disabled={!reserva.puedeGestionar}
+                                >
+                                  <i className="bi bi-pencil"></i> Modificar
+                                </button>
+                                <button 
+                                  className="dropdown-item delete"
+                                  onClick={() => eliminarReserva(reserva.id || reserva.id_reserva, reserva.puedeGestionar)}
+                                  disabled={!reserva.puedeGestionar}
+                                >
+                                  <i className="bi bi-trash"></i> Eliminar
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </article>
                     ))

@@ -53,8 +53,36 @@ function App() {
   */
   const handleLogin = (user) => {
     setCurrentUser(user);
-    if (user && user.tipo === 'usuario') {
-      fetchReservas(user.id_usuario);
+    if (user) {
+      if (user.tipo === 'usuario') {
+        fetchReservas(user.id_usuario);
+      } else if (user.tipo === 'club' && user.club?.id_club) {
+        fetchReservasPorClub(user.club.id_club);
+      }
+    }
+  };
+
+  const fetchReservasPorClub = async (idClub) => {
+    try {
+      const response = await fetch(`http://localhost:3000/reserva/club/${idClub}`);
+      if (response.ok) {
+        const data = await response.json();
+        const reservasMapeadas = data.map(r => ({
+          id: r.id_reserva,
+          id_cancha: r.cancha?.id_cancha,
+          deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
+          club: r.cancha?.club?.nombre_club || 'Club',
+          cancha: r.cancha?.nombre_cancha || 'Cancha',
+          fecha: r.fecha,
+          hora: r.hora_inicio.slice(0, 5),
+          estado: r.estado.charAt(0).toUpperCase() + r.estado.slice(1),
+          direccion: r.cancha?.club?.direccion_club || '',
+          precio: r.monto_total
+        }));
+        setReservas(reservasMapeadas);
+      }
+    } catch (error) {
+      console.error('Error al cargar reservas del club:', error);
     }
   };
 
@@ -65,6 +93,7 @@ function App() {
         const data = await response.json();
         const reservasMapeadas = data.map(r => ({
           id: r.id_reserva,
+          id_cancha: r.cancha?.id_cancha,
           deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
           club: r.cancha?.club?.nombre_club || 'Club',
           cancha: r.cancha?.nombre_cancha || 'Cancha',
@@ -155,13 +184,20 @@ function App() {
   */
   const handleAddReserva = (reserva) => {
     const nuevaReserva = {
-      ...reserva,
       id: Date.now(),
+      ...reserva,
       timestamp: new Date().toISOString(),
       estado: reserva.estado || 'Confirmada',
     };
 
     setReservas((prev) => [...prev, nuevaReserva]);
+  };
+
+  /*
+    Elimina una reserva del estado global.
+  */
+  const handleDeleteReserva = (reservaId) => {
+    setReservas((prev) => prev.filter((r) => (r.id_reserva || r.id) !== reservaId));
   };
 
   /*
@@ -262,6 +298,7 @@ function App() {
       usuarios={usuarios}
       onLogout={handleLogout}
       onAddReserva={handleAddReserva}
+      onDeleteReserva={handleDeleteReserva}
     />
   );
 }
