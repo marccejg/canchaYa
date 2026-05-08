@@ -12,8 +12,11 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   const [newCancha, setNewCancha] = useState({
     nombre: '',
     deporte: '',
-    superficie: ''
+    superficie: '',
+    precio_por_hora: 0
   });
+  const [editingCanchaId, setEditingCanchaId] = useState(null);
+  const [editingPrice, setEditingPrice] = useState('');
 
   const clubPrincipal = club?.club;
 
@@ -55,16 +58,69 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     );
   };
 
-  const handleAddCancha = (e) => {
+  const handleAddCancha = async (e) => {
     e.preventDefault();
     if (!newCancha.nombre || !newCancha.deporte) {
       alert('Por favor completa los campos requeridos');
       return;
     }
-    // Aquí se agregará la cancha (por ahora solo simulamos)
-    alert(`Cancha "${newCancha.nombre}" agregada exitosamente`);
-    setNewCancha({ nombre: '', deporte: '', superficie: '' });
-    setShowAddCancha(false);
+
+    try {
+      const response = await fetch('http://localhost:3000/cancha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre_cancha: newCancha.nombre,
+          id_deporte: parseInt(newCancha.deporte),
+          id_club: clubPrincipal.id_club,
+          precio_por_hora: parseFloat(newCancha.precio_por_hora),
+          descripcion_cancha: newCancha.superficie
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCanchas(prev => [...prev, data]);
+        alert(`Cancha "${newCancha.nombre}" agregada exitosamente`);
+        setNewCancha({ nombre: '', deporte: '', superficie: '', precio_por_hora: 0 });
+        setShowAddCancha(false);
+      } else {
+        alert('Error al agregar la cancha');
+      }
+    } catch (error) {
+      console.error('Error al agregar cancha:', error);
+      alert('Error de conexión');
+    }
+  };
+
+  const handleUpdatePrice = async (canchaId) => {
+    if (!editingPrice || isNaN(editingPrice)) {
+      alert('Por favor ingresa un precio válido');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3000/cancha/${canchaId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ precio_por_hora: parseFloat(editingPrice) }),
+      });
+
+      if (response.ok) {
+        setCanchas(prev => prev.map(c => 
+          c.id_cancha === canchaId 
+            ? { ...c, precio_por_hora: parseFloat(editingPrice) } 
+            : c
+        ));
+        setEditingCanchaId(null);
+        setEditingPrice('');
+      } else {
+        alert('Error al actualizar el precio');
+      }
+    } catch (error) {
+      console.error('Error al actualizar precio:', error);
+      alert('Error de conexión');
+    }
   };
 
   const normalizarFecha = (fecha) => {
@@ -81,11 +137,14 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
 
   const hoy = normalizarFecha(new Date());
 
-  const reservasDelClub = reservas.filter((reserva) => reserva.club === nombreClub);
+  // Ahora las reservas vienen filtradas desde App.jsx para este club específico
+  const reservasDelClub = reservas;
 
   const reservasDeHoy = reservasDelClub.filter(
     (reserva) => normalizarFecha(reserva.fecha) === hoy
   );
+
+  const ingresosHoy = reservasDeHoy.reduce((total, res) => total + (Number(res.precio) || 0), 0);
 
   const imagenesPorDeporte = {
     'Fútbol 5': 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=500',
@@ -249,6 +308,16 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
                       onChange={(e) => setNewCancha({...newCancha, superficie: e.target.value})}
                     />
                   </div>
+                  <div className="form-group">
+                    <label>Precio por hora ($):</label>
+                    <input
+                      type="number"
+                      placeholder="Ej: 5000"
+                      value={newCancha.precio_por_hora}
+                      onChange={(e) => setNewCancha({...newCancha, precio_por_hora: e.target.value})}
+                      required
+                    />
+                  </div>
                   <div className="form-actions">
                     <button type="submit" className="btn-success">
                       Agregar cancha
@@ -323,9 +392,9 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             <i className="bi bi-currency-dollar"></i>
           </div>
           <div>
-            <p>Ingresos del mes</p>
-            <h3>$0</h3>
-            <span className="positive">Sin datos aún</span>
+            <p>Ingresos del día</p>
+            <h3>${ingresosHoy.toLocaleString('es-AR')}</h3>
+            <span className="positive">Hoy</span>
           </div>
         </div>
       </section>
@@ -354,6 +423,41 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
                   <h4>{cancha.nombre_cancha}</h4>
                   <p>{cancha.deporte}</p>
                   <span>Activa</span>
+                </div>
+
+                <div className="court-reservas">
+                  <p>Precio por hora</p>
+                  {editingCanchaId === cancha.id_cancha ? (
+                    <div className="price-editor">
+                      <input
+                        type="number"
+                        value={editingPrice}
+                        onChange={(e) => setEditingPrice(e.target.value)}
+                        className="price-input"
+                        autoFocus
+                      />
+                      <button onClick={() => handleUpdatePrice(cancha.id_cancha)} className="btn-save-mini" title="Guardar">
+                        <i className="bi bi-check"></i>
+                      </button>
+                      <button onClick={() => setEditingCanchaId(null)} className="btn-cancel-mini" title="Cancelar">
+                        <i className="bi bi-x"></i>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="price-display">
+                      <strong>${cancha.precio_por_hora || 0}</strong>
+                      <button 
+                        onClick={() => {
+                          setEditingCanchaId(cancha.id_cancha);
+                          setEditingPrice(cancha.precio_por_hora);
+                        }}
+                        className="btn-edit-mini"
+                        title="Editar precio"
+                      >
+                        <i className="bi bi-pencil"></i>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="court-reservas">
@@ -393,9 +497,9 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
 
       <section className="dashboard-bottom-grid">
         <div className="dashboard-panel income-panel">
-          <h3>Ingresos del último mes</h3>
+          <h3>Ingresos de hoy</h3>
           <div className="income-value">
-            $0 <span>Sin datos</span>
+            ${ingresosHoy.toLocaleString('es-AR')} <span>Hoy</span>
           </div>
           <div className="fake-chart"></div>
         </div>
