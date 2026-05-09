@@ -7,6 +7,10 @@ import Layout from '../layout/layout';
   Permite iniciar sesión tanto como dueño de cancha como usuario común.
   Primero intenta autenticar contra el endpoint de dueño.
   Si falla, intenta autenticar contra el endpoint de usuario.
+
+  En esta versión:
+  - Se habilitan banners laterales solamente en la pantalla de login.
+  - Los banners se controlan desde Layout para no afectar otras páginas.
 */
 const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
   const [username, setUsername] = useState('');
@@ -72,9 +76,13 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
   };
 
   return (
-    <Layout>
+    <Layout showBanners={true} bannerContext="login">
       <main className="login-page-container">
         <section className="login-container">
+          <div className="login-icon-header">
+            <i className="bi bi-trophy-fill"></i>
+          </div>
+
           <h2 className="login-title">Iniciar Sesión</h2>
 
           <form onSubmit={handleSubmit} className="login-form">
@@ -85,15 +93,19 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
                 Mail:
               </label>
 
-              <input
-                id="login-email"
-                type="email"
-                placeholder="Mail registrado"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="login-input"
-                required
-              />
+              <div className="login-input-wrapper">
+                <i className="bi bi-envelope login-input-icon"></i>
+
+                <input
+                  id="login-email"
+                  type="email"
+                  placeholder="Mail registrado"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="login-input"
+                  required
+                />
+              </div>
             </div>
 
             <div className="login-form-group">
@@ -101,19 +113,24 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
                 Contraseña:
               </label>
 
-              <input
-                id="login-password"
-                type="password"
-                placeholder="tu contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="login-input"
-                required
-              />
+              <div className="login-input-wrapper">
+                <i className="bi bi-lock login-input-icon"></i>
+
+                <input
+                  id="login-password"
+                  type="password"
+                  placeholder="tu contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="login-input"
+                  required
+                />
+              </div>
             </div>
 
             <button type="submit" className="login-submit-button">
-              Ingresar
+              <span>Ingresar</span>
+              <i className="bi bi-arrow-right"></i>
             </button>
 
             <div className="login-register-container">
@@ -125,7 +142,8 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
                   onClick={onRegister}
                   className="login-register-user-button"
                 >
-                  Registrarse como Usuario
+                  <i className="bi bi-person-plus"></i>
+                  <span>Registrarse como Usuario</span>
                 </button>
 
                 <button
@@ -133,7 +151,8 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
                   onClick={onRegisterClub}
                   className="login-register-club-button"
                 >
-                  ¿Tienes canchas? Trabaja con nosotros
+                  <i className="bi bi-building"></i>
+                  <span>¿Tienes canchas? Trabaja con nosotros</span>
                 </button>
               </div>
             </div>
