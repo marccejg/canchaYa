@@ -147,9 +147,22 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
       });
 
       const data = await response.json();
+      const mailResponse = await fetch('http://localhost:3000/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nombre: `${formData.nombre} ${formData.apellido}`,
+          email: formData.email,
+          subject: 'Bienvenido a CanchasYa!',
+          message: ``,
+        }),
+      });
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al registrar');
+      const mailData = await mailResponse.json();
+
+      if (!mailResponse.ok) {
       }
 
       Swal.fire({
@@ -157,6 +170,8 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
         text: 'Ahora puede iniciar sesión con sus credenciales.',
         icon: 'success',
         confirmButtonText: 'Aceptar',
+
+
       });
 
       if (onRegisterComplete) {
