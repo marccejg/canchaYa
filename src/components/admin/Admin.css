@@ -1,107 +1,259 @@
-/* ADMIN LOGIN */
+/* =========================================================
+   ADMIN LOGIN
+   Pantalla de inicio de sesión del administrador.
+   Usa el fondo de cancha original y una card moderna.
+========================================================= */
+
 .admin-login-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
+  padding: 24px;
+  box-sizing: border-box;
+
+  background-image:
+    linear-gradient(rgba(120, 145, 155, 0.45), rgba(120, 145, 155, 0.45)),
+    url('src/components/inicio/backgroud1.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .admin-login-box {
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  padding: 40px;
   width: 100%;
-  max-width: 400px;
+  max-width: 430px;
+  padding: 38px 34px 34px;
+  box-sizing: border-box;
+
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+
+  box-shadow:
+    0 24px 55px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+
+  position: relative;
+  overflow: hidden;
+}
+
+/* Línea azul superior de la card */
+.admin-login-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  width: 76%;
+  height: 4px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(90deg, transparent, #0d6efd, transparent);
+}
+
+/* Esto elimina el círculo azul con el + que aparecía abajo */
+.admin-login-box::after {
+  content: none;
+  display: none;
 }
 
 .admin-login-title {
   text-align: center;
-  color: #333;
-  margin-bottom: 30px;
-  font-size: 24px;
-  font-weight: bold;
+  color: #0d6efd;
+  margin: 0 0 32px;
+
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.7px;
+
+  text-shadow: 0 8px 18px rgba(13, 110, 253, 0.18);
+  position: relative;
+}
+
+.admin-login-title::after {
+  content: "";
+  display: block;
+  width: 58px;
+  height: 3px;
+  margin: 12px auto 0;
+
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0057ff, #00c2ff);
 }
 
 .admin-login-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
 }
 
 .admin-form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  position: relative;
 }
 
 .admin-label {
-  font-weight: 600;
-  color: #333;
-  font-size: 14px;
+  font-weight: 800;
+  color: #1d2b4f;
+  font-size: 15px;
 }
 
 .admin-input {
-  padding: 12px;
-  border: 2px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: border-color 0.3s;
+  width: 100%;
+  padding: 15px 16px 15px 48px;
+  box-sizing: border-box;
+
+  border: 1.5px solid #d5e1f3;
+  border-radius: 14px;
+
+  font-size: 15px;
   font-family: inherit;
+
+  color: #1d2b4f;
+  background-color: #ffffff;
+
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.2s ease;
+}
+
+.admin-input::placeholder {
+  color: #8a96aa;
 }
 
 .admin-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.14);
+  transform: translateY(-1px);
+}
+
+/* Icono usuario */
+.admin-form-group:nth-of-type(1)::before {
+  content: "👤";
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+
+  font-size: 16px;
+  color: #0d6efd;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Icono contraseña */
+.admin-form-group:nth-of-type(2)::before {
+  content: "🔒";
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+
+  font-size: 16px;
+  color: #0d6efd;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .admin-login-error {
-  background-color: #fee;
-  border: 1px solid #fcc;
-  color: #c33;
-  padding: 12px;
-  border-radius: 6px;
+  color: #b42318;
+  background-color: #fff0f0;
+  border: 1px solid #ffc9c9;
+
+  padding: 12px 14px;
+  border-radius: 12px;
+
+  text-align: center;
+  margin: 0;
+
   font-size: 14px;
-  margin-bottom: 10px;
+  font-weight: 700;
 }
 
 .admin-login-button,
 .admin-back-button {
-  padding: 12px;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  padding: 15px 16px;
   border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
+  border-radius: 14px;
+
+  font-size: 15px;
+  font-weight: 900;
   font-family: inherit;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .admin-login-button {
-  background-color: #667eea;
-  color: white;
+  background: linear-gradient(135deg, #0057ff, #00a6ff);
+  color: #ffffff;
+  box-shadow: 0 14px 26px rgba(0, 123, 255, 0.34);
+}
+
+/* Esto elimina el + que aparecía antes del texto */
+.admin-login-button::before {
+  content: none;
+  display: none;
+}
+
+/* Flecha segura, sin depender del código de Bootstrap Icons */
+.admin-login-button::after {
+  content: "→";
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 900;
 }
 
 .admin-login-button:hover {
-  background-color: #5568d3;
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 18px 34px rgba(0, 123, 255, 0.42);
+  filter: brightness(1.04);
+}
+
+.admin-login-button:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
 }
 
 .admin-back-button {
-  background-color: #f0f0f0;
-  color: #333;
-  margin-top: 10px;
+  background-color: #eef3f8;
+  color: #1d2b4f;
+  margin-top: 2px;
+  box-shadow: 0 10px 20px rgba(29, 43, 79, 0.08);
+}
+
+/* Flecha segura para volver */
+.admin-back-button::before {
+  content: "←";
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 900;
 }
 
 .admin-back-button:hover {
-  background-color: #e0e0e0;
+  background-color: #e3ebf5;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 26px rgba(29, 43, 79, 0.12);
 }
 
-/* ADMIN PANEL */
+
+/* =========================================================
+   ADMIN PANEL
+========================================================= */
+
 .admin-panel-container {
   min-height: 100vh;
   background-color: #f5f5f5;
@@ -166,7 +318,11 @@
   transform: translateY(-2px);
 }
 
-/* SETTINGS SECTION */
+
+/* =========================================================
+   SETTINGS SECTION
+========================================================= */
+
 .admin-settings-section {
   background: white;
   border-radius: 10px;
@@ -268,7 +424,11 @@
   background-color: #f9f9f9;
 }
 
-/* ADMIN SECTIONS */
+
+/* =========================================================
+   ADMIN SECTIONS
+========================================================= */
+
 .admin-section {
   background: white;
   border-radius: 10px;
@@ -292,7 +452,11 @@
   font-size: 16px;
 }
 
-/* CLUBS GRID */
+
+/* =========================================================
+   CLUBS GRID
+========================================================= */
+
 .admin-clubs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -415,7 +579,11 @@
   transform: translateY(-2px);
 }
 
-/* TOGGLE SWITCH */
+
+/* =========================================================
+   TOGGLE SWITCH
+========================================================= */
+
 .admin-club-toggle {
   display: flex;
   align-items: center;
@@ -476,8 +644,37 @@
   font-weight: 500;
 }
 
-/* RESPONSIVE */
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
 @media (max-width: 768px) {
+  .admin-login-container {
+    padding: 24px 14px;
+    align-items: flex-start;
+  }
+
+  .admin-login-box {
+    max-width: 100%;
+    margin-top: 18px;
+    padding: 34px 24px 30px;
+    border-radius: 22px;
+  }
+
+  .admin-login-title {
+    font-size: 25px;
+  }
+
+  .admin-input {
+    padding: 14px 14px 14px 46px;
+  }
+
+  .admin-login-button,
+  .admin-back-button {
+    padding: 14px;
+  }
+
   .admin-panel-header {
     flex-direction: column;
     gap: 20px;

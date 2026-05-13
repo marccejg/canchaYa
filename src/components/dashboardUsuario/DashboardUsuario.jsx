@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 import './DashboardUsuario.css';
 
 import logoCanchasYa from '../../assets/logo_blanco_720.png';
@@ -13,6 +15,18 @@ import tenisIcon from '../imagenes/tennis.png';
 import natacionIcon from '../imagenes/natacion.png';
 import golfIcon from '../imagenes/golf.png';
 import futbol11Icon from '../imagenes/futbol11.png';
+
+/*
+  Imágenes de banners publicitarios.
+  Estos banners se muestran solo dentro del DashboardUsuario.
+  
+*/
+import bannerImg1 from '../bannerVertical/banners/img1.png';
+import bannerImg2 from '../bannerVertical/banners/img2.png';
+import bannerImg3 from '../bannerVertical/banners/img3.png';
+import bannerImg4 from '../bannerVertical/banners/img4.png';
+import bannerImg5 from '../bannerVertical/banners/img5.png';
+import bannerImg6 from '../bannerVertical/banners/img6.png';
 
 /*
   Lista temporal de deportes.
@@ -30,6 +44,30 @@ const DEPORTES = [
   { id: 9, nombre: 'Fútbol 11', icono: futbol11Icon },
 ];
 
+/*
+  Banners disponibles para mostrar en los laterales del dashboard.
+  Se alternan de forma aleatoria para que no siempre aparezca la misma publicidad.
+*/
+const BANNERS_PUBLICITARIOS = [
+  bannerImg1,
+  bannerImg2,
+  bannerImg3,
+  bannerImg4,
+  bannerImg5,
+  bannerImg6,
+];
+
+/*
+  Devuelve un banner aleatorio de la lista.
+  Si por alguna razón no hay imágenes cargadas, devuelve null.
+*/
+const obtenerBannerAleatorio = () => {
+  if (!BANNERS_PUBLICITARIOS.length) return null;
+
+  const indiceAleatorio = Math.floor(Math.random() * BANNERS_PUBLICITARIOS.length);
+
+  return BANNERS_PUBLICITARIOS[indiceAleatorio];
+};
 
 
 /*
@@ -114,18 +152,52 @@ const crearFechaHoraDesdeReserva = (fechaTexto, horaTexto) => {
 };
 
 /*
-  Genera los próximos 7 días a partir de hoy.
-  Esto evita mostrar días anteriores al día actual.
+  Cantidad mínima de horas necesarias para poder gestionar una reserva.
+  Si faltan 24 horas o menos para el turno, no se permite modificar ni eliminar.
 */
-const generarDiasDisponibles = () => {
+const HORAS_MINIMAS_PARA_GESTIONAR = 24;
+
+/*
+  Indica si una reserva todavía puede modificarse o eliminarse.
+  La regla funcional es: solo se puede gestionar si faltan más de 24 horas.
+*/
+const puedeGestionarPorAnticipacion = (fechaHoraDate) => {
+  if (!(fechaHoraDate instanceof Date) || Number.isNaN(fechaHoraDate.getTime())) {
+    return false;
+  }
+
+  const ahora = new Date();
+  const diferenciaEnMs = fechaHoraDate.getTime() - ahora.getTime();
+  const horasRestantes = diferenciaEnMs / (1000 * 60 * 60);
+
+  return horasRestantes > HORAS_MINIMAS_PARA_GESTIONAR;
+};
+
+/*
+  Genera todos los días seleccionables del mes visible.
+  - Si el mes visible es el mes actual, arranca desde hoy.
+  - Si el mes visible es futuro, muestra el mes completo.
+  - Nunca muestra días anteriores al día actual.
+*/
+const generarDiasDisponibles = (mesVisible) => {
   const nombresDias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
   const hoy = new Date();
-
   hoy.setHours(0, 0, 0, 0);
 
-  return Array.from({ length: 7 }, (_, index) => {
-    const fecha = new Date(hoy);
-    fecha.setDate(hoy.getDate() + index);
+  const base = mesVisible instanceof Date ? mesVisible : hoy;
+  const primerDiaDelMes = new Date(base.getFullYear(), base.getMonth(), 1);
+  const ultimoDiaDelMes = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+
+  const esMesActual =
+    primerDiaDelMes.getMonth() === hoy.getMonth() &&
+    primerDiaDelMes.getFullYear() === hoy.getFullYear();
+
+  const diaInicio = esMesActual ? hoy.getDate() : 1;
+  const cantidadDias = ultimoDiaDelMes.getDate() - diaInicio + 1;
+
+  return Array.from({ length: cantidadDias }, (_, index) => {
+    const fecha = new Date(base.getFullYear(), base.getMonth(), diaInicio + index);
+    fecha.setHours(0, 0, 0, 0);
 
     return {
       dia: nombresDias[fecha.getDay()],
@@ -140,10 +212,8 @@ const generarDiasDisponibles = () => {
   Devuelve el nombre del mes en español.
   Se usa como título del selector de fechas.
 */
-const obtenerTituloMes = (diasDisponibles) => {
-  const primerDia = diasDisponibles[0]?.fechaDate;
-
-  if (!primerDia) return '';
+const obtenerTituloMes = (fechaBase) => {
+  if (!(fechaBase instanceof Date) || Number.isNaN(fechaBase.getTime())) return '';
 
   const meses = [
     'Enero',
@@ -160,7 +230,7 @@ const obtenerTituloMes = (diasDisponibles) => {
     'Diciembre',
   ];
 
-  return `${meses[primerDia.getMonth()]} ${primerDia.getFullYear()}`;
+  return `${meses[fechaBase.getMonth()]} ${fechaBase.getFullYear()}`;
 };
 
 /*
@@ -283,10 +353,12 @@ const normalizarReserva = (reserva, listaClubes = []) => {
   const fechaDate = crearFechaDesdeTexto(fechaStr);
   const fechaHoraDate = crearFechaHoraDesdeReserva(fechaStr, reserva.hora);
   const clubEncontrado = buscarClubPorNombre(reserva.club, listaClubes);
+  const puedeGestionarCalculado = puedeGestionarPorAnticipacion(fechaHoraDate);
 
   return {
     ...reserva,
-    id: reserva.id || `${reserva.club}-${reserva.fecha}-${reserva.hora}`,
+    id: reserva.id || reserva.id_reserva || `${reserva.club}-${reserva.fecha}-${reserva.hora}`,
+    fecha: fechaDate ? formatearFecha(fechaDate) : fechaStr,
     diaSemana:
       reserva.diaSemana || obtenerDiaSemanaCorto(fechaDate),
     dia:
@@ -297,7 +369,7 @@ const normalizarReserva = (reserva, listaClubes = []) => {
     estado:
       reserva.estado || 'Confirmada',
     puedeGestionar:
-      reserva.puedeGestionar ?? true,
+      fechaHoraDate ? puedeGestionarCalculado : (reserva.puedeGestionar ?? false),
     limite:
       reserva.limite || '24 hs antes del turno',
     direccion:
@@ -307,13 +379,52 @@ const normalizarReserva = (reserva, listaClubes = []) => {
   };
 };
 
+
+/*
+  Muestra un modal de error personalizado con SweetAlert2.
+  Reemplaza los alert() nativos para mantener la estética de CanchasYa.
+*/
+const mostrarError = (titulo, texto) => {
+  Swal.fire({
+    icon: 'error',
+    title: titulo,
+    text: texto,
+    confirmButtonText: 'Entendido',
+    customClass: {
+      popup: 'cy-alert-popup',
+      title: 'cy-alert-title',
+      htmlContainer: 'cy-alert-text',
+      confirmButton: 'cy-alert-button cy-alert-button--error',
+    },
+  });
+};
+
+/*
+  Muestra un modal de éxito personalizado.
+  Se usa especialmente al cancelar/eliminar reservas correctamente.
+*/
+const mostrarExito = (titulo, texto) => {
+  Swal.fire({
+    icon: 'success',
+    title: titulo,
+    text: texto,
+    confirmButtonText: 'Aceptar',
+    customClass: {
+      popup: 'cy-alert-popup',
+      title: 'cy-alert-title',
+      htmlContainer: 'cy-alert-text',
+      confirmButton: 'cy-alert-button',
+    },
+  });
+};
+
 /*
   DashboardUsuario.
   Permite a un usuario común reservar una cancha en un flujo guiado:
   deporte → club → fecha → horario → confirmación.
   También muestra las reservas reales recibidas desde App.jsx.
 */
-function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDeleteReserva }) {
+function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
   /*
     Estados principales del wizard.
     Cada selección habilita el paso siguiente.
@@ -322,9 +433,52 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
   const [clubSeleccionado, setClubSeleccionado] = useState(null);
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [horarioSeleccionado, setHorarioSeleccionado] = useState(null);
-  const [menuAbiertoId, setMenuAbiertoId] = useState(null);
-
   const [clubesActivos, setClubesActivos] = useState([]);
+  const API_URL = 'http://localhost:3000';
+
+  /*
+    Banners laterales del dashboard.
+    Se guardan en estado para poder cambiarlos automáticamente cada ciertos segundos.
+  */
+  const [bannerIzquierdo, setBannerIzquierdo] = useState(() => obtenerBannerAleatorio());
+  const [bannerDerecho, setBannerDerecho] = useState(() => obtenerBannerAleatorio());
+
+  /*
+    Alterna los banners de manera aleatoria.
+    Se ejecuta al montar el dashboard y luego cada 9 segundos.
+    Intentamos que izquierda y derecha no usen la misma imagen al mismo tiempo.
+  */
+  useEffect(() => {
+    const cambiarBanners = () => {
+      const nuevoBannerIzquierdo = obtenerBannerAleatorio();
+      let nuevoBannerDerecho = obtenerBannerAleatorio();
+
+      if (BANNERS_PUBLICITARIOS.length > 1) {
+        while (nuevoBannerDerecho === nuevoBannerIzquierdo) {
+          nuevoBannerDerecho = obtenerBannerAleatorio();
+        }
+      }
+
+      setBannerIzquierdo(nuevoBannerIzquierdo);
+      setBannerDerecho(nuevoBannerDerecho);
+    };
+
+    cambiarBanners();
+
+    const intervaloBanners = setInterval(cambiarBanners, 9000);
+
+    return () => clearInterval(intervaloBanners);
+  }, []);
+
+
+  /*
+    Mes que se muestra en el selector de fechas.
+    Arranca siempre en el mes actual.
+  */
+  const [mesVisible, setMesVisible] = useState(() => {
+    const hoy = new Date();
+    return new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  });
 
   useEffect(() => {
     const fetchClubes = async () => {
@@ -343,6 +497,10 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
               distancia: 'A calcular',
               deportes: c.canchas || [],
               detallesCanchas: c.detallesCanchas || [],
+
+              // Si el backend manda "/uploads/archivo.jpg",
+              // armamos la URL completa para poder mostrarla en el navegador.
+              logo: c.logo ? `${API_URL}${c.logo}` : null,
             }));
           setClubesActivos(activos);
         }
@@ -375,6 +533,16 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
   const [reservaConfirmada, setReservaConfirmada] = useState(null);
 
   /*
+    Estados para el menú de los tres puntos de cada reserva.
+    menuReservaAbierto guarda el id de la reserva cuyo menú está abierto.
+    reservaEnEdicion guarda la reserva que el usuario está modificando.
+    reservasEliminadas oculta del panel las reservas canceladas/eliminadas localmente.
+  */
+  const [menuReservaAbierto, setMenuReservaAbierto] = useState(null);
+  const [reservaEnEdicion, setReservaEnEdicion] = useState(null);
+  const [reservasEliminadas, setReservasEliminadas] = useState([]);
+
+  /*
     Referencia al carrusel de deportes.
     Permite desplazar horizontalmente la fila con los botones laterales.
   */
@@ -382,17 +550,35 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
 
   /*
     Días disponibles para reservar.
-    Se generan desde hoy hacia adelante para no permitir fechas pasadas.
+    Se generan según el mes visible y nunca muestran días anteriores a hoy.
   */
-  const diasDisponibles = useMemo(() => generarDiasDisponibles(), []);
+  const diasDisponibles = useMemo(
+    () => generarDiasDisponibles(mesVisible),
+    [mesVisible]
+  );
 
   /*
     Título visible del selector de fecha.
   */
   const tituloMes = useMemo(
-    () => obtenerTituloMes(diasDisponibles),
-    [diasDisponibles]
+    () => obtenerTituloMes(mesVisible),
+    [mesVisible]
   );
+
+  /*
+    Evita que el usuario navegue hacia meses anteriores al mes actual.
+  */
+  const puedeRetrocederMes = useMemo(() => {
+    const hoy = new Date();
+    const mesActual = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    const mesActualVisible = new Date(
+      mesVisible.getFullYear(),
+      mesVisible.getMonth(),
+      1
+    );
+
+    return mesActualVisible > mesActual;
+  }, [mesVisible]);
 
   /*
     Filtra los clubes disponibles según el deporte elegido.
@@ -433,13 +619,14 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
     return reservas
       .map((reserva) => normalizarReserva(reserva, clubesActivos))
       .filter(Boolean)
+      .filter((reserva) => !reservasEliminadas.includes(reserva.id))
       .sort((a, b) => {
         const fechaA = a.fechaHoraDate?.getTime?.() || 0;
         const fechaB = b.fechaHoraDate?.getTime?.() || 0;
 
         return fechaA - fechaB;
       });
-  }, [reservas]);
+  }, [reservas, clubesActivos, reservasEliminadas]);
 
   /*
     Calcula las reservas futuras.
@@ -504,6 +691,27 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
     }
 
     return clases.join(' ');
+  };
+
+  /*
+    Cambia el mes visible del calendario.
+    No permite volver a meses anteriores al mes actual.
+  */
+  const cambiarMes = (direccion) => {
+    setMesVisible((mesAnterior) => {
+      const nuevoMes = new Date(
+        mesAnterior.getFullYear(),
+        mesAnterior.getMonth() + direccion,
+        1
+      );
+
+      const hoy = new Date();
+      const mesActual = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+
+      if (nuevoMes < mesActual) return mesAnterior;
+
+      return nuevoMes;
+    });
   };
 
   /*
@@ -593,6 +801,97 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
     setClubSeleccionado(null);
     setFechaSeleccionada(null);
     setHorarioSeleccionado(null);
+    setReservaEnEdicion(null);
+    setMenuReservaAbierto(null);
+  };
+
+  /*
+    Abre o cierra el menú de tres puntos de una reserva.
+    Si la reserva ya no puede gestionarse, no abre el menú.
+  */
+  const alternarMenuReserva = (reserva) => {
+    if (!reserva.puedeGestionar) return;
+
+    setMenuReservaAbierto((idActual) =>
+      idActual === reserva.id ? null : reserva.id
+    );
+  };
+
+  /*
+    Carga una reserva existente dentro del wizard para modificarla.
+    La reserva solo puede editarse si faltan más de 24 horas para el turno.
+  */
+  const iniciarModificacionReserva = (reserva) => {
+    if (!reserva.puedeGestionar) return;
+
+    setReservaEnEdicion(reserva);
+    setDeporteSeleccionado(reserva.deporte || null);
+    setClubSeleccionado(reserva.club || null);
+    setFechaSeleccionada(reserva.fechaDate ? formatearFecha(reserva.fechaDate) : reserva.fecha);
+    setHorarioSeleccionado(reserva.hora || null);
+    setMenuReservaAbierto(null);
+  };
+
+  /*
+    Elimina o cancela una reserva existente.
+    Antes de borrar muestra una confirmación visual con SweetAlert2.
+    Solo se permite cancelar si faltan más de 24 horas para el turno.
+  */
+  const eliminarReserva = async (reserva) => {
+    if (!reserva.puedeGestionar) {
+      mostrarError(
+        'No se puede cancelar',
+        'Las reservas solo pueden cancelarse o modificarse con más de 24 horas de anticipación.'
+      );
+      return;
+    }
+
+    const resultado = await Swal.fire({
+      icon: 'warning',
+      title: '¿Cancelar reserva?',
+      html: `
+        <p>Vas a cancelar la reserva de <strong>${reserva.club}</strong>.</p>
+        <p><strong>${reserva.fecha}</strong> a las <strong>${reserva.hora} hs</strong></p>
+        <small>Esta acción no se puede deshacer.</small>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cancelar',
+      cancelButtonText: 'Volver',
+      reverseButtons: true,
+      customClass: {
+        popup: 'cy-alert-popup',
+        title: 'cy-alert-title',
+        htmlContainer: 'cy-alert-text',
+        confirmButton: 'cy-alert-button cy-alert-button--danger',
+        cancelButton: 'cy-alert-cancel',
+      },
+    });
+
+    if (!resultado.isConfirmed) return;
+
+    try {
+      const response = await fetch(`http://localhost:3000/reserva/${reserva.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudo eliminar la reserva en el servidor.');
+      }
+
+      setReservasEliminadas((prev) => [...prev, reserva.id]);
+      setMenuReservaAbierto(null);
+
+      mostrarExito(
+        'Reserva cancelada',
+        'La reserva fue cancelada correctamente.'
+      );
+    } catch (error) {
+      console.error('Error al eliminar reserva:', error);
+      mostrarError(
+        'No se pudo cancelar',
+        error.message || 'Hubo un problema al cancelar la reserva. Intentá nuevamente.'
+      );
+    }
   };
 
   /*
@@ -613,13 +912,21 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
 
     // Buscar la cancha real en el club seleccionado para el deporte elegido
     const clubData = clubesActivos.find(c => c.nombre === clubSeleccionado);
-    
+
     // Buscamos coincidencia por el campo 'deporte' o por el 'nombre' de la cancha
-    const canchaReal = clubData?.detallesCanchas?.find(c => 
+    const canchaReal = clubData?.detallesCanchas?.find(c =>
       normalizar(c.deporte) === normalizar(deporteSeleccionado) ||
       normalizar(c.nombre) === normalizar(deporteSeleccionado) ||
       normalizar(c.nombre).includes(normalizar(deporteSeleccionado))
     );
+
+    if (!canchaReal) {
+      mostrarError(
+        'No hay cancha disponible',
+        'No se encontró una cancha disponible para este deporte en el club seleccionado.'
+      );
+      return;
+    }
 
     const [dia, mes, anio] = fechaSeleccionada.split('/');
     const fechaSQL = `${anio}-${mes}-${dia}`;
@@ -627,7 +934,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
     // Preparar datos para el backend
     const reservaDTO = {
       id_usuario: usuario.id_usuario,
-      id_cancha: canchaReal.id_cancha || canchaReal.id,
+      id_cancha: canchaReal.id,
       fecha: fechaSQL,
       hora_inicio: `${horarioSeleccionado}:00`,
       hora_fin: `${parseInt(horarioSeleccionado.split(':')[0]) + 1}:00:00`,
@@ -636,27 +943,55 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
     };
 
     try {
-      const response = await fetch('http://localhost:3000/reserva', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reservaDTO),
-      });
+      let response;
+
+      if (reservaEnEdicion) {
+        // Primero intentamos PATCH. Si tu backend usa PUT, hacemos fallback automático.
+        response = await fetch(`http://localhost:3000/reserva/${reservaEnEdicion.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(reservaDTO),
+        });
+
+        if (response.status === 404 || response.status === 405) {
+          response = await fetch(`http://localhost:3000/reserva/${reservaEnEdicion.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(reservaDTO),
+          });
+        }
+      } else {
+        response = await fetch('http://localhost:3000/reserva', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(reservaDTO),
+        });
+      }
 
       if (response.ok) {
         const guardada = await response.json();
-        
+
         const nuevaReserva = {
-          id: guardada.id_reserva || Date.now(),
+          id: guardada.id_reserva || reservaEnEdicion?.id || Date.now(),
           deporte: deporteSeleccionado,
           club: clubSeleccionado,
           cancha: canchaSeleccionada,
           fecha: fechaSeleccionada,
           hora: horarioSeleccionado,
           estado: 'Confirmada',
-          puedeGestionar: true,
+          puedeGestionar: puedeGestionarPorAnticipacion(
+            crearFechaHoraDesdeReserva(fechaSeleccionada, horarioSeleccionado)
+          ),
           limite: '24 hs antes del turno',
           direccion: clubActual?.direccion || '',
+          accion: reservaEnEdicion ? 'modificada' : 'confirmada',
         };
+
+        if (reservaEnEdicion) {
+          setReservasEliminadas((prev) =>
+            prev.includes(reservaEnEdicion.id) ? prev : [...prev, reservaEnEdicion.id]
+          );
+        }
 
         if (onAddReserva) {
           onAddReserva(nuevaReserva);
@@ -664,87 +999,22 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
 
         setReservaConfirmada(nuevaReserva);
         setMostrarModalReserva(true);
+        setReservaEnEdicion(null);
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Error al procesar la reserva en el servidor.'
-        });
+        mostrarError(
+          reservaEnEdicion ? 'No se pudo modificar' : 'No se pudo reservar',
+          reservaEnEdicion
+            ? 'Hubo un problema al modificar la reserva en el servidor.'
+            : 'Hubo un problema al procesar la reserva en el servidor.'
+        );
       }
     } catch (error) {
       console.error('Error al confirmar reserva:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error de conexión',
-        text: 'No se pudo contactar con el servidor.'
-      });
+      mostrarError(
+        'Error de conexión',
+        'No se pudo conectar con el servidor. Revisá que el backend esté levantado e intentá nuevamente.'
+      );
     }
-  };
-
-  const eliminarReserva = async (reservaId, puedeGestionar) => {
-    if (!puedeGestionar) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Acción no permitida',
-        text: 'No podés eliminar esta reserva con menos de 24hs de anticipación.'
-      });
-      return;
-    }
-
-    const result = await Swal.fire({
-      title: '¿Estás seguro?',
-      text: "Esta acción no se puede deshacer.",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    });
-
-    if (result.isConfirmed) {
-      if (!reservaId) {
-        Swal.fire('Error', 'No se pudo encontrar el ID de la reserva.', 'error');
-        return;
-      }
-
-      try {
-        const response = await fetch(`http://localhost:3000/reserva/${reservaId}`, {
-          method: 'DELETE',
-        });
-
-        if (response.ok) {
-          if (onDeleteReserva) {
-            onDeleteReserva(reservaId);
-          }
-          setMenuAbiertoId(null);
-          Swal.fire(
-            '¡Eliminada!',
-            'Tu reserva ha sido cancelada correctamente.',
-            'success'
-          );
-        } else {
-          const errorData = await response.json().catch(() => ({ message: response.statusText }));
-          Swal.fire('Error', `No se pudo eliminar la reserva: ${errorData.message || 'Error del servidor'}`, 'error');
-        }
-      } catch (error) {
-        console.error('Error al eliminar reserva:', error);
-        Swal.fire('Error', 'Hubo un problema de conexión al intentar eliminar la reserva.', 'error');
-      }
-    }
-  };
-
-  const modificarReserva = (reserva, puedeGestionar) => {
-    if (!puedeGestionar) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Acción no permitida',
-        text: 'No podés modificar esta reserva con menos de 24hs de anticipación.'
-      });
-      return;
-    }
-    Swal.fire('Próximamente', 'La función de modificación estará disponible pronto.', 'info');
-    setMenuAbiertoId(null);
   };
 
   /*
@@ -757,8 +1027,72 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
     reiniciarReserva();
   };
 
+  /*
+    Permite volver a pasos anteriores desde la columna izquierda.
+    Si el usuario vuelve a un paso, se limpian las selecciones posteriores
+    para evitar reservas con datos mezclados.
+  */
+  const irAlPaso = (numeroPaso) => {
+    if (numeroPaso > pasoActual) return;
+
+    if (numeroPaso === 1) {
+      reiniciarReserva();
+      return;
+    }
+
+    if (numeroPaso === 2) {
+      setClubSeleccionado(null);
+      setFechaSeleccionada(null);
+      setHorarioSeleccionado(null);
+      return;
+    }
+
+    if (numeroPaso === 3) {
+      setFechaSeleccionada(null);
+      setHorarioSeleccionado(null);
+      return;
+    }
+
+    if (numeroPaso === 4) {
+      setHorarioSeleccionado(null);
+    }
+  };
+
+  /*
+    Devuelve las clases del menú lateral de pasos.
+    Activo = paso actual, completo = paso ya elegido, bloqueado = todavía no disponible.
+  */
+  const obtenerClasePasoLateral = (numeroPaso) => {
+    const clases = ['booking-side-step'];
+
+    if (pasoActual === numeroPaso) clases.push('active');
+    if (pasoActual > numeroPaso) clases.push('done');
+    if (pasoActual < numeroPaso) clases.push('locked');
+
+    return clases.join(' ');
+  };
+
   return (
     <main className="dashboard-usuario">
+      {/*
+        Banners laterales exclusivos del DashboardUsuario.
+        No usan clases globales como .banner-vertical para no romper el login ni otras pantallas.
+      */}
+      {bannerIzquierdo && (
+        <aside
+          className="dashboard-banner dashboard-banner--left"
+          aria-label="Publicidad izquierda"
+          style={{ '--banner-img': `url(${bannerIzquierdo})` }}
+        />
+      )}
+
+      {bannerDerecho && (
+        <aside
+          className="dashboard-banner dashboard-banner--right"
+          aria-label="Publicidad derecha"
+          style={{ '--banner-img': `url(${bannerDerecho})` }}
+        />
+      )}
       <div className="dashboard-usuario__overlay">
         <div className="dashboard-shell">
           <section className="dashboard-shell__main">
@@ -772,9 +1106,17 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
               </div>
 
               <nav className="dashboard-header__social">
-                <span>✉️</span>
-                <span>📷</span>
-                <span>f</span>
+                <a href="#" aria-label="Email">
+                  <i className="bi bi-envelope-fill"></i>
+                </a>
+
+                <a href="#" aria-label="Instagram">
+                  <i className="bi bi-instagram"></i>
+                </a>
+
+                <a href="#" aria-label="Facebook">
+                  <i className="bi bi-facebook"></i>
+                </a>
               </nav>
 
               <div className="dashboard-header__user">
@@ -797,7 +1139,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
             </header>
 
             <section className="dashboard-layout">
-              <section className="booking-panel">
+              <section className="booking-panel booking-panel--expanded">
                 <div className="booking-panel__top">
                   <div>
                     <h1>Reservá tu cancha</h1>
@@ -832,274 +1174,350 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
                   </div>
                 </div>
 
-                <div className={obtenerClaseLinea(1, 'booking-step--sports')}>
-                  <aside className="booking-step__label">
-                    <span>1</span>
-                    <div>
-                      <h3>Deporte</h3>
-                      <p>Seleccioná el deporte que querés practicar</p>
-                    </div>
-                  </aside>
-
-                  <div className="sports-carousel-wrapper">
+                <div className="booking-wizard">
+                  {/* Menú lateral del wizard: muestra el progreso y permite volver a pasos anteriores. */}
+                  <aside className="booking-sidebar" aria-label="Pasos de la reserva">
                     <button
                       type="button"
-                      className="sports-carousel__nav"
-                      onClick={() => scrollSports('left')}
-                      disabled={pasoActual !== 1}
-                      aria-label="Desplazar deportes hacia la izquierda"
+                      className={obtenerClasePasoLateral(1)}
+                      onClick={() => irAlPaso(1)}
                     >
-                      ‹
-                    </button>
-
-                    <div className="sports-carousel" ref={sportsCarouselRef}>
-                      <div className="sports-carousel__track">
-                        {deportesDisponibles.length > 0 ? (
-                          deportesDisponibles.map((deporte) => (
-                            <button
-                              key={deporte.id}
-                              type="button"
-                              className={
-                                deporteSeleccionado === deporte.nombre
-                                  ? 'sport-card selected'
-                                  : 'sport-card'
-                              }
-                              onClick={() => seleccionarDeporte(deporte)}
-                              disabled={pasoActual !== 1}
-                            >
-                              <span className="sport-card__icon">
-                                <img
-                                  src={deporte.icono}
-                                  alt={deporte.nombre}
-                                  className="sport-card__image"
-                                />
-                              </span>
-
-                              <strong>{deporte.nombre}</strong>
-                            </button>
-                          ))
-                        ) : (
-                          <div className="empty-clubs-message" style={{ padding: '20px' }}>
-                            No hay deportes disponibles en este momento.
-                          </div>
-                        )}
+                      <span>1</span>
+                      <div>
+                        <strong>Deporte</strong>
+                        <small>{deporteSeleccionado || 'Seleccioná el deporte'}</small>
                       </div>
-                    </div>
+                    </button>
 
                     <button
                       type="button"
-                      className="sports-carousel__nav"
-                      onClick={() => scrollSports('right')}
-                      disabled={pasoActual !== 1}
-                      aria-label="Desplazar deportes hacia la derecha"
+                      className={obtenerClasePasoLateral(2)}
+                      onClick={() => irAlPaso(2)}
+                      disabled={pasoActual < 2}
                     >
-                      ›
+                      <span>2</span>
+                      <div>
+                        <strong>Club</strong>
+                        <small>{clubSeleccionado || 'Elegí dónde jugar'}</small>
+                      </div>
                     </button>
-                  </div>
-                </div>
 
-                <div className={obtenerClaseLinea(2)}>
-                  <aside className="booking-step__label">
-                    <span>2</span>
-                    <div>
-                      <h3>Club</h3>
-                      <p>Elegí el club donde querés jugar</p>
-                    </div>
+                    <button
+                      type="button"
+                      className={obtenerClasePasoLateral(3)}
+                      onClick={() => irAlPaso(3)}
+                      disabled={pasoActual < 3}
+                    >
+                      <span>3</span>
+                      <div>
+                        <strong>Fecha</strong>
+                        <small>{fechaSeleccionada || 'Elegí el día'}</small>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      className={obtenerClasePasoLateral(4)}
+                      onClick={() => irAlPaso(4)}
+                      disabled={pasoActual < 4}
+                    >
+                      <span>4</span>
+                      <div>
+                        <strong>Horario</strong>
+                        <small>{horarioSeleccionado ? `${horarioSeleccionado} hs` : 'Elegí el horario'}</small>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      className={obtenerClasePasoLateral(5)}
+                      onClick={() => irAlPaso(5)}
+                      disabled={pasoActual < 5}
+                    >
+                      <span>5</span>
+                      <div>
+                        <strong>Confirmar</strong>
+                        <small>Revisá tu reserva</small>
+                      </div>
+                    </button>
                   </aside>
 
-                  <div className="clubs-grid">
-                    {clubesFiltrados.length > 0 ? (
-                      clubesFiltrados.map((club) => (
-                        <button
-                          key={club.id}
-                          type="button"
-                          className={
-                            clubSeleccionado === club.nombre
-                              ? 'club-card selected'
-                              : 'club-card'
-                          }
-                          onClick={() => seleccionarClub(club)}
-                          disabled={pasoActual !== 2}
-                        >
-                          <div className="club-card__logo">
-                            {club.nombre.slice(0, 2).toUpperCase()}
-                          </div>
+                  {/* Card principal: cambia el contenido según el paso activo. */}
+                  <section className="booking-stage">
+                    {pasoActual === 1 && (
+                      <div className="stage-content stage-content--sports">
+                        <div className="stage-heading">
+                          <span className="stage-kicker">Paso 1</span>
+                          <h2>Elegí el deporte</h2>
+                          <p>Seleccioná qué querés jugar para mostrarte clubes compatibles.</p>
+                        </div>
 
-                          <strong>{club.nombre}</strong>
-                          <small>{club.direccion}</small>
-                          <small>📞 {club.telefono}</small>
-                          <small>✉️ {club.email}</small>
-                          <span>📍 {club.distancia}</span>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="empty-clubs-message">
-                        {deporteSeleccionado
-                          ? `No hay clubes disponibles para ${deporteSeleccionado}`
-                          : 'Primero elegí un deporte'}
+                        <div className="sports-grid sports-grid--large">
+                          {deportesDisponibles.length > 0 ? (
+                            deportesDisponibles.map((deporte) => (
+                              <button
+                                key={deporte.id}
+                                type="button"
+                                className={
+                                  deporteSeleccionado === deporte.nombre
+                                    ? 'sport-card sport-card--large selected'
+                                    : 'sport-card sport-card--large'
+                                }
+                                onClick={() => seleccionarDeporte(deporte)}
+                              >
+                                <span className="sport-card__icon">
+                                  <img
+                                    src={deporte.icono}
+                                    alt={deporte.nombre}
+                                    className="sport-card__image"
+                                  />
+                                </span>
+
+                                <strong>{deporte.nombre}</strong>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="empty-clubs-message">
+                              No hay deportes disponibles en este momento.
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
-                  </div>
-                </div>
 
+                    {pasoActual === 2 && (
+                      <div className="stage-content stage-content--clubs">
+                        <div className="stage-heading">
+                          <span className="stage-kicker">Paso 2</span>
+                          <h2>Elegí el club</h2>
+                          <p>
+                            Estos son los clubes que ofrecen {deporteSeleccionado || 'el deporte seleccionado'}.
+                          </p>
+                        </div>
 
-                <div className={obtenerClaseLinea(3)}>
-                  <aside className="booking-step__label">
-                    <span>3</span>
-                    <div>
-                      <h3>Fecha</h3>
-                      <p>Seleccioná el día que querés jugar</p>
-                    </div>
-                  </aside>
+                        <div className="clubs-grid clubs-grid--large">
+                          {clubesFiltrados.length > 0 ? (
+                            clubesFiltrados.map((club) => (
+                              <button
+                                key={club.id}
+                                type="button"
+                                className={
+                                  clubSeleccionado === club.nombre
+                                    ? 'club-card club-card--large selected'
+                                    : 'club-card club-card--large'
+                                }
+                                onClick={() => seleccionarClub(club)}
+                              >
 
-                  <div className="date-selector">
-                    <div className="date-selector__month">
-                      <button type="button" disabled>
-                        ‹
-                      </button>
+                                <div className="club-card__logo">
+                                  {club.logo ? (
+                                    <img
+                                      src={club.logo}
+                                      alt={`Logo de ${club.nombre}`}
+                                      className="club-card__logo-img"
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                        e.currentTarget.parentElement.textContent = club.nombre
+                                          .slice(0, 2)
+                                          .toUpperCase();
+                                      }}
+                                    />
+                                  ) : (
+                                    club.nombre.slice(0, 2).toUpperCase()
+                                  )}
+                                </div>
 
-                      <strong>{tituloMes}</strong>
+                                <strong>{club.nombre}</strong>
+                                <small>{club.direccion}</small>
+                                <small>📞 {club.telefono}</small>
+                                <small>✉️ {club.email}</small>
+                                <span>📍 {club.distancia}</span>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="empty-clubs-message">
+                              {deporteSeleccionado
+                                ? `No hay clubes disponibles para ${deporteSeleccionado}`
+                                : 'Primero elegí un deporte'}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
-                      <button type="button" disabled>
-                        ›
-                      </button>
-                    </div>
+                    {pasoActual === 3 && (
+                      <div className="stage-content stage-content--dates">
+                        <div className="stage-heading">
+                          <span className="stage-kicker">Paso 3</span>
+                          <h2>Elegí la fecha</h2>
+                          <p>
+                            Seleccioná un día disponible para jugar en {clubSeleccionado || 'el club elegido'}.
+                          </p>
+                        </div>
 
-                    <div className="date-selector__days">
-                      {diasDisponibles.map((dia) => {
-                        const fechaBloqueada = esFechaPasada(dia.fecha);
+                        <div className="date-selector date-selector--large">
+                          <div className="date-selector__month">
+                            <button
+                              type="button"
+                              onClick={() => cambiarMes(-1)}
+                              disabled={!puedeRetrocederMes}
+                              aria-label="Ver mes anterior"
+                            >
+                              ‹
+                            </button>
 
-                        return (
+                            <strong>{tituloMes}</strong>
+
+                            <button
+                              type="button"
+                              onClick={() => cambiarMes(1)}
+                              aria-label="Ver mes siguiente"
+                            >
+                              ›
+                            </button>
+                          </div>
+
+                          <div className="date-selector__days date-selector__days--large">
+                            {diasDisponibles.map((dia) => {
+                              const fechaBloqueada = esFechaPasada(dia.fecha);
+
+                              return (
+                                <button
+                                  key={dia.fecha}
+                                  type="button"
+                                  className={
+                                    fechaSeleccionada === dia.fecha
+                                      ? 'day-card day-card--large selected'
+                                      : fechaBloqueada
+                                        ? 'day-card day-card--large disabled'
+                                        : 'day-card day-card--large'
+                                  }
+                                  onClick={() => seleccionarFecha(dia.fecha)}
+                                  disabled={fechaBloqueada}
+                                >
+                                  <small>{dia.dia}</small>
+                                  <strong>{dia.numero}</strong>
+                                  <em>{dia.fecha}</em>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {pasoActual === 4 && (
+                      <div className="stage-content stage-content--times">
+                        <div className="stage-heading">
+                          <span className="stage-kicker">Paso 4</span>
+                          <h2>Elegí el horario</h2>
+                          <p>
+                            Horarios disponibles para el {fechaSeleccionada} en {clubSeleccionado}.
+                          </p>
+                        </div>
+
+                        <div className="time-grid time-grid--large">
+                          {HORARIOS.map((horario) => {
+                            const horarioBloqueado =
+                              !horario.disponible ||
+                              esHorarioPasado(fechaSeleccionada, horario.hora) ||
+                              esHorarioOcupado(horario.hora);
+
+                            return (
+                              <button
+                                key={horario.hora}
+                                type="button"
+                                disabled={horarioBloqueado}
+                                className={
+                                  horarioSeleccionado === horario.hora
+                                    ? 'time-card time-card--large selected'
+                                    : horarioBloqueado
+                                      ? 'time-card time-card--large disabled'
+                                      : 'time-card time-card--large'
+                                }
+                                onClick={() => seleccionarHorario(horario.hora)}
+                              >
+                                {horario.hora}
+                              </button>
+                            );
+                          })}
+
+                          <div className="time-grid__legend">
+                            <span>
+                              <i className="legend-dot available" />
+                              Disponible
+                            </span>
+
+                            <span>
+                              <i className="legend-dot unavailable" />
+                              No disponible
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {pasoActual === 5 && (
+                      <div className="stage-content stage-content--confirm">
+                        <div className="stage-heading">
+                          <span className="stage-kicker">Paso 5</span>
+                          <h2>Confirmá tu reserva</h2>
+                          <p>Revisá que los datos estén correctos antes de confirmar.</p>
+                        </div>
+
+                        <div className="booking-summary booking-summary--large">
+                          <div className="summary-item">
+                            <span>⚽</span>
+                            <small>Deporte</small>
+                            <strong>{deporteSeleccionado || '—'}</strong>
+                          </div>
+
+                          <div className="summary-item">
+                            <span>🛡️</span>
+                            <small>Club</small>
+                            <strong>{clubSeleccionado || '—'}</strong>
+                          </div>
+
+                          <div className="summary-item">
+                            <span>🏟️</span>
+                            <small>Cancha</small>
+                            <strong>{canchaSeleccionada}</strong>
+                          </div>
+
+                          <div className="summary-item">
+                            <span>📅</span>
+                            <small>Fecha</small>
+                            <strong>{fechaSeleccionada || '—'}</strong>
+                          </div>
+
+                          <div className="summary-item">
+                            <span>🕒</span>
+                            <small>Horario</small>
+                            <strong>{horarioSeleccionado || '—'}</strong>
+                          </div>
+                        </div>
+
+                        <div className="confirm-actions confirm-actions--large">
                           <button
-                            key={dia.fecha}
                             type="button"
-                            className={
-                              fechaSeleccionada === dia.fecha
-                                ? 'day-card selected'
-                                : fechaBloqueada
-                                  ? 'day-card disabled'
-                                  : 'day-card'
-                            }
-                            onClick={() => seleccionarFecha(dia.fecha)}
-                            disabled={pasoActual !== 3 || fechaBloqueada}
+                            className="confirm-button"
+                            onClick={confirmarReserva}
+                            disabled={pasoActual !== 5}
                           >
-                            <small>{dia.dia}</small>
-                            <strong>{dia.numero}</strong>
+                            ✓ Confirmar reserva
                           </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
 
-                <div className={obtenerClaseLinea(4)}>
-                  <aside className="booking-step__label">
-                    <span>4</span>
-                    <div>
-                      <h3>Horario</h3>
-                      <p>Elegí el horario disponible</p>
-                    </div>
-                  </aside>
-
-                  <div className="time-grid">
-                    {HORARIOS.map((horario) => {
-                      const horarioBloqueado =
-                        !horario.disponible ||
-                        esHorarioPasado(fechaSeleccionada, horario.hora) ||
-                        esHorarioOcupado(horario.hora);
-
-                      return (
-                        <button
-                          key={horario.hora}
-                          type="button"
-                          disabled={pasoActual !== 4 || horarioBloqueado}
-                          className={
-                            horarioSeleccionado === horario.hora
-                              ? 'time-card selected'
-                              : horarioBloqueado
-                                ? 'time-card disabled'
-                                : 'time-card'
-                          }
-                          onClick={() => seleccionarHorario(horario.hora)}
-                        >
-                          {horario.hora}
-                        </button>
-                      );
-                    })}
-
-                    <div className="time-grid__legend">
-                      <span>
-                        <i className="legend-dot available" />
-                        Disponible
-                      </span>
-
-                      <span>
-                        <i className="legend-dot unavailable" />
-                        No disponible
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={obtenerClaseLinea(5, 'booking-step--confirm')}>
-                  <aside className="booking-step__label">
-                    <span>5</span>
-                    <div>
-                      <h3>Confirmar</h3>
-                      <p>Revisá los datos y confirmá tu reserva</p>
-                    </div>
-                  </aside>
-
-                  <div className="booking-summary">
-                    <div className="summary-item">
-                      <span>⚽</span>
-                      <small>Deporte</small>
-                      <strong>{deporteSeleccionado || '—'}</strong>
-                    </div>
-
-                    <div className="summary-item">
-                      <span>🛡️</span>
-                      <small>Club</small>
-                      <strong>{clubSeleccionado || '—'}</strong>
-                    </div>
-
-                    <div className="summary-item">
-                      <span>🏟️</span>
-                      <small>Cancha</small>
-                      <strong>{canchaSeleccionada}</strong>
-                    </div>
-
-                    <div className="summary-item">
-                      <span>📅</span>
-                      <small>Fecha</small>
-                      <strong>{fechaSeleccionada || '—'}</strong>
-                    </div>
-
-                    <div className="summary-item">
-                      <span>🕒</span>
-                      <small>Horario</small>
-                      <strong>{horarioSeleccionado || '—'}</strong>
-                    </div>
-
-                    <div className="confirm-actions">
-                      <button
-                        type="button"
-                        className="confirm-button"
-                        onClick={confirmarReserva}
-                        disabled={pasoActual !== 5}
-                      >
-                        ✓ Confirmar reserva
-                      </button>
-
-                      <button
-                        type="button"
-                        className="reset-button"
-                        onClick={reiniciarReserva}
-                      >
-                        Reiniciar
-                      </button>
-                    </div>
-                  </div>
+                          <button
+                            type="button"
+                            className="reset-button"
+                            onClick={reiniciarReserva}
+                          >
+                            Reiniciar selección
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </section>
                 </div>
 
                 <div className="booking-warning">
@@ -1189,29 +1607,38 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
                             <small>Menos de 24hs de anticipación</small>
                           )}
 
-                          <div className="actions-menu-container">
-                            <button 
-                              type="button" 
-                              onClick={() => setMenuAbiertoId(menuAbiertoId === (reserva.id || reserva.id_reserva) ? null : (reserva.id || reserva.id_reserva))}
+                          <div className="reservation-card__menu">
+                            <button
+                              type="button"
+                              className="reservation-card__menu-button"
+                              onClick={() => alternarMenuReserva(reserva)}
+                              disabled={!reserva.puedeGestionar}
+                              title={
+                                reserva.puedeGestionar
+                                  ? 'Gestionar reserva'
+                                  : 'No se puede gestionar con menos de 24 horas'
+                              }
                             >
                               ⋮
                             </button>
-                            
-                            {menuAbiertoId === (reserva.id || reserva.id_reserva) && (
-                              <div className="actions-dropdown">
-                                <button 
-                                  className="dropdown-item"
-                                  onClick={() => modificarReserva(reserva, reserva.puedeGestionar)}
-                                  disabled={!reserva.puedeGestionar}
+
+                            {menuReservaAbierto === reserva.id && reserva.puedeGestionar && (
+                              <div className="reservation-card__dropdown">
+                                <button
+                                  type="button"
+                                  onClick={() => iniciarModificacionReserva(reserva)}
                                 >
-                                  <i className="bi bi-pencil"></i> Modificar
+                                  <i className="bi bi-pencil-square"></i>
+                                  Modificar
                                 </button>
-                                <button 
-                                  className="dropdown-item delete"
-                                  onClick={() => eliminarReserva(reserva.id || reserva.id_reserva, reserva.puedeGestionar)}
-                                  disabled={!reserva.puedeGestionar}
+
+                                <button
+                                  type="button"
+                                  className="reservation-card__dropdown-danger"
+                                  onClick={() => eliminarReserva(reserva)}
                                 >
-                                  <i className="bi bi-trash"></i> Eliminar
+                                  <i className="bi bi-trash3"></i>
+                                  Eliminar
                                 </button>
                               </div>
                             )}
@@ -1263,10 +1690,16 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva, onDe
           <div className="reserva-modal">
             <div className="reserva-modal__icon">✓</div>
 
-            <h2>¡Reserva confirmada!</h2>
+            <h2>
+              {reservaConfirmada.accion === 'modificada'
+                ? '¡Reserva modificada!'
+                : '¡Reserva confirmada!'}
+            </h2>
 
             <p className="reserva-modal__subtitle">
-              Tu turno fue registrado correctamente.
+              {reservaConfirmada.accion === 'modificada'
+                ? 'Los cambios de tu turno fueron guardados correctamente.'
+                : 'Tu turno fue registrado correctamente.'}
             </p>
 
             <div className="reserva-modal__details">
