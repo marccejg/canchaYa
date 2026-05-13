@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { deportes } from '../staticData';
 import './inicio.css';
+import WhatsAppButton from '../WhatsApp/WhatsAppButton';
 
 import futbol5 from "../imagenes/futbol5.png";
 import futbol11 from "../imagenes/futbol11.png";
@@ -233,7 +234,7 @@ const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub, onAdminLogin }) =>
         >
           🛡️ Seguro · Confiable · Rápido · CanchasYa!
         </button>
-
+<WhatsAppButton />
       </div>
     </main>
   );
