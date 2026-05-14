@@ -28,6 +28,39 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   */
   const [showSettings, setShowSettings] = useState(false);
 
+  const [updateFecha, setUpdateFecha ] = useState(false);
+
+
+  /* funcion para chequear la fehca de pagos */
+  const setUpdateFecha = async () => {
+  try {
+    const response = await fetch("http://localhost:3000/dueno-cancha/fecha-vencimiento", { 
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+   
+    if (!response.ok) {
+      throw new Error("Error al traer la fecha de vencimiento");
+    }
+
+    const data = await response.json();
+
+    // Suponiendo que el backend devuelve algo como { fecha_vencimiento: "2026-05-20" }
+    const fecha = data.fecha_vencimiento;
+
+    console.log("Fecha de vencimiento:", fecha);
+
+    // Si querés guardarla en un estado de React:
+    // setFechaVencimiento(fecha);
+
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+
   /*
     Controla si se muestra o no el formulario para agregar una cancha nueva.
   */
@@ -490,6 +523,14 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
           >
             <i className="bi bi-gear"></i>
             Configuración
+          </button>
+             <button
+            className="pdc-pay-button"
+            onClick={() => setUpdateFecha(!updateFecha)}
+            title="PagarSubscripción"
+          >
+            <i className="bi bi-gear"></i>
+            Pagar subcripción
           </button>
         </header>
 
