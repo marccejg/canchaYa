@@ -140,6 +140,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
       formDataToSend.append('password', formData.password);
       formDataToSend.append('telefono', formData.telefono);
       formDataToSend.append('razonSocial', formData.razonSocial);
+      formDataToSend.append('CUIT', formData.CUIT);
 
       /*
         Dirección, ciudad y provincia se envían separados.
@@ -149,9 +150,8 @@ function Register({ onRegisterComplete, onCancelRegister }) {
       formDataToSend.append('direccion', formData.direccion);
       formDataToSend.append('ciudad', formData.ciudad);
       formDataToSend.append('provincia', formData.provincia);
-
       formDataToSend.append('cp', formData.cp);
-      formDataToSend.append('cuit', formData.CUIT);
+
       formDataToSend.append('canchas', JSON.stringify(formData.canchas));
 
       if (formData.logo) {
@@ -169,12 +169,39 @@ function Register({ onRegisterComplete, onCancelRegister }) {
         throw new Error(result.message || 'Error al registrar el club.');
       }
 
+      // Mostrar éxito del registro
       Swal.fire({
         title: 'Registro completado',
         text: 'El dueño y el club fueron creados correctamente.',
         icon: 'success',
         confirmButtonText: 'Aceptar',
       });
+
+      // Enviar email de bienvenida (sin esperar respuesta)
+      try {
+        const mailResponse = await fetch('http://localhost:3000/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nombre: `${formData.nombre} ${formData.apellido}`,
+            email: formData.email,
+            razonSocial: formData.razonSocial,
+            subject: 'Bienvenido a CanchasYa!',
+            message: ``,
+          }),
+        });
+
+        if (!mailResponse.ok) {
+          const mailError = await mailResponse.json();
+          console.warn('El correo no se envió correctamente:', mailError);
+        } else {
+          console.log('Mail enviado exitosamente');
+        }
+      } catch (mailError) {
+        console.error('Error al enviar el mail:', mailError);
+      }
 
       setFormData({
         nombre: '',
