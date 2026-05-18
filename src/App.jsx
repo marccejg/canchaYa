@@ -115,11 +115,13 @@ function App() {
     Limpia usuario común y administrador por seguridad.
   */
   const handleLogout = () => {
+    localStorage.removeItem('token');
     setCurrentUser(null);
     setAdminUser(null);
     setShowRegisterClub(false);
     setShowRegisterUser(false);
     setShowAdminLogin(false);
+    
   };
 
   /*

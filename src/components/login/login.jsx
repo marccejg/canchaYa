@@ -18,7 +18,7 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
   const [error, setError] = useState('');
 
   /*
-    Realiza una petición POST al endpoint recibido.
+    Realiza una petición POST al endpoint recibido.f
     Envía email y password en el body.
     Devuelve un objeto normalizado con:
     - ok: si la respuesta fue exitosa
@@ -54,16 +54,18 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
     setError('');
 
     try {
-      const duenoLogin = await loginRequest('http://localhost:3000/dueno-cancha/login');
-
+      const duenoLogin = await loginRequest('http://localhost:3000/auth/dueno-cancha/login');
       if (duenoLogin.ok) {
+        localStorage.setItem('token', duenoLogin.data.token);
         onLoginSuccess(duenoLogin.data.user);
         return;
       }
 
-      const usuarioLogin = await loginRequest('http://localhost:3000/usuario/login');
+      
+      const usuarioLogin = await loginRequest('http://localhost:3000/auth/usuario/login');
 
       if (usuarioLogin.ok) {
+        localStorage.setItem('token', usuarioLogin.data.token); 
         onLoginSuccess(usuarioLogin.data.user);
         return;
       }

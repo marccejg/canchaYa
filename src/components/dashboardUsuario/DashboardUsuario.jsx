@@ -870,8 +870,12 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
     if (!resultado.isConfirmed) return;
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:3000/reserva/${reserva.id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (!response.ok) {
@@ -945,28 +949,38 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
     try {
       let response;
 
+      const token = localStorage.getItem('token');
       if (reservaEnEdicion) {
         // Primero intentamos PATCH. Si tu backend usa PUT, hacemos fallback automático.
         response = await fetch(`http://localhost:3000/reserva/${reservaEnEdicion.id}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify(reservaDTO),
         });
 
         if (response.status === 404 || response.status === 405) {
           response = await fetch(`http://localhost:3000/reserva/${reservaEnEdicion.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify(reservaDTO),
           });
         }
       } else {
         response = await fetch('http://localhost:3000/reserva', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(reservaDTO),
-        });
-      }
+  method: 'POST',
+  headers: { 
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}` // ← agregar
+  },
+  body: JSON.stringify(reservaDTO),
+});
+}
 
       if (response.ok) {
         const guardada = await response.json();
