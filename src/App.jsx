@@ -1,63 +1,32 @@
 import { useState } from 'react';
-
-import Inicio from './components/inicio/inicio.jsx';
-import Register from './components/register/registerClub';
-import RegisterUser from './components/register/registerUsuario';
-import PanelDelClub from './components/panelDelClub/PanelDelClub';
-import AdminLogin from './components/admin/AdminLogin';
-import AdminPanel from './components/admin/AdminPanel';
-import DashboardUsuario from './components/dashboardUsuario/DashboardUsuario';
-
+import { useNavigate } from 'react-router-dom';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { AppRouter } from './router/AppRouter';
 
-/*
-  App es el componente raíz de CanchasYa.
-  Decide qué pantalla mostrar según:
-  - si el usuario está logueado
-  - si es dueño de club
-  - si es usuario común
-  - si está registrándose
-  - si está entrando al panel admin
-*/
 function App() {
-  /*
-    Estados de navegación.
-    Controlan qué pantalla se muestra.
-  */
-  const [showRegisterClub, setShowRegisterClub] = useState(false);
-  const [showRegisterUser, setShowRegisterUser] = useState(false);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const navigate = useNavigate();
 
-  /*
-    Estados de sesión.
-    currentUser guarda el usuario logueado.
-    adminUser guarda el administrador logueado.
-  */
+  // ----- Estados de sesión -----
   const [currentUser, setCurrentUser] = useState(null);
   const [adminUser, setAdminUser] = useState(null);
 
-  /*
-    Estados globales de datos.
-    Por ahora reservas, usuarios y clubes siguen mockeados/locales.
-    Más adelante pueden venir desde backend.
-  */
+  // ----- Datos globales -----
   const [usuarios, setUsuarios] = useState([]);
   const [clubesRegistrados, setClubesRegistrados] = useState([]);
   const [reservas, setReservas] = useState([]);
 
-  /*
-    Se ejecuta cuando el login fue correcto.
-    Guarda el usuario recibido desde el backend.
-  */
+  // ----- Handlers -----
   const handleLogin = (user) => {
     setCurrentUser(user);
     if (user) {
       if (user.tipo === 'usuario') {
         fetchReservas(user.id_usuario);
+        navigate('/dashboard');
       } else if (user.tipo === 'club' && user.club?.id_club) {
         fetchReservasPorClub(user.club.id_club);
+        navigate('/club');
       }
     }
   };
@@ -67,7 +36,7 @@ function App() {
       const response = await fetch(`http://localhost:3000/reserva/club/${idClub}`);
       if (response.ok) {
         const data = await response.json();
-        const reservasMapeadas = data.map(r => ({
+        const reservasMapeadas = data.map((r) => ({
           id: r.id_reserva,
           id_cancha: r.cancha?.id_cancha,
           deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
@@ -77,7 +46,7 @@ function App() {
           hora: r.hora_inicio.slice(0, 5),
           estado: r.estado.charAt(0).toUpperCase() + r.estado.slice(1),
           direccion: r.cancha?.club?.direccion_club || '',
-          precio: r.monto_total
+          precio: r.monto_total,
         }));
         setReservas(reservasMapeadas);
       }
@@ -91,7 +60,7 @@ function App() {
       const response = await fetch(`http://localhost:3000/reserva/usuario/${idUsuario}`);
       if (response.ok) {
         const data = await response.json();
-        const reservasMapeadas = data.map(r => ({
+        const reservasMapeadas = data.map((r) => ({
           id: r.id_reserva,
           id_cancha: r.cancha?.id_cancha,
           deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
@@ -101,7 +70,7 @@ function App() {
           hora: r.hora_inicio.slice(0, 5),
           estado: r.estado.charAt(0).toUpperCase() + r.estado.slice(1),
           direccion: r.cancha?.club?.direccion_club || '',
-          precio: r.monto_total
+          precio: r.monto_total,
         }));
         setReservas(reservasMapeadas);
       }
@@ -110,91 +79,51 @@ function App() {
     }
   };
 
-  /*
-    Cierra sesión.
-    Limpia usuario común y administrador por seguridad.
-  */
   const handleLogout = () => {
     setCurrentUser(null);
     setAdminUser(null);
-    setShowRegisterClub(false);
-    setShowRegisterUser(false);
-    setShowAdminLogin(false);
+    navigate('/');
   };
 
-  /*
-    Abre el formulario de registro de usuario común.
-  */
   const handleRegisterUser = () => {
-    setShowRegisterUser(true);
-    setShowRegisterClub(false);
+    navigate('/register/user');
   };
 
-  /*
-    Abre el formulario de registro de club/dueño.
-  */
   const handleRegisterClub = () => {
-    setShowRegisterClub(true);
-    setShowRegisterUser(false);
+    navigate('/register/club');
   };
 
-  /*
-    Cancela cualquier formulario de registro
-    y vuelve a la pantalla inicial.
-  */
   const handleCancelRegister = () => {
-    setShowRegisterClub(false);
-    setShowRegisterUser(false);
+    navigate('/');
   };
 
-  /*
-    Se ejecuta cuando termina un registro.
-    Si el nuevo usuario es club, lo guarda en clubesRegistrados.
-    Si no, lo guarda en usuarios.
-  */
   const handleRegisterComplete = (nuevoUsuario) => {
     if (nuevoUsuario && nuevoUsuario.tipo === 'club') {
       setClubesRegistrados((prev) => [...prev, { ...nuevoUsuario, estado: 'pendiente', activo: false }]);
+      navigate('/club');
     } else {
       setUsuarios((prev) => [...prev, nuevoUsuario]);
+      navigate('/dashboard');
     }
-
-    setShowRegisterClub(false);
-    setShowRegisterUser(false);
   };
 
-  /*
-    Se ejecuta cuando el administrador inicia sesión.
-  */
   const handleAdminLogin = (admin) => {
     setAdminUser(admin);
-    setShowAdminLogin(false);
+    navigate('/admin');
   };
 
-  /*
-    Cierra sesión del panel administrador.
-  */
   const handleAdminLogout = () => {
     setAdminUser(null);
+    navigate('/');
   };
 
-  /*
-    Agrega una reserva al estado global.
-    El DashboardUsuario usa esta función cuando confirma una reserva.
-  */
   const handleAddReserva = (reserva) => {
     setReservas((prev) => {
       const idNueva = reserva.id_reserva || reserva.id;
       const existe = prev.find((r) => (r.id_reserva || r.id) === idNueva);
-
       if (existe) {
-        // Si ya existe (es una modificación), reemplazamos la anterior
-        return prev.map((r) =>
-          (r.id_reserva || r.id) === idNueva ? { ...r, ...reserva } : r
-        );
+        return prev.map((r) => (r.id_reserva || r.id) === idNueva ? { ...r, ...reserva } : r);
       }
-
-      // Si no existe, la agregamos al final
       return [
         ...prev,
         {
@@ -207,112 +136,29 @@ function App() {
     });
   };
 
-  /*
-    Elimina una reserva del estado global.
-  */
   const handleDeleteReserva = (reservaId) => {
     setReservas((prev) => prev.filter((r) => (r.id_reserva || r.id) !== reservaId));
   };
 
-  /*
-    Pantalla de login admin.
-  */
-  if (showAdminLogin) {
-    return (
-      <AdminLogin
-        onAdminLoginSuccess={handleAdminLogin}
-        onBackToMain={() => setShowAdminLogin(false)}
-      />
-    );
-  }
-
-  /*
-    Panel administrador.
-  */
-  if (adminUser) {
-    return (
-      <AdminPanel
-        adminUser={adminUser}
-        onLogout={handleAdminLogout}
-        clubesRegistrados={clubesRegistrados}
-        setClubesRegistrados={setClubesRegistrados}
-      />
-    );
-  }
-
-  /*
-    Formulario de registro de club/dueño.
-  */
-  if (showRegisterClub) {
-    return (
-      <div className="app-container">
-        <Register
-          onRegisterComplete={handleRegisterComplete}
-          onCancelRegister={handleCancelRegister}
-        />
-      </div>
-    );
-  }
-
-  /*
-    Formulario de registro de usuario común.
-  */
-  if (showRegisterUser) {
-    return (
-      <div className="app-container">
-        <RegisterUser
-          onRegisterComplete={handleRegisterComplete}
-          onCancelRegister={handleCancelRegister}
-        />
-      </div>
-    );
-  }
-
-  /*
-    Si no hay usuario logueado, muestra la pantalla inicial/login.
-  */
-  if (!currentUser) {
-    return (
-      <div className="app-container">
-        <Inicio
-          onLoginSuccess={handleLogin}
-          onRegister={handleRegisterUser}
-          onRegisterClub={handleRegisterClub}
-          onAdminLogin={() => setShowAdminLogin(true)}
-        />
-      </div>
-    );
-  }
-
-  /*
-    Si el usuario logueado es dueño de club,
-    muestra el dashboard del dueño.
-  */
-  if (currentUser.tipo === 'club') {
-    return (
-      <PanelDelClub
-        club={currentUser}
-        reservas={reservas}
-        onLogout={handleLogout}
-        onBackToMain={handleLogout}
-      />
-    );
-  }
-
-  /*
-    Si el usuario logueado NO es dueño de club,
-    muestra el nuevo DashboardUsuario.
-    Este reemplaza el flujo viejo SportSelector → ClubSelector → Calendar → TimeSlots.
-  */
+  // Renderizamos el router, pasando todos los estados y handlers como props
   return (
-    <DashboardUsuario
-      usuario={currentUser}
-      reservas={reservas}
-      clubesRegistrados={clubesRegistrados}
+    <AppRouter
+      currentUser={currentUser}
+      adminUser={adminUser}
       usuarios={usuarios}
-      onLogout={handleLogout}
-      onAddReserva={handleAddReserva}
-      onDeleteReserva={handleDeleteReserva}
+      clubesRegistrados={clubesRegistrados}
+      reservas={reservas}
+      setClubesRegistrados={setClubesRegistrados}
+      handleLogin={handleLogin}
+      handleLogout={handleLogout}
+      handleRegisterUser={handleRegisterUser}
+      handleRegisterClub={handleRegisterClub}
+      handleCancelRegister={handleCancelRegister}
+      handleRegisterComplete={handleRegisterComplete}
+      handleAdminLogin={handleAdminLogin}
+      handleAdminLogout={handleAdminLogout}
+      handleAddReserva={handleAddReserva}
+      handleDeleteReserva={handleDeleteReserva}
     />
   );
 }
