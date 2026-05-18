@@ -1001,11 +1001,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
           accion: reservaEnEdicion ? 'modificada' : 'confirmada',
         };
 
-        if (reservaEnEdicion) {
-          setReservasEliminadas((prev) =>
-            prev.includes(reservaEnEdicion.id) ? prev : [...prev, reservaEnEdicion.id]
-          );
-        }
+        // No necesitamos agregar a reservasEliminadas porque App.jsx ahora actualiza el estado correctamente
 
         if (onAddReserva) {
           onAddReserva(nuevaReserva);

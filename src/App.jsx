@@ -185,14 +185,28 @@ function App() {
     El DashboardUsuario usa esta función cuando confirma una reserva.
   */
   const handleAddReserva = (reserva) => {
-    const nuevaReserva = {
-      id: Date.now(),
-      ...reserva,
-      timestamp: new Date().toISOString(),
-      estado: reserva.estado || 'Confirmada',
-    };
+    setReservas((prev) => {
+      const idNueva = reserva.id_reserva || reserva.id;
+      const existe = prev.find((r) => (r.id_reserva || r.id) === idNueva);
 
-    setReservas((prev) => [...prev, nuevaReserva]);
+      if (existe) {
+        // Si ya existe (es una modificación), reemplazamos la anterior
+        return prev.map((r) =>
+          (r.id_reserva || r.id) === idNueva ? { ...r, ...reserva } : r
+        );
+      }
+
+      // Si no existe, la agregamos al final
+      return [
+        ...prev,
+        {
+          ...reserva,
+          id: reserva.id || Date.now(),
+          timestamp: new Date().toISOString(),
+          estado: reserva.estado || 'Confirmada',
+        },
+      ];
+    });
   };
 
   /*
