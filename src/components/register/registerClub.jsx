@@ -47,7 +47,7 @@ const CANCHAS_DISPONIBLES = [
   - Permite seleccionar varias canchas.
   - Permite adjuntar logo.
   - Envía los datos al backend con FormData.
-  - Usa el endpoint: http://localhost:3000/dueno-cancha/register
+  - Usa el endpoint: http://localhost:3000/user/register
 */
 function Register({ onRegisterComplete, onCancelRegister }) {
   /*
@@ -151,6 +151,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
       formDataToSend.append('ciudad', formData.ciudad);
       formDataToSend.append('provincia', formData.provincia);
       formDataToSend.append('cp', formData.cp);
+      formDataToSend.append('tipo', 'dueno');
 
       formDataToSend.append('canchas', JSON.stringify(formData.canchas));
 
@@ -158,7 +159,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
         formDataToSend.append('logo', formData.logo);
       }
 
-      const response = await fetch('http://localhost:3000/dueno-cancha/register', {
+      const response = await fetch('http://localhost:3000/user/register', {
         method: 'POST',
         body: formDataToSend,
       });

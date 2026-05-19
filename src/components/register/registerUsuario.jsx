@@ -128,7 +128,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/usuario', {
+      const response = await fetch('http://localhost:3000/user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,6 +144,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
           provincia_usuario: formData.provincia,
           cp_usuario: formData.cp,
           canchas_usuario: formData.canchas,
+          tipo_usuario: 'usuario',
         }),
       });
 
