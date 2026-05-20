@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Routes } from "react-router";
+
+
+import Inicio from './components/inicio/inicio.jsx';
+import Register from './components/register/registerClub';
+import RegisterUser from './components/register/registerUsuario';
+import PanelDelClub from './components/panelDelClub/PanelDelClub';
+import AdminLogin from './components/admin/AdminLogin';
+import AdminPanel from './components/admin/AdminPanel';
+import DashboardUsuario from './components/dashboardUsuario/DashboardUsuario';
+
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
