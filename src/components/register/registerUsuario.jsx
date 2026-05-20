@@ -59,6 +59,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     email: '',
     password: '',
     confirmPassword: '',
+    direccion: '',
     ciudad: '',
     provincia: '',
     cp: '',
@@ -127,7 +128,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/usuario', {
+      const response = await fetch('http://localhost:3000/user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -143,6 +144,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
           provincia_usuario: formData.provincia,
           cp_usuario: formData.cp,
           canchas_usuario: formData.canchas,
+          tipo_usuario: 'usuario',
         }),
       });
 
@@ -312,7 +314,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
               </div>
 
               {/* Deportes de interés del usuario */}
-              <div className="card-canchas">
+              {/* <div className="card-canchas">
                 <h5>Canchas de interés</h5>
                 <div className="row">
                   {CANCHAS_INTERES.map((cancha) => (
@@ -333,7 +335,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* Contraseñas */}
               <div className="row mb-3">
@@ -366,9 +368,9 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
                 </div>
               </div>
 
-              {/* Dirección, ciudad y código postal */}
+              {/* Dirección, ciudad, provincia y código postal */}
               <div className="row mb-3">
-                <div className="col-md-5 position-relative">
+                <div className="col-md-4 position-relative">
                   <label htmlFor="direccion" className="form-label">Dirección</label>
                   <input
                     type="text"
@@ -382,7 +384,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
                   <i className="bi bi-geo-alt icon-inside"></i>
                 </div>
 
-                <div className="col-md-5 position-relative">
+                <div className="col-md-3 position-relative">
                   <label htmlFor="ciudad" className="form-label">Ciudad</label>
                   <input
                     type="text"
@@ -396,10 +398,27 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
                   <i className="bi bi-map icon-inside"></i>
                 </div>
 
+                <div className="col-md-3 position-relative">
+                  <label htmlFor="provincia" className="form-label">Provincia</label>
+                  <input
+                    type="text"
+                    className="form-control form-control-lg input-with-icon"
+                    id="provincia"
+                    placeholder="Provincia"
+                    value={formData.provincia}
+                    onChange={handleChange}
+                    required
+                  />
+                  <i className="bi bi-flag icon-inside"></i>
+                </div>
+
                 <div className="col-md-2 position-relative">
                   <label htmlFor="cp" className="form-label">CP</label>
                   <input
                     type="text"
+                    inputMode="numeric"
+                    maxLength="7"
+                    pattern="\d{1,7}"
                     className="form-control form-control-lg input-with-icon"
                     id="cp"
                     placeholder="CP"

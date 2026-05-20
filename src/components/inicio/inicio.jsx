@@ -234,7 +234,7 @@ const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub, onAdminLogin }) =>
         >
           🛡️ Seguro · Confiable · Rápido · CanchasYa!
         </button>
-<WhatsAppButton />
+      <WhatsAppButton />
       </div>
     </main>
   );

@@ -28,6 +28,45 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   */
   const [showSettings, setShowSettings] = useState(false);
 
+  const [updateFecha, setCheckPagoFecha] = useState(false);
+
+
+  /* funcion para chequear la fehca de pagos */
+  const handleCheckFechaPago = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/dueno-cancha/fecha-vencimiento", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al traer la fecha de vencimiento");
+      }
+
+      const data = await response.json();
+
+      // Suponiendo que el backend devuelve algo como { fecha_vencimiento: "2026-05-20" }
+      const fecha = data.fecha_vencimiento;
+
+      console.log("Fecha de vencimiento:", fecha);
+
+      // Si querés guardarla en un estado de React:
+      // setFechaVencimiento(fecha);
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    if (updateFecha) {
+      handleCheckFechaPago();
+    }
+  }, [updateFecha]);
+
+
   /*
     Controla si se muestra o no el formulario para agregar una cancha nueva.
   */
@@ -491,6 +530,14 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             <i className="bi bi-gear"></i>
             Configuración
           </button>
+          <button
+            className="pdc-pay-button"
+            onClick={() => setCheckPagoFecha(!updateFecha)}
+            title="PagarSubscripción"
+          >
+            <i className="bi bi-gear"></i>
+            Pagar subcripción
+          </button>
         </header>
 
         {/* SECCIÓN DE CONFIGURACIÓN */}
@@ -803,7 +850,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             <div className="pdc-panel-header">
               <h3>Próximas reservas</h3>
 
-             <button
+              <button
                 className="pdc-light-button"
                 onClick={() => setShowCalendar(!showCalendar)}
               >
