@@ -110,11 +110,16 @@
   text-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
 }
 
-.pdc-settings-button {
-  position: absolute;
-  right: 0;
-  bottom: 8px;
+.pdc-header-actions {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding-top: 14px;
+}
 
+.pdc-settings-button {
   border: none;
   border-radius: 11px;
   padding: 11px 18px;
@@ -132,9 +137,26 @@
   cursor: pointer;
   box-shadow: 0 8px 22px rgba(255, 140, 26, 0.35);
   transition: all 0.25s ease;
-  z-index: 5;
 }
+.pdc-pay-button {
+  border: none;
+  border-radius: 11px;
+  padding: 11px 18px;
 
+  background: #6fc400;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(1, 104, 63, 0.35);
+  transition: all 0.25s ease;
+}
 .pdc-settings-button:hover {
   background: #f27c07;
   transform: translateY(-2px);
@@ -266,6 +288,9 @@
 }
 
 .pdc-panel-header {
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -920,6 +945,7 @@
   }
 
   .pdc-header {
+    align-items: right;
     min-height: auto;
     display: flex;
     flex-direction: column;
