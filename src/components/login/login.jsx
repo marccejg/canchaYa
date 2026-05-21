@@ -54,21 +54,14 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
     setError('');
 
     try {
-      const duenoLogin = await loginRequest('http://localhost:3000/dueno-cancha/login');
+      const loginResult = await loginRequest('http://localhost:3000/user/login');
 
-      if (duenoLogin.ok) {
-        onLoginSuccess(duenoLogin.data.user);
+      if (loginResult.ok) {
+        onLoginSuccess(loginResult.data.user);
         return;
       }
 
-      const usuarioLogin = await loginRequest('http://localhost:3000/usuario/login');
-
-      if (usuarioLogin.ok) {
-        onLoginSuccess(usuarioLogin.data.user);
-        return;
-      }
-
-      setError('Usuario o contraseña incorrectos');
+      setError(loginResult.data?.message || 'Usuario o contraseña incorrectos');
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
       setError('No se pudo conectar con el servidor');

@@ -483,7 +483,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
   useEffect(() => {
     const fetchClubes = async () => {
       try {
-        const response = await fetch('http://localhost:3000/dueno-cancha/aceptados');
+        const response = await fetch('http://localhost:3000/club/aceptados');
         if (response.ok) {
           const data = await response.json();
           const activos = data

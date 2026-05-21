@@ -315,7 +315,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
                     type="text"
                     className="form-control form-control-lg input-with-icon"
                     id="razonSocial"
-                    placeholder="Ej: Azul y Oro FC"
+                    placeholder="Ej: River Plate FC"
                     value={formData.razonSocial}
                     onChange={handleChange}
                     required
