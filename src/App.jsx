@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Routes } from "react-router";
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 
 import Inicio from './components/inicio/inicio.jsx';

@@ -20,7 +20,7 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
   // Cargar clubes pendientes desde la base de datos
   const fetchClubesPendientes = async () => {
     try {
-      const response = await fetch('http://localhost:3000/dueno-cancha/pendientes');
+      const response = await fetch('http://localhost:3000/club/pendientes');
       if (response.ok) {
         const data = await response.json();
         setClubesPendientes(data);
@@ -33,7 +33,7 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
   // Cargar clubes aceptados desde la base de datos
   const fetchClubesAceptados = async () => {
     try {
-      const response = await fetch('http://localhost:3000/dueno-cancha/aceptados');
+      const response = await fetch('http://localhost:3000/club/aceptados');
       if (response.ok) {
         const data = await response.json();
         setClubesAceptados(data);
@@ -73,7 +73,7 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
 
   const toggleClubStatus = async (clubId, currentActivo) => {
     try {
-      const response = await fetch(`http://localhost:3000/dueno-cancha/${clubId}/toggle-status`, {
+      const response = await fetch(`http://localhost:3000/club/${clubId}/toggle-status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ activo: !currentActivo })
@@ -95,7 +95,7 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
 
   const acceptClub = async (clubId) => {
     try {
-      const response = await fetch(`http://localhost:3000/dueno-cancha/${clubId}/aceptar`, {
+      const response = await fetch(`http://localhost:3000/club/${clubId}/aceptar`, {
         method: 'PUT'
       });
 
@@ -113,7 +113,7 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
 
   const rejectClub = async (clubId) => {
     try {
-      const response = await fetch(`http://localhost:3000/dueno-cancha/${clubId}/rechazar`, {
+      const response = await fetch(`http://localhost:3000/club/${clubId}/rechazar`, {
         method: 'PUT'
       });
 

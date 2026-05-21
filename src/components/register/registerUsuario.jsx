@@ -140,31 +140,36 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
           dni_usuario: formData.DNI,
           password_usuario: formData.password,
           telefono_usuario: formData.telefono,
+          direccion_usuario: formData.direccion,
           ciudad_usuario: formData.ciudad,
           provincia_usuario: formData.provincia,
           cp_usuario: formData.cp,
-          canchas_usuario: formData.canchas,
           tipo_usuario: 'usuario',
         }),
       });
 
       const data = await response.json();
-      const mailResponse = await fetch('http://localhost:3000/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nombre: `${formData.nombre} ${formData.apellido}`,
-          email: formData.email,
-          subject: 'Bienvenido a CanchasYa!',
-          message: ``,
-        }),
-      });
 
-      const mailData = await mailResponse.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al registrar el usuario.');
+      }
 
-      if (!mailResponse.ok) {
+      // Enviar email de bienvenida (sin bloquear el flujo)
+      try {
+        await fetch('http://localhost:3000/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nombre: `${formData.nombre} ${formData.apellido}`,
+            email: formData.email,
+            subject: 'Bienvenido a CanchasYa!',
+            message: ``,
+          }),
+        });
+      } catch (mailError) {
+        console.warn('El correo de bienvenida no se pudo enviar:', mailError);
       }
 
       Swal.fire({
@@ -172,8 +177,6 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
         text: 'Ahora puede iniciar sesión con sus credenciales.',
         icon: 'success',
         confirmButtonText: 'Aceptar',
-
-
       });
 
       if (onRegisterComplete) {
@@ -188,6 +191,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
         email: '',
         password: '',
         confirmPassword: '',
+        direccion: '',
         ciudad: '',
         provincia: '',
         cp: '',
