@@ -3,6 +3,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import './DashboardUsuario.css';
+import { useAuth } from '../../hooks/useAuth';
 
 import logoCanchasYa from '../../assets/logo_blanco_720.png';
 
@@ -425,6 +426,7 @@ const mostrarExito = (titulo, texto) => {
   También muestra las reservas reales recibidas desde App.jsx.
 */
 function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
+  const { user } = useAuth();
   /*
     Estados principales del wizard.
     Cada selección habilita el paso siguiente.
@@ -1000,11 +1002,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
           accion: reservaEnEdicion ? 'modificada' : 'confirmada',
         };
 
-        if (reservaEnEdicion) {
-          setReservasEliminadas((prev) =>
-            prev.includes(reservaEnEdicion.id) ? prev : [...prev, reservaEnEdicion.id]
-          );
-        }
+        // No necesitamos agregar a reservasEliminadas porque App.jsx ahora actualiza el estado correctamente
 
         if (onAddReserva) {
           onAddReserva(nuevaReserva);

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './login.css';
 import Layout from '../layout/layout';
+import { useAuth } from '../../hooks/useAuth';
 
 /*
   Componente Login.
@@ -12,7 +13,9 @@ import Layout from '../layout/layout';
   - Se habilitan banners laterales solamente en la pantalla de login.
   - Los banners se controlan desde Layout para no afectar otras páginas.
 */
+
 const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
+  const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -49,19 +52,48 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
     Intenta iniciar sesión primero como dueño de cancha.
     Si no funciona, intenta como usuario común.
   */
+ //
+
+// const { login, fetchUser } = useAuth({
+//   meEndpoint: "/api/auth/me",
+//   fetchOptions: { credentials: "include" },
+// });
+
+// async function handleSubmit(email, password) {
+//   const res = await fetch("/api/auth/login", {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify({ email, password }),
+//   });
+
+//   const { token } = await res.json();
+//   localStorage.setItem("token", token); // guardás el token
+
+//   await fetchUser(); // ← ahora sí busca el usuario con ese token
+// }
+
+// const { user } = useAuth();
+
+
+
+// const user = await res.json(); // esto seria la obtencion del usario
+// login(user); // esto es del useAuth que almacena los datros del usuario
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     try {
-      const loginResult = await loginRequest('http://localhost:3000/user/login');
+  
+      const usuarioLogin = await loginRequest('http://localhost:3000/usuario/login');
 
-      if (loginResult.ok) {
-        onLoginSuccess(loginResult.data.user);
+      if (usuarioLogin.ok) {
+        onLoginSuccess(usuarioLogin.data.user);
+        login(usuarioLogin.data.user);
         return;
       }
 
-      setError(loginResult.data?.message || 'Usuario o contraseña incorrectos');
+      setError('Usuario o contraseña incorrectos');
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
       setError('No se pudo conectar con el servidor');
