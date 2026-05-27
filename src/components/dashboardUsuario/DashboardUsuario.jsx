@@ -483,25 +483,38 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
   useEffect(() => {
     const fetchClubes = async () => {
       try {
-        const response = await fetch('http://localhost:3000/dueno-cancha/aceptados');
+        const response = await fetch('http://localhost:3000/club/aceptados');
         if (response.ok) {
           const data = await response.json();
           const activos = data
             .filter((c) => c.activo)
-            .map((c) => ({
-              id: c.id,
-              nombre: c.nombre || 'Club sin nombre',
-              direccion: c.direccion || 'Sin dirección',
-              email: c.email || 'No disponible',
-              telefono: c.telefono || 'No disponible',
-              distancia: 'A calcular',
-              deportes: c.canchas || [],
-              detallesCanchas: c.detallesCanchas || [],
+            .map((c) => {
+              // deportes_club viene en "canchas" desde el backend.
+              // Si está vacío, extraemos los deportes desde detallesCanchas
+              // que contiene la relación real cancha → deporte.
+              let deportes = c.canchas || [];
+              if ((!deportes || deportes.length === 0) && Array.isArray(c.detallesCanchas)) {
+                const deportesDesdeCancha = c.detallesCanchas
+                  .map((cancha) => cancha.deporte)
+                  .filter(Boolean);
+                deportes = [...new Set(deportesDesdeCancha)];
+              }
 
-              // Si el backend manda "/uploads/archivo.jpg",
-              // armamos la URL completa para poder mostrarla en el navegador.
-              logo: c.logo ? `${API_URL}${c.logo}` : null,
-            }));
+              return {
+                id: c.id,
+                nombre: c.nombre || 'Club sin nombre',
+                direccion: c.direccion || 'Sin dirección',
+                email: c.email || 'No disponible',
+                telefono: c.telefono || 'No disponible',
+                distancia: 'A calcular',
+                deportes,
+                detallesCanchas: c.detallesCanchas || [],
+
+                // Si el backend manda "/uploads/archivo.jpg",
+                // armamos la URL completa para poder mostrarla en el navegador.
+                logo: c.logo ? `${API_URL}${c.logo}` : null,
+              };
+            });
           setClubesActivos(activos);
         }
       } catch (error) {
