@@ -104,10 +104,13 @@ function App() {
           precio: r.monto_total
         }));
         setReservas(reservasMapeadas);
+        return reservasMapeadas;
       }
     } catch (error) {
       console.error('Error al cargar reservas iniciales:', error);
     }
+
+    return [];
   };
 
   /*
@@ -154,20 +157,53 @@ function App() {
   */
   const handleAddReserva = (reserva) => {
     const nuevaReserva = {
-      id: Date.now(),
+      id: reserva.id || Date.now(),
       ...reserva,
       timestamp: new Date().toISOString(),
       estado: reserva.estado || 'Confirmada',
     };
 
-    setReservas((prev) => [...prev, nuevaReserva]);
+    setReservas((prev) => {
+      const idNuevaReserva = String(nuevaReserva.id);
+      const existe = prev.some((r) => String(r.id_reserva || r.id) === idNuevaReserva);
+
+      if (!existe) return [...prev, nuevaReserva];
+
+      return prev.map((r) =>
+        String(r.id_reserva || r.id) === idNuevaReserva
+          ? { ...r, ...nuevaReserva }
+          : r
+      );
+    });
+  };
+
+  /*
+    Actualiza una reserva existente en el estado global.
+    Se usa al modificar para evitar que la reserva original quede duplicada.
+  */
+  const handleUpdateReserva = (reservaId, reservaActualizada) => {
+    const idObjetivo = String(reservaId);
+
+    setReservas((prev) =>
+      prev.map((reserva) =>
+        String(reserva.id_reserva || reserva.id) === idObjetivo
+          ? {
+              ...reserva,
+              ...reservaActualizada,
+              id: reserva.id || reservaActualizada.id || reservaId,
+              timestamp: new Date().toISOString(),
+              estado: reservaActualizada.estado || reserva.estado || 'Confirmada',
+            }
+          : reserva
+      )
+    );
   };
 
   /*
     Elimina una reserva del estado global.
   */
   const handleDeleteReserva = (reservaId) => {
-    setReservas((prev) => prev.filter((r) => (r.id_reserva || r.id) !== reservaId));
+    setReservas((prev) => prev.filter((r) => String(r.id_reserva || r.id) !== String(reservaId)));
   };
 
   /*
@@ -259,7 +295,9 @@ function App() {
               usuarios={usuarios}
               onLogout={handleLogout}
               onAddReserva={handleAddReserva}
+              onUpdateReserva={handleUpdateReserva}
               onDeleteReserva={handleDeleteReserva}
+              onRefreshReservas={() => fetchReservas(currentUser.id_usuario)}
             />
           ) : (
             <Navigate to="/" replace />

@@ -331,6 +331,9 @@ const buscarClubPorNombre = (nombreClub, listaClubes = []) => {
   return listaClubes.find((club) => club.nombre === nombreClub) || null;
 };
 
+const normalizarTexto = (str) =>
+  str ? str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
+
 /*
   Devuelve la clase visual del estado de una reserva.
 */
@@ -339,6 +342,12 @@ const obtenerClaseEstadoReserva = (estado) => {
   if (estado === 'Pendiente') return 'status status--pending';
 
   return 'status status--blocked';
+};
+
+const esReservaPasada = (reserva) => {
+  if (!reserva?.fechaHoraDate) return false;
+
+  return reserva.fechaHoraDate < new Date();
 };
 
 /*
@@ -424,13 +433,21 @@ const mostrarExito = (titulo, texto) => {
   deporte → club → fecha → horario → confirmación.
   También muestra las reservas reales recibidas desde App.jsx.
 */
-function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
+function DashboardUsuario({
+  usuario,
+  reservas = [],
+  onLogout,
+  onAddReserva,
+  onUpdateReserva,
+  onDeleteReserva,
+}) {
   /*
     Estados principales del wizard.
     Cada selección habilita el paso siguiente.
   */
   const [deporteSeleccionado, setDeporteSeleccionado] = useState(null);
   const [clubSeleccionado, setClubSeleccionado] = useState(null);
+  const [canchaSeleccionada, setCanchaSeleccionada] = useState(null);
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [horarioSeleccionado, setHorarioSeleccionado] = useState(null);
   const [clubesActivos, setClubesActivos] = useState([]);
@@ -605,6 +622,26 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
     );
   }, [deporteSeleccionado, clubesActivos]);
 
+  const canchasDisponibles = useMemo(() => {
+    if (!deporteSeleccionado) return [];
+
+    return clubesActivos.flatMap((club) =>
+      (club.detallesCanchas || [])
+        .filter((cancha) =>
+          normalizarTexto(cancha.deporte) === normalizarTexto(deporteSeleccionado)
+        )
+        .map((cancha) => ({
+          ...cancha,
+          clubId: club.id,
+          clubNombre: club.nombre,
+          clubDireccion: club.direccion,
+          clubTelefono: club.telefono,
+          clubEmail: club.email,
+          clubLogo: club.logo,
+        }))
+    );
+  }, [clubesActivos, deporteSeleccionado]);
+
   /*
     Busca el objeto completo del club seleccionado.
     Sirve para agregar dirección a la reserva confirmada.
@@ -616,13 +653,18 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
   }, [clubSeleccionado, clubesActivos]);
 
   /*
-    Devuelve el nombre visual de la cancha según el deporte elegido.
-    En este mock no usamos una cancha fija del club porque un mismo club
-    puede tener varias canchas para distintos deportes.
+    Canchas reales del club elegido para el deporte seleccionado.
+    Se mantiene para compatibilidad al modificar una reserva existente.
   */
-  const canchaSeleccionada = deporteSeleccionado
-    ? `Cancha ${deporteSeleccionado}`
-    : '—';
+  const canchasFiltradas = useMemo(() => {
+    if (!clubActual || !deporteSeleccionado) return [];
+
+    return (clubActual.detallesCanchas || []).filter((cancha) =>
+      normalizarTexto(cancha.deporte) === normalizarTexto(deporteSeleccionado)
+    );
+  }, [clubActual, deporteSeleccionado]);
+
+  const nombreCanchaSeleccionada = canchaSeleccionada?.nombre || '—';
 
   /*
     Normaliza y ordena las reservas reales recibidas desde App.jsx.
@@ -667,7 +709,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
   */
   const pasoActual = !deporteSeleccionado
     ? 1
-    : !clubSeleccionado
+    : !canchaSeleccionada
       ? 2
       : !fechaSeleccionada
         ? 3
@@ -749,6 +791,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
   const seleccionarDeporte = (deporte) => {
     setDeporteSeleccionado(deporte.nombre);
     setClubSeleccionado(null);
+    setCanchaSeleccionada(null);
     setFechaSeleccionada(null);
     setHorarioSeleccionado(null);
   };
@@ -761,6 +804,20 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
     if (pasoActual !== 2) return;
 
     setClubSeleccionado(club.nombre);
+    setCanchaSeleccionada(null);
+    setFechaSeleccionada(null);
+    setHorarioSeleccionado(null);
+  };
+
+  /*
+    Selecciona una cancha real del club elegido.
+    Luego limpia fecha y horario porque dependen de esa cancha.
+  */
+  const seleccionarCancha = (cancha) => {
+    if (pasoActual !== 2) return;
+
+    setClubSeleccionado(cancha.clubNombre || clubSeleccionado);
+    setCanchaSeleccionada(cancha);
     setFechaSeleccionada(null);
     setHorarioSeleccionado(null);
   };
@@ -794,14 +851,16 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
     Evita que se pisen reservas en el mismo slot.
   */
   const esHorarioOcupado = (hora) => {
-    if (!clubSeleccionado || !fechaSeleccionada || !deporteSeleccionado) return false;
+    if (!clubSeleccionado || !fechaSeleccionada || !deporteSeleccionado || !canchaSeleccionada) return false;
 
     return reservas.some(
       (r) =>
+        String(r.id_reserva || r.id) !== String(reservaEnEdicion?.id) &&
         r.club === clubSeleccionado &&
         r.fecha === fechaSeleccionada &&
         r.hora === hora &&
-        r.deporte === deporteSeleccionado
+        r.deporte === deporteSeleccionado &&
+        (r.id_cancha ? r.id_cancha === canchaSeleccionada.id : r.cancha === canchaSeleccionada.nombre)
     );
   };
 
@@ -812,6 +871,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
   const reiniciarReserva = () => {
     setDeporteSeleccionado(null);
     setClubSeleccionado(null);
+    setCanchaSeleccionada(null);
     setFechaSeleccionada(null);
     setHorarioSeleccionado(null);
     setReservaEnEdicion(null);
@@ -823,7 +883,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
     Si la reserva ya no puede gestionarse, no abre el menú.
   */
   const alternarMenuReserva = (reserva) => {
-    if (!reserva.puedeGestionar) return;
+    if (!reserva.puedeGestionar && !esReservaPasada(reserva)) return;
 
     setMenuReservaAbierto((idActual) =>
       idActual === reserva.id ? null : reserva.id
@@ -840,6 +900,13 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
     setReservaEnEdicion(reserva);
     setDeporteSeleccionado(reserva.deporte || null);
     setClubSeleccionado(reserva.club || null);
+    const clubDeLaReserva = buscarClubPorNombre(reserva.club, clubesActivos);
+    const canchaDeLaReserva = clubDeLaReserva?.detallesCanchas?.find((cancha) =>
+      reserva.id_cancha
+        ? cancha.id === reserva.id_cancha
+        : cancha.nombre === reserva.cancha
+    );
+    setCanchaSeleccionada(canchaDeLaReserva || null);
     setFechaSeleccionada(reserva.fechaDate ? formatearFecha(reserva.fechaDate) : reserva.fecha);
     setHorarioSeleccionado(reserva.hora || null);
     setMenuReservaAbierto(null);
@@ -851,7 +918,9 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
     Solo se permite cancelar si faltan más de 24 horas para el turno.
   */
   const eliminarReserva = async (reserva) => {
-    if (!reserva.puedeGestionar) {
+    const reservaPasada = esReservaPasada(reserva);
+
+    if (!reserva.puedeGestionar && !reservaPasada) {
       mostrarError(
         'No se puede cancelar',
         'Las reservas solo pueden cancelarse o modificarse con más de 24 horas de anticipación.'
@@ -861,14 +930,14 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
 
     const resultado = await Swal.fire({
       icon: 'warning',
-      title: '¿Cancelar reserva?',
+      title: reservaPasada ? '¿Borrar reserva del panel?' : '¿Cancelar reserva?',
       html: `
-        <p>Vas a cancelar la reserva de <strong>${reserva.club}</strong>.</p>
+        <p>Vas a ${reservaPasada ? 'borrar del panel' : 'cancelar'} la reserva de <strong>${reserva.club}</strong>.</p>
         <p><strong>${reserva.fecha}</strong> a las <strong>${reserva.hora} hs</strong></p>
         <small>Esta acción no se puede deshacer.</small>
       `,
       showCancelButton: true,
-      confirmButtonText: 'Sí, cancelar',
+      confirmButtonText: reservaPasada ? 'Sí, borrar' : 'Sí, cancelar',
       cancelButtonText: 'Volver',
       reverseButtons: true,
       customClass: {
@@ -892,11 +961,14 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
       }
 
       setReservasEliminadas((prev) => [...prev, reserva.id]);
+      onDeleteReserva?.(reserva.id);
       setMenuReservaAbierto(null);
 
       mostrarExito(
-        'Reserva cancelada',
-        'La reserva fue cancelada correctamente.'
+        reservaPasada ? 'Reserva borrada' : 'Reserva cancelada',
+        reservaPasada
+          ? 'La reserva fue quitada del panel correctamente.'
+          : 'La reserva fue cancelada correctamente.'
       );
     } catch (error) {
       console.error('Error al eliminar reserva:', error);
@@ -919,21 +991,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
     if (esHorarioPasado(fechaSeleccionada, horarioSeleccionado)) return;
     if (esHorarioOcupado(horarioSeleccionado)) return;
 
-    // Función para normalizar texto (quitar acentos y pasar a minúsculas)
-    const normalizar = (str) =>
-      str ? str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
-
-    // Buscar la cancha real en el club seleccionado para el deporte elegido
-    const clubData = clubesActivos.find(c => c.nombre === clubSeleccionado);
-
-    // Buscamos coincidencia por el campo 'deporte' o por el 'nombre' de la cancha
-    const canchaReal = clubData?.detallesCanchas?.find(c =>
-      normalizar(c.deporte) === normalizar(deporteSeleccionado) ||
-      normalizar(c.nombre) === normalizar(deporteSeleccionado) ||
-      normalizar(c.nombre).includes(normalizar(deporteSeleccionado))
-    );
-
-    if (!canchaReal) {
+    if (!canchaSeleccionada) {
       mostrarError(
         'No hay cancha disponible',
         'No se encontró una cancha disponible para este deporte en el club seleccionado.'
@@ -947,11 +1005,11 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
     // Preparar datos para el backend
     const reservaDTO = {
       id_usuario: usuario.id_usuario,
-      id_cancha: canchaReal.id,
+      id_cancha: canchaSeleccionada.id,
       fecha: fechaSQL,
       hora_inicio: `${horarioSeleccionado}:00`,
       hora_fin: `${parseInt(horarioSeleccionado.split(':')[0]) + 1}:00:00`,
-      monto_total: canchaReal.precio || 0,
+      monto_total: canchaSeleccionada.precio || 0,
       estado: 'confirmada'
     };
 
@@ -985,10 +1043,11 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
         const guardada = await response.json();
 
         const nuevaReserva = {
-          id: guardada.id_reserva || reservaEnEdicion?.id || Date.now(),
+          id: reservaEnEdicion?.id || guardada.id_reserva || Date.now(),
+          id_cancha: canchaSeleccionada.id,
           deporte: deporteSeleccionado,
           club: clubSeleccionado,
-          cancha: canchaSeleccionada,
+          cancha: canchaSeleccionada.nombre,
           fecha: fechaSeleccionada,
           hora: horarioSeleccionado,
           estado: 'Confirmada',
@@ -1000,13 +1059,9 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
           accion: reservaEnEdicion ? 'modificada' : 'confirmada',
         };
 
-        if (reservaEnEdicion) {
-          setReservasEliminadas((prev) =>
-            prev.includes(reservaEnEdicion.id) ? prev : [...prev, reservaEnEdicion.id]
-          );
-        }
-
-        if (onAddReserva) {
+        if (reservaEnEdicion && onUpdateReserva) {
+          onUpdateReserva(reservaEnEdicion.id, nuevaReserva);
+        } else if (onAddReserva) {
           onAddReserva(nuevaReserva);
         }
 
@@ -1049,12 +1104,18 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
     if (numeroPaso > pasoActual) return;
 
     if (numeroPaso === 1) {
-      reiniciarReserva();
+      setDeporteSeleccionado(null);
+      setClubSeleccionado(null);
+      setCanchaSeleccionada(null);
+      setFechaSeleccionada(null);
+      setHorarioSeleccionado(null);
+      setMenuReservaAbierto(null);
       return;
     }
 
     if (numeroPaso === 2) {
       setClubSeleccionado(null);
+      setCanchaSeleccionada(null);
       setFechaSeleccionada(null);
       setHorarioSeleccionado(null);
       return;
@@ -1156,7 +1217,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
                 <div className="booking-panel__top">
                   <div>
                     <h1>Reservá tu cancha</h1>
-                    <p>Elegí tu deporte, club, fecha y horario en pocos pasos</p>
+                    <p>Elegí tu deporte, cancha, fecha y horario en pocos pasos</p>
                   </div>
 
                   <div className="steps-indicator">
@@ -1167,7 +1228,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
 
                     <div className={`step ${obtenerEstadoPaso(2)}`}>
                       <span>2</span>
-                      <small>Club</small>
+                      <small>Cancha</small>
                     </div>
 
                     <div className={`step ${obtenerEstadoPaso(3)}`}>
@@ -1210,8 +1271,8 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
                     >
                       <span>2</span>
                       <div>
-                        <strong>Club</strong>
-                        <small>{clubSeleccionado || 'Elegí dónde jugar'}</small>
+                        <strong>Cancha</strong>
+                        <small>{nombreCanchaSeleccionada !== '—' ? nombreCanchaSeleccionada : 'Elegí la cancha'}</small>
                       </div>
                     </button>
 
@@ -1302,55 +1363,58 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
                       <div className="stage-content stage-content--clubs">
                         <div className="stage-heading">
                           <span className="stage-kicker">Paso 2</span>
-                          <h2>Elegí el club</h2>
+                          <h2>Elegí la cancha</h2>
                           <p>
-                            Estos son los clubes que ofrecen {deporteSeleccionado || 'el deporte seleccionado'}.
+                            Estas son todas las canchas de {deporteSeleccionado || 'el deporte seleccionado'} disponibles.
                           </p>
                         </div>
 
                         <div className="clubs-grid clubs-grid--large">
-                          {clubesFiltrados.length > 0 ? (
-                            clubesFiltrados.map((club) => (
+                          {canchasDisponibles.length > 0 ? (
+                            canchasDisponibles.map((cancha) => (
                               <button
-                                key={club.id}
+                                key={`${cancha.clubId}-${cancha.id}`}
                                 type="button"
                                 className={
-                                  clubSeleccionado === club.nombre
+                                  canchaSeleccionada?.id === cancha.id
                                     ? 'club-card club-card--large selected'
                                     : 'club-card club-card--large'
                                 }
-                                onClick={() => seleccionarClub(club)}
+                                onClick={() => seleccionarCancha(cancha)}
                               >
 
                                 <div className="club-card__logo">
-                                  {club.logo ? (
+                                  {cancha.clubLogo ? (
                                     <img
-                                      src={club.logo}
-                                      alt={`Logo de ${club.nombre}`}
+                                      src={cancha.clubLogo}
+                                      alt={`Logo de ${cancha.clubNombre}`}
                                       className="club-card__logo-img"
                                       onError={(e) => {
                                         e.currentTarget.style.display = 'none';
-                                        e.currentTarget.parentElement.textContent = club.nombre
+                                        e.currentTarget.parentElement.textContent = cancha.clubNombre
                                           .slice(0, 2)
                                           .toUpperCase();
                                       }}
                                     />
                                   ) : (
-                                    club.nombre.slice(0, 2).toUpperCase()
+                                    cancha.nombre.slice(0, 2).toUpperCase()
                                   )}
                                 </div>
 
-                                <strong>{club.nombre}</strong>
-                                <small>{club.direccion}</small>
-                                <small>📞 {club.telefono}</small>
-                                <small>✉️ {club.email}</small>
-                                <span>📍 {club.distancia}</span>
+                                <strong>{cancha.nombre}</strong>
+                                <small>{cancha.clubNombre}</small>
+                                <small>{cancha.clubDireccion}</small>
+                                <span>
+                                  {cancha.precio
+                                    ? `$${Number(cancha.precio).toLocaleString('es-AR')}/hora`
+                                    : 'Precio a confirmar'}
+                                </span>
                               </button>
                             ))
                           ) : (
                             <div className="empty-clubs-message">
                               {deporteSeleccionado
-                                ? `No hay clubes disponibles para ${deporteSeleccionado}`
+                                ? `No hay canchas disponibles para ${deporteSeleccionado}`
                                 : 'Primero elegí un deporte'}
                             </div>
                           )}
@@ -1364,7 +1428,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
                           <span className="stage-kicker">Paso 3</span>
                           <h2>Elegí la fecha</h2>
                           <p>
-                            Seleccioná un día disponible para jugar en {clubSeleccionado || 'el club elegido'}.
+                            Seleccioná un día disponible para jugar en {nombreCanchaSeleccionada}.
                           </p>
                         </div>
 
@@ -1425,7 +1489,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
                           <span className="stage-kicker">Paso 4</span>
                           <h2>Elegí el horario</h2>
                           <p>
-                            Horarios disponibles para el {fechaSeleccionada} en {clubSeleccionado}.
+                            Horarios disponibles para el {fechaSeleccionada} en {nombreCanchaSeleccionada}.
                           </p>
                         </div>
 
@@ -1494,7 +1558,7 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
                           <div className="summary-item">
                             <span>🏟️</span>
                             <small>Cancha</small>
-                            <strong>{canchaSeleccionada}</strong>
+                            <strong>{nombreCanchaSeleccionada}</strong>
                           </div>
 
                           <div className="summary-item">
@@ -1591,7 +1655,10 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
 
                 <div className="reservations-list">
                   {reservasDelUsuario.length > 0 ? (
-                    reservasDelUsuario.map((reserva) => (
+                    reservasDelUsuario.map((reserva) => {
+                      const reservaPasada = esReservaPasada(reserva);
+
+                      return (
                       <article key={reserva.id} className="reservation-card">
                         <div className="reservation-card__date">
                           <small>{reserva.diaSemana}</small>
@@ -1612,7 +1679,9 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
                             {reserva.estado}
                           </span>
 
-                          {reserva.puedeGestionar ? (
+                          {reservaPasada ? (
+                            <small>Turno finalizado</small>
+                          ) : reserva.puedeGestionar ? (
                             <small>
                               Podés cancelar o modificar hasta {reserva.limite}
                             </small>
@@ -1625,9 +1694,11 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
                               type="button"
                               className="reservation-card__menu-button"
                               onClick={() => alternarMenuReserva(reserva)}
-                              disabled={!reserva.puedeGestionar}
+                              disabled={!reserva.puedeGestionar && !reservaPasada}
                               title={
-                                reserva.puedeGestionar
+                                reservaPasada
+                                  ? 'Borrar del panel'
+                                  : reserva.puedeGestionar
                                   ? 'Gestionar reserva'
                                   : 'No se puede gestionar con menos de 24 horas'
                               }
@@ -1635,15 +1706,17 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
                               ⋮
                             </button>
 
-                            {menuReservaAbierto === reserva.id && reserva.puedeGestionar && (
+                            {menuReservaAbierto === reserva.id && (reserva.puedeGestionar || reservaPasada) && (
                               <div className="reservation-card__dropdown">
-                                <button
-                                  type="button"
-                                  onClick={() => iniciarModificacionReserva(reserva)}
-                                >
-                                  <i className="bi bi-pencil-square"></i>
-                                  Modificar
-                                </button>
+                                {!reservaPasada && (
+                                  <button
+                                    type="button"
+                                    onClick={() => iniciarModificacionReserva(reserva)}
+                                  >
+                                    <i className="bi bi-pencil-square"></i>
+                                    Modificar
+                                  </button>
+                                )}
 
                                 <button
                                   type="button"
@@ -1651,14 +1724,15 @@ function DashboardUsuario({ usuario, reservas = [], onLogout, onAddReserva }) {
                                   onClick={() => eliminarReserva(reserva)}
                                 >
                                   <i className="bi bi-trash3"></i>
-                                  Eliminar
+                                  {reservaPasada ? 'Borrar del panel' : 'Eliminar'}
                                 </button>
                               </div>
                             )}
                           </div>
                         </div>
                       </article>
-                    ))
+                      );
+                    })
                   ) : (
                     <div className="reservations-empty">
                       <strong>No tenés reservas todavía</strong>

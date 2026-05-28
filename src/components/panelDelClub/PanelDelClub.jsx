@@ -24,6 +24,12 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   const [canchas, setCanchas] = useState([]);
 
   /*
+    Deportes reales cargados desde el backend.
+    Se usan para guardar la cancha con el id_deporte correcto de la base.
+  */
+  const [deportesDisponibles, setDeportesDisponibles] = useState([]);
+
+  /*
     Controla si se muestra o no la sección de configuración.
   */
   const [showSettings, setShowSettings] = useState(false);
@@ -206,6 +212,26 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
       fetchCanchas();
     }
   }, [clubPrincipal?.id_club]);
+
+  useEffect(() => {
+    const fetchDeportes = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/deporte');
+
+        if (!response.ok) {
+          throw new Error('No se pudieron cargar los deportes');
+        }
+
+        const data = await response.json();
+        setDeportesDisponibles(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Error cargando deportes:', error);
+        setDeportesDisponibles([]);
+      }
+    };
+
+    fetchDeportes();
+  }, []);
 
   /*
     Activa o desactiva un horario disponible.
@@ -557,15 +583,14 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
                         required
                       >
                         <option value="">Selecciona un deporte</option>
-                        <option value="1">Futbol 5</option>
-                        <option value="2">Futbol 7</option>
-                        <option value="3">Futbol 11</option>
-                        <option value="4">Tenis</option>
-                        <option value="5">Voley</option>
-                        <option value="6">Padel</option>
-                        <option value="7">Natacion</option>
-                        <option value="8">Golf</option>
-                        <option value="9">Basquet</option>
+                        {deportesDisponibles.map((deporte) => (
+                          <option
+                            key={deporte.id_deporte}
+                            value={deporte.id_deporte}
+                          >
+                            {deporte.nombre_deporte}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
