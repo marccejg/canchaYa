@@ -54,12 +54,13 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
     setError('');
 
     try {
-      const loginResult = await loginRequest('http://localhost:3000/user/login');
-
-      if (loginResult.ok) {
-        onLoginSuccess(loginResult.data.user);
-        return;
-      }
+      const loginResult = await loginRequest('http://localhost:3000/auth/login');
+if (loginResult.ok) {
+  const token = loginResult.data.token;
+  localStorage.setItem('token', token);
+  onLoginSuccess(loginResult.data.user);
+  return;
+}
 
       setError(loginResult.data?.message || 'Usuario o contraseña incorrectos');
     } catch (error) {

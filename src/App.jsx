@@ -86,30 +86,61 @@ function App() {
     }
   };
 
-  const fetchReservas = async (idUsuario) => {
-    try {
-      const response = await fetch(`http://localhost:3000/reserva/usuario/${idUsuario}`);
-      if (response.ok) {
-        const data = await response.json();
-        const reservasMapeadas = data.map(r => ({
-          id: r.id_reserva,
-          id_cancha: r.cancha?.id_cancha,
-          deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
-          club: r.cancha?.club?.nombre_club || 'Club',
-          cancha: r.cancha?.nombre_cancha || 'Cancha',
-          fecha: r.fecha,
-          hora: r.hora_inicio.slice(0, 5),
-          estado: r.estado.charAt(0).toUpperCase() + r.estado.slice(1),
-          direccion: r.cancha?.club?.direccion_club || '',
-          precio: r.monto_total
-        }));
-        setReservas(reservasMapeadas);
+// const fetchReservas = async (idUsuario) => {
+//   const token = localStorage.getItem('token')
+//   const response = await fetch(`http://localhost:3000/reserva/usuario/${idUsuario}`, {
+//     headers: {
+//       'Authorization': `Bearer ${token}`
+//     }
+//   })
+//       if (response.ok) {
+//         const data = await response.json();
+//         const reservasMapeadas = data.map(r => ({
+//           id: r.id_reserva,
+//           id_cancha: r.cancha?.id_cancha,
+//           deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
+//           club: r.cancha?.club?.nombre_club || 'Club',
+//           cancha: r.cancha?.nombre_cancha || 'Cancha',
+//           fecha: r.fecha,
+//           hora: r.hora_inicio.slice(0, 5),
+//           estado: r.estado.charAt(0).toUpperCase() + r.estado.slice(1),
+//           direccion: r.cancha?.club?.direccion_club || '',
+//           precio: r.monto_total
+//         }));
+//         setReservas(reservasMapeadas);
+//       }
+//     } catch (error) {
+//       console.error('Error al cargar reservas iniciales:', error);
+//     }
+//   };
+const fetchReservas = async (idUsuario) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`http://localhost:3000/reserva/usuario/${idUsuario}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
-    } catch (error) {
-      console.error('Error al cargar reservas iniciales:', error);
+    });
+    if (response.ok) {
+      const data = await response.json();
+      const reservasMapeadas = data.map(r => ({
+        id: r.id_reserva,
+        id_cancha: r.cancha?.id_cancha,
+        deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
+        club: r.cancha?.club?.nombre_club || 'Club',
+        cancha: r.cancha?.nombre_cancha || 'Cancha',
+        fecha: r.fecha,
+        hora: r.hora_inicio.slice(0, 5),
+        estado: r.estado.charAt(0).toUpperCase() + r.estado.slice(1),
+        direccion: r.cancha?.club?.direccion_club || '',
+        precio: r.monto_total
+      }));
+      setReservas(reservasMapeadas);
     }
-  };
-
+  } catch (error) {
+    console.error('Error al cargar reservas iniciales:', error);
+  }
+};
   /*
     Cierra sesión.
     Limpia usuario común y administrador por seguridad.
