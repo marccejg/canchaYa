@@ -440,6 +440,7 @@ function DashboardUsuario({
   onAddReserva,
   onUpdateReserva,
   onDeleteReserva,
+  onRefreshReservas,
 }) {
   /*
     Estados principales del wizard.
@@ -571,6 +572,7 @@ function DashboardUsuario({
   const [menuReservaAbierto, setMenuReservaAbierto] = useState(null);
   const [reservaEnEdicion, setReservaEnEdicion] = useState(null);
   const [reservasEliminadas, setReservasEliminadas] = useState([]);
+  const [enviandoReserva, setEnviandoReserva] = useState(false);
 
   /*
     Referencia al carrusel de deportes.
@@ -962,6 +964,9 @@ function DashboardUsuario({
 
       setReservasEliminadas((prev) => [...prev, reserva.id]);
       onDeleteReserva?.(reserva.id);
+      if (onRefreshReservas) {
+        onRefreshReservas();
+      }
       setMenuReservaAbierto(null);
 
       mostrarExito(
@@ -986,6 +991,7 @@ function DashboardUsuario({
   */
   const confirmarReserva = async () => {
     if (pasoActual !== 5) return;
+    if (enviandoReserva) return;
 
     if (esFechaPasada(fechaSeleccionada)) return;
     if (esHorarioPasado(fechaSeleccionada, horarioSeleccionado)) return;
@@ -998,6 +1004,13 @@ function DashboardUsuario({
       );
       return;
     }
+
+    // Snapshot del estado de edición ANTES de cualquier await.
+    // Esto evita que cambios de estado durante el await (re-render, click en
+    // "Reiniciar selección", etc.) provoquen que se cree una nueva reserva
+    // en lugar de modificar la existente.
+    const reservaEnEdicionSnapshot = reservaEnEdicion;
+    const estaModificando = Boolean(reservaEnEdicionSnapshot?.id);
 
     const [dia, mes, anio] = fechaSeleccionada.split('/');
     const fechaSQL = `${anio}-${mes}-${dia}`;
@@ -1013,19 +1026,21 @@ function DashboardUsuario({
       estado: 'confirmada'
     };
 
+    setEnviandoReserva(true);
+
     try {
       let response;
 
-      if (reservaEnEdicion) {
+      if (estaModificando) {
         // Primero intentamos PATCH. Si tu backend usa PUT, hacemos fallback automático.
-        response = await fetch(`http://localhost:3000/reserva/${reservaEnEdicion.id}`, {
+        response = await fetch(`http://localhost:3000/reserva/${reservaEnEdicionSnapshot.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(reservaDTO),
         });
 
         if (response.status === 404 || response.status === 405) {
-          response = await fetch(`http://localhost:3000/reserva/${reservaEnEdicion.id}`, {
+          response = await fetch(`http://localhost:3000/reserva/${reservaEnEdicionSnapshot.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(reservaDTO),
@@ -1043,7 +1058,9 @@ function DashboardUsuario({
         const guardada = await response.json();
 
         const nuevaReserva = {
-          id: reservaEnEdicion?.id || guardada.id_reserva || Date.now(),
+          id: estaModificando
+            ? reservaEnEdicionSnapshot.id
+            : guardada?.id_reserva || Date.now(),
           id_cancha: canchaSeleccionada.id,
           deporte: deporteSeleccionado,
           club: clubSeleccionado,
@@ -1056,13 +1073,20 @@ function DashboardUsuario({
           ),
           limite: '24 hs antes del turno',
           direccion: clubActual?.direccion || '',
-          accion: reservaEnEdicion ? 'modificada' : 'confirmada',
+          accion: estaModificando ? 'modificada' : 'confirmada',
         };
 
-        if (reservaEnEdicion && onUpdateReserva) {
-          onUpdateReserva(reservaEnEdicion.id, nuevaReserva);
+        if (estaModificando && onUpdateReserva) {
+          onUpdateReserva(reservaEnEdicionSnapshot.id, nuevaReserva);
         } else if (onAddReserva) {
           onAddReserva(nuevaReserva);
+        }
+
+        // Refrescamos desde el backend para que el panel siempre refleje
+        // la verdad de la base de datos (evita que aparezcan duplicados o
+        // versiones viejas si por algún motivo la actualización local falló).
+        if (onRefreshReservas) {
+          onRefreshReservas();
         }
 
         setReservaConfirmada(nuevaReserva);
@@ -1070,8 +1094,8 @@ function DashboardUsuario({
         setReservaEnEdicion(null);
       } else {
         mostrarError(
-          reservaEnEdicion ? 'No se pudo modificar' : 'No se pudo reservar',
-          reservaEnEdicion
+          estaModificando ? 'No se pudo modificar' : 'No se pudo reservar',
+          estaModificando
             ? 'Hubo un problema al modificar la reserva en el servidor.'
             : 'Hubo un problema al procesar la reserva en el servidor.'
         );
@@ -1082,6 +1106,8 @@ function DashboardUsuario({
         'Error de conexión',
         'No se pudo conectar con el servidor. Revisá que el backend esté levantado e intentá nuevamente.'
       );
+    } finally {
+      setEnviandoReserva(false);
     }
   };
 
@@ -1579,17 +1605,22 @@ function DashboardUsuario({
                             type="button"
                             className="confirm-button"
                             onClick={confirmarReserva}
-                            disabled={pasoActual !== 5}
+                            disabled={pasoActual !== 5 || enviandoReserva}
                           >
-                            ✓ Confirmar reserva
+                            {enviandoReserva
+                              ? 'Procesando...'
+                              : reservaEnEdicion
+                                ? '✓ Guardar cambios'
+                                : '✓ Confirmar reserva'}
                           </button>
 
                           <button
                             type="button"
                             className="reset-button"
                             onClick={reiniciarReserva}
+                            disabled={enviandoReserva}
                           >
-                            Reiniciar selección
+                            {reservaEnEdicion ? 'Cancelar modificación' : 'Reiniciar selección'}
                           </button>
                         </div>
                       </div>
