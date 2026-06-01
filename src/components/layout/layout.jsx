@@ -3,7 +3,7 @@ import BannerVertical from '../bannerVertical/BannerVertical';
 import Header from '../header/header';
 import Footer from '../footer/footer';
 
-import './Layout.css';
+import './layout.css';
 
 /*
   Layout general de páginas públicas.

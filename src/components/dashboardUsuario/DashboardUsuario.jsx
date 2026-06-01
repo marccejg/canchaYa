@@ -3,7 +3,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import './DashboardUsuario.css';
-import { useAuth } from '../../hooks/useAuth';
+// import { useAuth } from '../../hooks/useAuth';
 
 import logoCanchasYa from '../../assets/logo_blanco_720.png';
 
@@ -1221,10 +1221,10 @@ function DashboardUsuario({
               </nav>
 
               <div className="dashboard-header__user">
-                <span>Hola, {usuario?.nombre || 'Miguel'} 👋</span>
+                <span>Hola, {usuario?.nombre || 'Anonimo'} 👋</span>
 
                 <div className="dashboard-header__avatar">
-                  {(usuario?.nombre?.[0] || 'M').toUpperCase()}
+                  {(usuario?.nombre?.[0] || 'A').toUpperCase()}
                 </div>
 
                 {onLogout && (

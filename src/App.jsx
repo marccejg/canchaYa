@@ -9,6 +9,7 @@ import PanelDelClub from './components/panelDelClub/PanelDelClub';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminPanel from './components/admin/AdminPanel';
 import DashboardUsuario from './components/dashboardUsuario/DashboardUsuario';
+import { useAuth } from './hooks/useAuth';
 
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -25,6 +26,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 */
 function App() {
   const navigate = useNavigate();
+  const { logout, login } = useAuth();
 
   /*
     Estados de sesión.
@@ -48,6 +50,7 @@ function App() {
     Guarda el usuario recibido desde el backend.
   */
   const handleLogin = (user) => {
+    login(user); // llama a la función login de useAuth para actualizar el estado de autenticación
     setCurrentUser(user);
     if (user) {
       if (user.tipo === 'usuario') {
@@ -117,9 +120,11 @@ function App() {
     Cierra sesión.
     Limpia usuario común y administrador por seguridad.
   */
-  const handleLogout = () => {
+
+  const handleLogout = () => {    
+    logout(); // llama a la función logout de useAuth para limpiar el estado de autenticación
     setCurrentUser(null);
-    setAdminUser(null);
+    // setAdminUser(null);
     navigate('/');
   };
 
