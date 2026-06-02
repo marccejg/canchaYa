@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './login.css';
 import Layout from '../layout/layout';
+import { useAuth } from '../../hooks/useAuth';
 
 /*
   Componente Login.
@@ -16,6 +17,9 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+  // login con l minuscula
+  const { login } = useAuth();
 
   /*
     Realiza una petición POST al endpoint recibido.
@@ -55,9 +59,12 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
 
     try {
       const loginResult = await loginRequest('http://localhost:3000/user/login');
+      // const loginResult = await loginRequest(`${process.env.REACT_APP_API_URL}/user/login`);
+      // http://localhost:3000/ deberia ser una variable de entorno en producción
 
       if (loginResult.ok) {
         onLoginSuccess(loginResult.data.user);
+        // login(loginResult.data.user); // se aplica en handleLogin de App.jsx
         return;
       }
 
