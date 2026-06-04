@@ -67,7 +67,12 @@ function App() {
 
   const fetchReservasPorClub = async (idClub) => {
     try {
-      const response = await fetch(`http://localhost:3000/reserva/club/${idClub}`);
+      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
+      const response = await fetch(`http://localhost:3000/reserva/club/${idClub}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         const reservasMapeadas = data.map(r => ({
@@ -91,7 +96,12 @@ function App() {
 
   const fetchReservas = async (idUsuario) => {
     try {
-      const response = await fetch(`http://localhost:3000/reserva/usuario/${idUsuario}`);
+      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
+      const response = await fetch(`http://localhost:3000/reserva/usuario/${idUsuario}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         const reservasMapeadas = data.map(r => ({
@@ -124,6 +134,7 @@ function App() {
   const handleLogout = () => {    
     logout(); // llama a la función logout de useAuth para limpiar el estado de autenticación
     setCurrentUser(null);
+    localStorage.removeItem('token');
     // setAdminUser(null);
     navigate('/');
   };
