@@ -560,22 +560,24 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             <p>¡Hola {nombreDueno}!</p>
           </div>
 
-          <button
-            className="pdc-settings-button"
-            onClick={() => setShowSettings(!showSettings)}
-            title="Configuración"
-          >
-            <i className="bi bi-gear"></i>
-            Configuración
-          </button>
-          <button
-            className="pdc-pay-button"
-            onClick={() => setCheckPagoFecha(!updateFecha)}
-            title="PagarSubscripción"
-          >
-            <i className="bi bi-gear"></i>
-            Pagar subcripción
-          </button>
+          <div className="pdc-header-actions">
+            <button
+              className="pdc-settings-button"
+              onClick={() => setShowSettings(!showSettings)}
+              title="Configuración"
+            >
+              <i className="bi bi-gear"></i>
+              Configuración
+            </button>
+            <button
+              className="pdc-pay-button"
+              onClick={() => setCheckPagoFecha(!updateFecha)}
+              title="Pagar Suscripción"
+            >
+              <i className="bi bi-credit-card"></i>
+              Pagar Suscripción
+            </button>
+          </div>
         </header>
 
         {/* SECCIÓN DE CONFIGURACIÓN */}
