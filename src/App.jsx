@@ -9,6 +9,7 @@ import PanelDelClub from './components/panelDelClub/PanelDelClub';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminPanel from './components/admin/AdminPanel';
 import DashboardUsuario from './components/dashboardUsuario/DashboardUsuario';
+import { useAuth } from './hooks/useAuth';
 
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -25,6 +26,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 */
 function App() {
   const navigate = useNavigate();
+  const { logout, login } = useAuth();
 
   /*
     Estados de sesión.
@@ -48,6 +50,7 @@ function App() {
     Guarda el usuario recibido desde el backend.
   */
   const handleLogin = (user) => {
+    login(user); // llama a la función login de useAuth para actualizar el estado de autenticación
     setCurrentUser(user);
     if (user) {
       if (user.tipo === 'usuario') {
@@ -104,19 +107,24 @@ function App() {
           precio: r.monto_total
         }));
         setReservas(reservasMapeadas);
+        return reservasMapeadas;
       }
     } catch (error) {
       console.error('Error al cargar reservas iniciales:', error);
     }
+
+    return [];
   };
 
   /*
     Cierra sesión.
     Limpia usuario común y administrador por seguridad.
   */
-  const handleLogout = () => {
+
+  const handleLogout = () => {    
+    logout(); // llama a la función logout de useAuth para limpiar el estado de autenticación
     setCurrentUser(null);
-    setAdminUser(null);
+    // setAdminUser(null);
     navigate('/');
   };
 
@@ -154,20 +162,53 @@ function App() {
   */
   const handleAddReserva = (reserva) => {
     const nuevaReserva = {
-      id: Date.now(),
+      id: reserva.id || Date.now(),
       ...reserva,
       timestamp: new Date().toISOString(),
       estado: reserva.estado || 'Confirmada',
     };
 
-    setReservas((prev) => [...prev, nuevaReserva]);
+    setReservas((prev) => {
+      const idNuevaReserva = String(nuevaReserva.id);
+      const existe = prev.some((r) => String(r.id_reserva || r.id) === idNuevaReserva);
+
+      if (!existe) return [...prev, nuevaReserva];
+
+      return prev.map((r) =>
+        String(r.id_reserva || r.id) === idNuevaReserva
+          ? { ...r, ...nuevaReserva }
+          : r
+      );
+    });
+  };
+
+  /*
+    Actualiza una reserva existente en el estado global.
+    Se usa al modificar para evitar que la reserva original quede duplicada.
+  */
+  const handleUpdateReserva = (reservaId, reservaActualizada) => {
+    const idObjetivo = String(reservaId);
+
+    setReservas((prev) =>
+      prev.map((reserva) =>
+        String(reserva.id_reserva || reserva.id) === idObjetivo
+          ? {
+              ...reserva,
+              ...reservaActualizada,
+              id: reserva.id || reservaActualizada.id || reservaId,
+              timestamp: new Date().toISOString(),
+              estado: reservaActualizada.estado || reserva.estado || 'Confirmada',
+            }
+          : reserva
+      )
+    );
   };
 
   /*
     Elimina una reserva del estado global.
   */
   const handleDeleteReserva = (reservaId) => {
-    setReservas((prev) => prev.filter((r) => (r.id_reserva || r.id) !== reservaId));
+    setReservas((prev) => prev.filter((r) => String(r.id_reserva || r.id) !== String(reservaId)));
   };
 
   /*
@@ -259,7 +300,9 @@ function App() {
               usuarios={usuarios}
               onLogout={handleLogout}
               onAddReserva={handleAddReserva}
+              onUpdateReserva={handleUpdateReserva}
               onDeleteReserva={handleDeleteReserva}
+              onRefreshReservas={() => fetchReservas(currentUser.id_usuario)}
             />
           ) : (
             <Navigate to="/" replace />

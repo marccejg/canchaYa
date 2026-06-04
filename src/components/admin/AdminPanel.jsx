@@ -3,6 +3,8 @@ import './Admin.css';
 
 const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegistrados }) => {
   const [showSettings, setShowSettings] = useState(false);
+  const [newAdminNombre, setNewAdminNombre] = useState('');
+  const [newAdminApellido, setNewAdminApellido] = useState('');
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [newAdminPassword, setNewAdminPassword] = useState('');
   const [admins, setAdmins] = useState([
@@ -14,6 +16,8 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
     }
   ]);
   const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   const [clubesPendientes, setClubesPendientes] = useState([]);
   const [clubesAceptados, setClubesAceptados] = useState([]);
 
@@ -49,26 +53,81 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
     fetchClubesAceptados();
   }, []);
 
-  const handleAddAdmin = (e) => {
+  const handleAddAdmin = async (e) => {
     e.preventDefault();
     
-    if (!newAdminEmail || !newAdminPassword) {
-      alert('Por favor completa todos los campos');
+    console.log('handleAddAdmin called with:', { newAdminNombre, newAdminApellido, newAdminEmail, newAdminPassword });
+    
+    // Validar campos requeridos
+    if (!newAdminNombre || !newAdminApellido || !newAdminEmail || !newAdminPassword) {
+      setErrorMessage('Por favor completa todos los campos');
+      setTimeout(() => setErrorMessage(''), 3000);
       return;
     }
 
-    const newAdmin = {
-      id: admins.length + 1,
-      username: newAdminEmail.split('@')[0],
-      email: newAdminEmail,
-      createdAt: new Date().toLocaleDateString()
-    };
+    setLoading(true);
+    setErrorMessage('');
+    setSuccessMessage('');
 
-    setAdmins([...admins, newAdmin]);
-    setNewAdminEmail('');
-    setNewAdminPassword('');
-    setSuccessMessage('Admin agregado exitosamente');
-    setTimeout(() => setSuccessMessage(''), 3000);
+    try {
+      // Preparar datos para enviar al backend
+      const adminData = {
+        nombre_usuario: newAdminNombre,
+        apellido_usuario: newAdminApellido,
+        email_usuario: newAdminEmail,
+        password_usuario: newAdminPassword,
+        // Establecer tipo como admin (el endpoint ya lo fuerza, pero lo incluimos por claridad)
+        tipo_usuario: 'admin'
+      };
+
+      console.log('Enviando datos al backend:', adminData);
+
+      // Enviar solicitud al backend para crear el admin
+      const response = await fetch('http://localhost:3000/user/create-admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(adminData),
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      if (response.ok) {
+        const createdAdmin = await response.json();
+        console.log('Admin creado en backend:', createdAdmin);
+        
+        // Agregar el admin creado a la lista local
+        const newAdmin = {
+          id: createdAdmin.id_usuario,
+          username: `${createdAdmin.nombre_usuario} ${createdAdmin.apellido_usuario}`,
+          email: createdAdmin.email_usuario,
+          createdAt: new Date(createdAdmin.created_at).toLocaleDateString()
+        };
+
+        console.log('Nuevo admin para mostrar en UI:', newAdmin);
+        setAdmins(prevAdmins => [...prevAdmins, newAdmin]);
+        
+        // Limpiar formulario
+        setNewAdminNombre('');
+        setNewAdminApellido('');
+        setNewAdminEmail('');
+        setNewAdminPassword('');
+        
+        setSuccessMessage('Admin creado exitosamente en la base de datos');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } else {
+        const errorData = await response.json();
+        console.error('Error del backend:', errorData);
+        throw new Error(errorData.message || 'Error al crear el admin');
+      }
+    } catch (error) {
+      console.error('Error al crear admin:', error);
+      setErrorMessage(error.message || 'Error al crear el admin. Por favor intenta nuevamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleClubStatus = async (clubId, currentActivo) => {
@@ -166,33 +225,60 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
             </div>
           </div>
 
-          <div className="admin-form-box">
-            <h3>Agregar Nuevo Admin</h3>
-            <form onSubmit={handleAddAdmin} className="admin-add-form">
-              <div className="admin-form-group">
-                <label>Email:</label>
-                <input
-                  type="email"
-                  placeholder="email@example.com"
-                  value={newAdminEmail}
-                  onChange={(e) => setNewAdminEmail(e.target.value)}
-                  className="admin-input"
-                />
-              </div>
-              <div className="admin-form-group">
-                <label>Contraseña:</label>
-                <input
-                  type="password"
-                  placeholder="Contraseña"
-                  value={newAdminPassword}
-                  onChange={(e) => setNewAdminPassword(e.target.value)}
-                  className="admin-input"
-                />
-              </div>
-              <button type="submit" className="admin-submit-btn">Agregar Admin</button>
-            </form>
-            {successMessage && <p className="admin-success-msg">{successMessage}</p>}
-          </div>
+<div className="admin-form-box">
+             <h3>Agregar Nuevo Admin</h3>
+             <form onSubmit={handleAddAdmin} className="admin-add-form">
+               <div className="admin-form-group">
+                 <label>Nombre:</label>
+                 <input
+                   type="text"
+                   placeholder="Nombre"
+                   value={newAdminNombre}
+                   onChange={(e) => setNewAdminNombre(e.target.value)}
+                   className="admin-input"
+                   required
+                 />
+               </div>
+               <div className="admin-form-group">
+                 <label>Apellido:</label>
+                 <input
+                   type="text"
+                   placeholder="Apellido"
+                   value={newAdminApellido}
+                   onChange={(e) => setNewAdminApellido(e.target.value)}
+                   className="admin-input"
+                   required
+                 />
+               </div>
+               <div className="admin-form-group">
+                 <label>Email:</label>
+                 <input
+                   type="email"
+                   placeholder="email@example.com"
+                   value={newAdminEmail}
+                   onChange={(e) => setNewAdminEmail(e.target.value)}
+                   className="admin-input"
+                   required
+                 />
+               </div>
+               <div className="admin-form-group">
+                 <label>Contraseña:</label>
+                 <input
+                   type="password"
+                   placeholder="Contraseña"
+                   value={newAdminPassword}
+                   onChange={(e) => setNewAdminPassword(e.target.value)}
+                   className="admin-input"
+                   required
+                 />
+               </div>
+               <button type="submit" className="admin-submit-btn" disabled={loading}>
+                 {loading ? 'Creando...' : 'Agregar Admin'}
+               </button>
+               {errorMessage && <p className="admin-error-msg" style={{color: 'red'}}>{errorMessage}</p>}
+               {successMessage && <p className="admin-success-msg">{successMessage}</p>}
+             </form>
+           </div>
 
           <div className="admin-form-box">
             <h3>Admins Registrados</h3>
