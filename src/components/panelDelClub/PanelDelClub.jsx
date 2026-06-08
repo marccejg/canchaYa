@@ -118,8 +118,11 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   /*
     Algunas respuestas del login traen los datos del club dentro de club.club.
     Por eso se normaliza en esta constante.
+    El objeto que llega puede ser:
+    - currentUser con estructura { id_usuario, club: {...} }
+    - O directamente el club si viene anidado con id_club
   */
-  const clubPrincipal = club?.club;
+  const clubPrincipal = club?.club || (club?.id_club ? club : null);
 
   /*
     Nombre del club.
@@ -238,6 +241,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   useEffect(() => {
     const fetchCanchas = async () => {
       try {
+        console.log('Cargando canchas para club ID:', clubPrincipal?.id_club);
         const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
         const response = await fetch(
           `http://localhost:3000/cancha/club/${clubPrincipal?.id_club}`,
@@ -248,15 +252,23 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
           }
         );
 
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
         const data = await response.json();
-        setCanchas(data);
+        console.log('Canchas cargadas:', data);
+        setCanchas(data || []);
       } catch (error) {
         console.error('Error cargando canchas:', error);
+        setCanchas([]);
       }
     };
 
     if (clubPrincipal?.id_club) {
       fetchCanchas();
+    } else {
+      console.warn('Club principal o ID de club no disponible', clubPrincipal);
     }
   }, [clubPrincipal?.id_club]);
 
@@ -502,7 +514,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     - imagen correspondiente
   */
   const canchasProcesadas = canchas.map((cancha) => {
-    const nombreDeporte = cancha.deporte?.nombre_deporte || 'Deporte';
+    const nombreDeporte = cancha.id_deporte?.nombre_deporte || 'Deporte';
 
     const reservasDeLaCancha = reservas.filter(
       (reserva) => reserva.id_cancha === cancha.id_cancha
@@ -569,22 +581,24 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             <p>¡Hola {nombreDueno}!</p>
           </div>
 
-          <button
-            className="pdc-settings-button"
-            onClick={() => setShowSettings(!showSettings)}
-            title="Configuración"
-          >
-            <i className="bi bi-gear"></i>
-            Configuración
-          </button>
-          <button
-            className="pdc-pay-button"
-            onClick={() => setCheckPagoFecha(!updateFecha)}
-            title="PagarSubscripción"
-          >
-            <i className="bi bi-gear"></i>
-            Pagar subcripción
-          </button>
+          <div className="pdc-header-actions">
+            <button
+              className="pdc-settings-button"
+              onClick={() => setShowSettings(!showSettings)}
+              title="Configuración"
+            >
+              <i className="bi bi-gear"></i>
+              Configuración
+            </button>
+            <button
+              className="pdc-pay-button"
+              onClick={() => setCheckPagoFecha(!updateFecha)}
+              title="Pagar Suscripción"
+            >
+              <i className="bi bi-credit-card"></i>
+              Pagar Suscripción
+            </button>
+          </div>
         </header>
 
         {/* SECCIÓN DE CONFIGURACIÓN */}
