@@ -26,10 +26,12 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   /* funcion para chequear la fehca de pagos */
   const handleCheckFechaPago = async () => {
     try {
+      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
       const response = await fetch("http://localhost:3000/dueno-cancha/fecha-vencimiento", {
         method: "GET",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         }
       });
 
@@ -102,8 +104,11 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   /*
     Algunas respuestas del login traen los datos del club dentro de club.club.
     Por eso se normaliza en esta constante.
+    El objeto que llega puede ser:
+    - currentUser con estructura { id_usuario, club: {...} }
+    - O directamente el club si viene anidado con id_club
   */
-  const clubPrincipal = club?.club;
+  const clubPrincipal = club?.club || (club?.id_club ? club : null);
 
   /*
     Nombre del club.
@@ -222,26 +227,46 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   useEffect(() => {
     const fetchCanchas = async () => {
       try {
+        console.log('Cargando canchas para club ID:', clubPrincipal?.id_club);
+        const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
         const response = await fetch(
-          `http://localhost:3000/cancha/club/${clubPrincipal?.id_club}`
+          `http://localhost:3000/cancha/club/${clubPrincipal?.id_club}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
         );
 
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
         const data = await response.json();
-        setCanchas(data);
+        console.log('Canchas cargadas:', data);
+        setCanchas(data || []);
       } catch (error) {
         console.error('Error cargando canchas:', error);
+        setCanchas([]);
       }
     };
 
     if (clubPrincipal?.id_club) {
       fetchCanchas();
+    } else {
+      console.warn('Club principal o ID de club no disponible', clubPrincipal);
     }
   }, [clubPrincipal?.id_club]);
 
   useEffect(() => {
     const fetchDeportes = async () => {
       try {
-        const response = await fetch('http://localhost:3000/deporte');
+        const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
+        const response = await fetch('http://localhost:3000/deporte', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
 
         if (!response.ok) {
           throw new Error('No se pudieron cargar los deportes');
@@ -275,48 +300,105 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
       alert('Por favor completa los campos requeridos');
       return;
     }
-    try {
+    /*try {
       const formDataToSend = {
           id_club:Number(clubPrincipal.id_club),
           id_deporte:Number(newCancha.id_deporte),
           nombre_cancha: newCancha.nombre_cancha,
           descripcion_cancha: newCancha.descripcion_cancha,      
-      }
+      }*/
 
-
+    try {
+      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
       const response = await fetch('http://localhost:3000/cancha', {
         method: 'POST',
         headers: {
-          'content-type': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formDataToSend),
+        body: JSON.stringify({
+          nombre_cancha: newCancha.nombre,
+          id_deporte: parseInt(newCancha.deporte),
+          id_club: clubPrincipal.id_club,
+          precio_por_hora: precioLimpio,
+          descripcion_cancha: newCancha.superficie
+        }),
       });
 
-      const result = await response.json();
+      if (response.ok) {
+        const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Error al registrar la cancha.');
-      }
+        setCanchas((prev) => [...prev, data]);
 
-      Swal.fire({
+        alert(`Cancha "${newCancha.nombre}" agregada exitosamente`);
+       /* Swal.fire({
         title: 'Registro completado',
         text: 'La cancha fue creada correctamente.',
         icon: 'success',
         confirmButtonText: 'Aceptar',
-      });
-
-      setNewCancha({ nombre: '', deporte: '', superficie: '' });
-      setShowAddCancha(false);
+      });*/
 
 
+        setNewCancha({
+          nombre: '',
+          deporte: '',
+          superficie: '',
+          precio_por_hora: ''
+        });
+
+        setShowAddCancha(false);
+      } else {
+        alert('Error al agregar la cancha');
+      }
     } catch (error) {
-      console.error('Error al registrar:', error);
+      console.error('Error al agregar cancha:', error);
+      alert('Error de conexión');
+    }
+  };
 
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.message || 'Hubo un error al registrar la cancha.',
+  /* =========================================================
+     EDITAR PRECIO DE CANCHA
+     Actualiza el precio por hora de una cancha existente.
+  ========================================================= */
+
+  const handleUpdatePrice = async (canchaId) => {
+    const precioLimpio = parsePrice(editingPrice);
+
+    if (!precioLimpio || precioLimpio <= 0) {
+      alert('Por favor ingresa un precio válido');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
+      const response = await fetch(`http://localhost:3000/cancha/${canchaId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          precio_por_hora: precioLimpio
+        }),
       });
+
+      if (response.ok) {
+        setCanchas((prev) =>
+          prev.map((cancha) =>
+            cancha.id_cancha === canchaId
+              ? { ...cancha, precio_por_hora: precioLimpio }
+              : cancha
+          )
+        );
+
+        setEditingCanchaId(null);
+        setEditingPrice('');
+      } else {
+        alert('Error al actualizar el precio');
+      }
+    } catch (error) {
+      console.error('Error al actualizar precio:', error);
+      alert('Error de conexión');
     }
   };
 
@@ -413,7 +495,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     - imagen correspondiente
   */
   const canchasProcesadas = canchas.map((cancha) => {
-    const nombreDeporte = cancha.deporte?.nombre_deporte || 'Deporte';
+    const nombreDeporte = cancha.id_deporte?.nombre_deporte || 'Deporte';
 
     const reservasDeLaCancha = reservas.filter(
       (reserva) => reserva.id_cancha === cancha.id_cancha
@@ -462,7 +544,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     });
 
 
-
+  
   return (
     <div className="pdc-owner-dashboard">
       {/* 
@@ -482,23 +564,24 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             <p>¡Hola {nombreDueno}!</p>
           </div>
 
-        <div className="dashboard-header-actions">
-          <button
-            className="settings-button"
-            onClick={() => setShowSettings(!showSettings)}
-            title="Configuración"
-          >
-            <i className="bi bi-gear"></i>
-            Configuración
-          </button>
-          <button
-            className="pdc-pay-button"
-            onClick={() => setCheckPagoFecha(!updateFecha)}
-            title="PagarSubscripción"
-          >
-            <i className="bi bi-gear"></i>
-            Pagar subcripción
-          </button>
+          <div className="pdc-header-actions">
+            <button
+              className="pdc-settings-button"
+              onClick={() => setShowSettings(!showSettings)}
+              title="Configuración"
+            >
+              <i className="bi bi-gear"></i>
+              Configuración
+            </button>
+            <button
+              className="pdc-pay-button"
+              onClick={() => setCheckPagoFecha(!updateFecha)}
+              title="Pagar Suscripción"
+            >
+              <i className="bi bi-credit-card"></i>
+              Pagar Suscripción
+            </button>
+          </div>
         </header>
 
         {/* SECCIÓN DE CONFIGURACIÓN */}

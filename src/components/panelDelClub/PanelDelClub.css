@@ -119,6 +119,12 @@
   padding-top: 14px;
 }
 
+.pdc-settings-button,
+.pdc-pay-button {
+  min-width: 160px;
+  justify-content: center;
+}
+
 .pdc-settings-button {
   border: none;
   border-radius: 11px;
@@ -161,6 +167,12 @@
   background: #f27c07;
   transform: translateY(-2px);
   box-shadow: 0 10px 24px rgba(255, 140, 26, 0.45);
+}
+
+.pdc-pay-button:hover {
+  background: #5eaa00;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(111, 196, 0, 0.45);
 }
 
 /* =========================================================
@@ -958,9 +970,14 @@
     padding-top: 0;
   }
 
-  .pdc-settings-button {
-    position: static;
-    align-self: flex-start;
+  .pdc-header-actions {
+    align-self: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .pdc-settings-button,
+  .pdc-pay-button {
+    min-width: 140px;
   }
 
   .pdc-main-grid {
