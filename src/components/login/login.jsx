@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './login.css';
 import Layout from '../layout/layout';
+import { useAuth } from '../../hooks/useAuth';
 
 /*
   Componente Login.
