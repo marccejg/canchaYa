@@ -778,7 +778,11 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
               </button>
             </div>
           </div>
+        </section>
+        )}
 
+        {/* ESTADÍSTICAS */}
+        <section className="pdc-stats-section">
           <div className="pdc-stat-card">
             <div className="pdc-stat-icon pdc-blue">
               <i className="bi bi-calendar-check"></i>
@@ -831,8 +835,6 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             </div>
           </div>
         </section>
-
-        {/* GRILLA PRINCIPAL: CANCHAS + PRÓXIMAS RESERVAS */}
         <section className="pdc-main-grid">
           <div className="pdc-panel">
             <div className="pdc-panel-header">
