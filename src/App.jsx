@@ -33,7 +33,11 @@ function App() {
     currentUser guarda el usuario logueado.
     adminUser guarda el administrador logueado.
   */
-  const [currentUser, setCurrentUser] = useState(null);
+
+  const [currentUser, setCurrentUser] = useState(() => {
+  const saved = localStorage.getItem('user');
+  return saved ? JSON.parse(saved) : null;
+});
   const [adminUser, setAdminUser] = useState(null);
 
   /*
@@ -52,6 +56,7 @@ function App() {
   const handleLogin = (user) => {
     login(user); // llama a la función login de useAuth para actualizar el estado de autenticación
     setCurrentUser(user);
+     localStorage.setItem('user', JSON.stringify(user)); // guarda el usuario en localStorage para persistencia
     if (user) {
       if (user.tipo === 'usuario') {
         fetchReservas(user.id_usuario);
@@ -135,6 +140,7 @@ function App() {
     logout(); // llama a la función logout de useAuth para limpiar el estado de autenticación
     setCurrentUser(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('user'); // ← agregar esto para limpiar el usuario guardado en localStorage
     // setAdminUser(null);
     navigate('/');
   };
