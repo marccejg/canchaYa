@@ -40,10 +40,12 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   /* funcion para chequear la fehca de pagos */
   const handleCheckFechaPago = async () => {
     try {
+      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
       const response = await fetch("http://localhost:3000/dueno-cancha/fecha-vencimiento", {
         method: "GET",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         }
       });
 
@@ -240,8 +242,14 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     const fetchCanchas = async () => {
       try {
         console.log('Cargando canchas para club ID:', clubPrincipal?.id_club);
+        const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
         const response = await fetch(
-          `http://localhost:3000/cancha/club/${clubPrincipal?.id_club}`
+          `http://localhost:3000/cancha/club/${clubPrincipal?.id_club}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
         );
 
         if (!response.ok) {
@@ -267,7 +275,12 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   useEffect(() => {
     const fetchDeportes = async () => {
       try {
-        const response = await fetch('http://localhost:3000/deporte');
+        const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
+        const response = await fetch('http://localhost:3000/deporte', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
 
         if (!response.ok) {
           throw new Error('No se pudieron cargar los deportes');
@@ -316,9 +329,13 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     }
 
     try {
+      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
       const response = await fetch('http://localhost:3000/cancha', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           nombre_cancha: newCancha.nombre,
           id_deporte: parseInt(newCancha.deporte),
@@ -366,9 +383,13 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     }
 
     try {
+      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
       const response = await fetch(`http://localhost:3000/cancha/${canchaId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           precio_por_hora: precioLimpio
         }),

@@ -29,6 +29,7 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
     - data: respuesta del backend
   */
   const loginRequest = async (url) => {
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -48,32 +49,33 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
     };
   };
 
-  /*
-    Maneja el envío del formulario.
-    Intenta iniciar sesión primero como dueño de cancha.
-    Si no funciona, intenta como usuario común.
-  */
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+  e.preventDefault();
+  setError('');
 
-    try {
-      const loginResult = await loginRequest('http://localhost:3000/user/login');
-      // const loginResult = await loginRequest(`${process.env.REACT_APP_API_URL}/user/login`);
-      // http://localhost:3000/ deberia ser una variable de entorno en producción
+  try {
+    const response = await fetch('http://localhost:3000/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: username, password }),
+    });
 
-      if (loginResult.ok) {
-        onLoginSuccess(loginResult.data.user);
-        // login(loginResult.data.user); // se aplica en handleLogin de App.jsx
-        return;
-      }
+    const data = await response.json();
 
-      setError(loginResult.data?.message || 'Usuario o contraseña incorrectos');
-    } catch (error) {
-      console.error('Error al iniciar sesión:', error);
-      setError('No se pudo conectar con el servidor');
+    if (response.ok) {
+      localStorage.setItem('token', data.token); // ← acá se guarda
+      onLoginSuccess(data.user);
+    } else {
+      setError(data?.message || 'Usuario o contraseña incorrectos');
     }
-  };
+
+  } catch (error) {
+    console.error('Error al iniciar sesión:', error);
+    setError('No se pudo conectar con el servidor');
+  }
+};
 
   return (
     <Layout showBanners={true} bannerContext="login">
