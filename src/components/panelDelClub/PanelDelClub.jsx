@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './PanelDelClub.css';
 import { horarios } from '../staticData';
 import Swal from 'sweetalert2';
+import funcionalidadEnProgreso from '../../assets/PROGRESS.png';
 
 const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   /*
@@ -19,6 +20,8 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     Controla si se muestra o no la sección de configuración.
   */
   const [showSettings, setShowSettings] = useState(false);
+
+  const [mostrarModalSuscripcion, setMostrarModalSuscripcion] = useState(false);
 
   const [updateFecha, setCheckPagoFecha] = useState(false);
 
@@ -59,6 +62,14 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
       handleCheckFechaPago();
     }
   }, [updateFecha]);
+
+  const abrirModalSuscripcion = () => {
+    setMostrarModalSuscripcion(true);
+  };
+
+  const cerrarModalSuscripcion = () => {
+    setMostrarModalSuscripcion(false);
+  };
 
 
   /*
@@ -296,17 +307,26 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
 
   const handleAddCancha = async (e) => {
     e.preventDefault();
-    if (!newCancha.nombre_cancha || !newCancha.id_deporte) {
-      alert('Por favor completa los campos requeridos');
+
+    const precioLimpio = parsePrice(newCancha.precio_por_hora);
+
+    if (!newCancha.nombre || !newCancha.deporte || !precioLimpio) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos incompletos',
+        text: 'Por favor completá los campos requeridos.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#087bff',
+        background: '#ffffff',
+        color: '#071f4d',
+        customClass: {
+          popup: 'cy-alert-popup',
+          title: 'cy-alert-title',
+          confirmButton: 'cy-alert-button',
+        },
+      });
       return;
     }
-    /*try {
-      const formDataToSend = {
-          id_club:Number(clubPrincipal.id_club),
-          id_deporte:Number(newCancha.id_deporte),
-          nombre_cancha: newCancha.nombre_cancha,
-          descripcion_cancha: newCancha.descripcion_cancha,      
-      }*/
 
     try {
       const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
@@ -330,14 +350,20 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
 
         setCanchas((prev) => [...prev, data]);
 
-        alert(`Cancha "${newCancha.nombre}" agregada exitosamente`);
-       /* Swal.fire({
-        title: 'Registro completado',
-        text: 'La cancha fue creada correctamente.',
-        icon: 'success',
-        confirmButtonText: 'Aceptar',
-      });*/
-
+        Swal.fire({
+          icon: 'success',
+          title: 'Cancha agregada',
+          text: `La cancha "${newCancha.nombre}" fue agregada correctamente.`,
+          confirmButtonText: 'Aceptar',
+          confirmButtonColor: '#087bff',
+          background: '#ffffff',
+          color: '#071f4d',
+          customClass: {
+            popup: 'cy-alert-popup',
+            title: 'cy-alert-title',
+            confirmButton: 'cy-alert-button',
+          },
+        });
 
         setNewCancha({
           nombre: '',
@@ -348,11 +374,38 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
 
         setShowAddCancha(false);
       } else {
-        alert('Error al agregar la cancha');
+        Swal.fire({
+          icon: 'error',
+          title: 'No se pudo agregar la cancha',
+          text: 'Revisá los datos ingresados o intentá nuevamente.',
+          confirmButtonText: 'Aceptar',
+          confirmButtonColor: '#ef4444',
+          background: '#ffffff',
+          color: '#071f4d',
+          customClass: {
+            popup: 'cy-alert-popup',
+            title: 'cy-alert-title',
+            confirmButton: 'cy-alert-button',
+          },
+        });
       }
     } catch (error) {
       console.error('Error al agregar cancha:', error);
-      alert('Error de conexión');
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de conexión',
+        text: 'No se pudo conectar con el servidor. Intentá nuevamente.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#ef4444',
+        background: '#ffffff',
+        color: '#071f4d',
+        customClass: {
+          popup: 'cy-alert-popup',
+          title: 'cy-alert-title',
+          confirmButton: 'cy-alert-button',
+        },
+      });
     }
   };
 
@@ -575,7 +628,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             </button>
             <button
               className="pdc-pay-button"
-              onClick={() => setCheckPagoFecha(!updateFecha)}
+              onClick={abrirModalSuscripcion}
               title="Pagar Suscripción"
             >
               <i className="bi bi-credit-card"></i>
@@ -1003,6 +1056,42 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             Cerrar sesión
           </button>
         </div>
+
+        {mostrarModalSuscripcion && (
+          <div className="pdc-progress-modal-backdrop" onClick={cerrarModalSuscripcion}>
+            <div className="pdc-progress-modal" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                className="pdc-progress-modal-close"
+                onClick={cerrarModalSuscripcion}
+                aria-label="Cerrar modal"
+              >
+                ×
+              </button>
+
+              <h2>Funcionalidad en progreso</h2>
+
+              <p>
+                Estamos trabajando para que próximamente puedas gestionar y pagar
+                tu suscripción desde el panel del club.
+              </p>
+
+              <img
+                src={funcionalidadEnProgreso}
+                alt="Funcionalidad en progreso"
+                className="pdc-progress-modal-img"
+              />
+
+              <button
+                type="button"
+                className="pdc-progress-modal-button"
+                onClick={cerrarModalSuscripcion}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
