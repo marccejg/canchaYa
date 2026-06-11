@@ -85,10 +85,16 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   /*
     Guarda los horarios seleccionados como disponibles.
     Inicialmente se cargan todos los horarios desde staticData.
+    Cuando se abren los settings, se actualizan desde el backend.
   */
   const [horariosDisponibles, setHorariosDisponibles] = useState(
     horarios.map((h) => h.id)
   );
+
+  /*
+    Indica si se están guardando los horarios en el backend.
+  */
+  const [guardandoHorarios, setGuardandoHorarios] = useState(false);
 
   /*
     Estado del formulario para agregar una cancha nueva.
@@ -295,8 +301,128 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   }, []);
 
   /*
-    Activa o desactiva un horario disponible.
+    Carga los horarios disponibles guardados en el backend
+    cuando el dueño abre la sección de configuración.
+    Usa la primera cancha del club como referencia.
   */
+  useEffect(() => {
+    if (!showSettings || !canchas.length) return;
+
+    const cargarHorariosGuardados = async () => {
+      try {
+        const primeraCancha = canchas[0];
+        const idCancha = primeraCancha.id_cancha || primeraCancha.id;
+        const token = localStorage.getItem('token');
+
+        const response = await fetch(
+          `http://localhost:3000/disponibilidad/cancha/${idCancha}`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+
+        if (!response.ok) return;
+
+        const disponibilidades = await response.json();
+
+        if (!Array.isArray(disponibilidades) || disponibilidades.length === 0) return;
+
+        // Extraer las horas únicas desde las disponibilidades
+        const horasGuardadas = new Set();
+        disponibilidades.forEach((d) => {
+          // hora_inicio viene como "09:00:00" o "09:00"
+          const horaCorta = d.hora_inicio?.slice(0, 5);
+          if (horaCorta) horasGuardadas.add(horaCorta);
+        });
+
+        // Mapear las horas guardadas a los IDs de horarios de staticData
+        const idsHorarios = horarios
+          .filter((h) => horasGuardadas.has(h.hora))
+          .map((h) => h.id);
+
+        if (idsHorarios.length > 0) {
+          setHorariosDisponibles(idsHorarios);
+        }
+      } catch (error) {
+        console.error('Error al cargar horarios guardados:', error);
+      }
+    };
+
+    cargarHorariosGuardados();
+  }, [showSettings, canchas]);
+
+  /*
+    Guarda los horarios seleccionados en el backend para TODAS las canchas del club.
+    Cada hora seleccionada se guarda para los 7 días de la semana.
+  */
+  const handleGuardarHorarios = async () => {
+    if (!canchas.length) return;
+
+    setGuardandoHorarios(true);
+
+    try {
+      // Obtener las horas seleccionadas desde staticData
+      const horasSeleccionadas = horarios
+        .filter((h) => horariosDisponibles.includes(h.id))
+        .map((h) => h.hora);
+
+      // Armar las disponibilidades para los 7 días de la semana
+      const disponibilidades = [];
+      for (let dia = 0; dia < 7; dia++) {
+        horasSeleccionadas.forEach((hora) => {
+          const [h, m] = hora.split(':').map(Number);
+          const horaFin = `${String(h + 1).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+          disponibilidades.push({
+            dia_semana: dia,
+            hora_inicio: `${hora}:00`,
+            hora_fin: horaFin,
+          });
+        });
+      }
+
+      const token = localStorage.getItem('token');
+
+      // Guardar para cada cancha del club
+      const promises = canchas.map(async (cancha) => {
+        const idCancha = cancha.id_cancha || cancha.id;
+        return fetch(`http://localhost:3000/disponibilidad/cancha/${idCancha}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(disponibilidades),
+        });
+      });
+
+      await Promise.all(promises);
+
+      setShowSettings(false);
+
+      Swal.fire({
+        icon: 'success',
+        title: '¡Listo!',
+        text: 'La configuración del club fue guardada correctamente.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#087bff',
+        background: '#ffffff',
+        color: '#071f4d',
+        customClass: {
+          popup: 'cy-alert-popup',
+          title: 'cy-alert-title',
+          confirmButton: 'cy-alert-button',
+        },
+      });
+    } catch (error) {
+      console.error('Error al guardar horarios:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudieron guardar los horarios. Intentá nuevamente.',
+        confirmButtonText: 'Aceptar',
+      });
+    } finally {
+      setGuardandoHorarios(false);
+    }
+  };
   const toggleHorario = (horarioId) => {
     setHorariosDisponibles((prev) =>
       prev.includes(horarioId)
@@ -757,26 +883,10 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
               <div className="pdc-settings-actions">
                 <button
                   className="pdc-btn-save-settings"
-                  onClick={() => {
-                    setShowSettings(false);
-
-                    Swal.fire({
-                      icon: 'success',
-                      title: '¡Listo!',
-                      text: 'La configuración del club fue guardada correctamente.',
-                      confirmButtonText: 'Aceptar',
-                      confirmButtonColor: '#087bff',
-                      background: '#ffffff',
-                      color: '#071f4d',
-                      customClass: {
-                        popup: 'cy-alert-popup',
-                        title: 'cy-alert-title',
-                        confirmButton: 'cy-alert-button',
-                      },
-                    });
-                  }}
+                  onClick={handleGuardarHorarios}
+                  disabled={guardandoHorarios}
                 >
-                  Guardar cambios
+                  {guardandoHorarios ? 'Guardando...' : 'Guardar cambios'}
                 </button>
               </div>
             </div>

@@ -456,6 +456,68 @@ function DashboardUsuario({
   const API_URL = 'http://localhost:3000';
 
   /*
+    Horarios disponibles reales de la cancha seleccionada.
+    Se cargan desde el backend cuando el usuario elige una cancha.
+    Si la cancha no tiene horarios configurados, se muestran todos los del sistema.
+  */
+  const [horariosDeCancha, setHorariosDeCancha] = useState([]);
+
+  /*
+    Carga los horarios disponibles de la cancha seleccionada desde el backend.
+    Si la cancha no tiene disponibilidad configurada, usa todos los horarios del sistema.
+  */
+  useEffect(() => {
+    if (!canchaSeleccionada) {
+      setHorariosDeCancha([]);
+      return;
+    }
+
+    const idCancha = canchaSeleccionada.id || canchaSeleccionada.id_cancha;
+    if (!idCancha) return;
+
+    const cargarHorarios = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(
+          `${API_URL}/disponibilidad/cancha/${idCancha}`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+
+        if (!response.ok) {
+          // Si no hay disponibilidad configurada, usar todos los horarios
+          setHorariosDeCancha(HORARIOS.map((h) => h.hora));
+          return;
+        }
+
+        const disponibilidades = await response.json();
+
+        if (!Array.isArray(disponibilidades) || disponibilidades.length === 0) {
+          // Sin configuración → mostrar todos
+          setHorariosDeCancha(HORARIOS.map((h) => h.hora));
+          return;
+        }
+
+        // Extraer horas únicas desde las disponibilidades
+        const horasUnicas = new Set();
+        disponibilidades.forEach((d) => {
+          const horaCorta = d.hora_inicio?.slice(0, 5);
+          if (horaCorta) horasUnicas.add(horaCorta);
+        });
+
+        // Ordenar las horas
+        const horasOrdenadas = [...horasUnicas].sort();
+        setHorariosDeCancha(horasOrdenadas);
+      } catch (error) {
+        console.error('Error al cargar horarios de cancha:', error);
+        // Fallback: mostrar todos los horarios
+        setHorariosDeCancha(HORARIOS.map((h) => h.hora));
+      }
+    };
+
+    cargarHorarios();
+  }, [canchaSeleccionada]);
+
+  /*
     Banners laterales del dashboard.
     Se guardan en estado para poder cambiarlos automáticamente cada ciertos segundos.
   */
@@ -1543,30 +1605,35 @@ function DashboardUsuario({
                         </div>
 
                         <div className="time-grid time-grid--large">
-                          {HORARIOS.map((horario) => {
-                            const horarioBloqueado =
-                              !horario.disponible ||
-                              esHorarioPasado(fechaSeleccionada, horario.hora) ||
-                              esHorarioOcupado(horario.hora);
+                          {horariosDeCancha.length > 0 ? (
+                            horariosDeCancha.map((hora) => {
+                              const horarioBloqueado =
+                                esHorarioPasado(fechaSeleccionada, hora) ||
+                                esHorarioOcupado(hora);
 
-                            return (
-                              <button
-                                key={horario.hora}
-                                type="button"
-                                disabled={horarioBloqueado}
-                                className={
-                                  horarioSeleccionado === horario.hora
-                                    ? 'time-card time-card--large selected'
-                                    : horarioBloqueado
-                                      ? 'time-card time-card--large disabled'
-                                      : 'time-card time-card--large'
-                                }
-                                onClick={() => seleccionarHorario(horario.hora)}
-                              >
-                                {horario.hora}
-                              </button>
-                            );
-                          })}
+                              return (
+                                <button
+                                  key={hora}
+                                  type="button"
+                                  disabled={horarioBloqueado}
+                                  className={
+                                    horarioSeleccionado === hora
+                                      ? 'time-card time-card--large selected'
+                                      : horarioBloqueado
+                                        ? 'time-card time-card--large disabled'
+                                        : 'time-card time-card--large'
+                                  }
+                                  onClick={() => seleccionarHorario(hora)}
+                                >
+                                  {hora}
+                                </button>
+                              );
+                            })
+                          ) : (
+                            <div className="empty-clubs-message">
+                              Cargando horarios disponibles...
+                            </div>
+                          )}
 
                           <div className="time-grid__legend">
                             <span>
