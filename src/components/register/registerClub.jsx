@@ -3,26 +3,62 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
 import './register.css';
+
+/*
+  Logo azul con texto.
+  Se usa en el header blanco superior.
+*/
 import Logo from './logo.jpg';
-import { deportes } from '../staticData';
-import { clubesEstaticos } from '../staticData';
 
+/*
+  Logo blanco con texto.
+  Se usa abajo, dentro de la card azul.
+*/
+import LogoBlanco from './logo blanco.png';
 
-// Estructura de canchas predeterminadas por deporte
-const canchasPredeterminadas = {
-  1: [{ id: 1, nombre: "Fútbol 5", deporteId: 1 }], // Fútbol 5
-  2: [{ id: 2, nombre: "Fútbol 7", deporteId: 2 }], // Fútbol 7
-  3: [{ id: 3, nombre: "Fútbol 11", deporteId: 3 }], // Fútbol 11
-  4: [{ id: 4, nombre: "Tenis", deporteId: 4 }], // Tenis
-  5: [{ id: 5, nombre: "Vóley", deporteId: 5 }], // Vóley
-  6: [{ id: 6, nombre: "Pádel", deporteId: 6 }], // Pádel
-  7: [{ id: 7, nombre: "Natación", deporteId: 7 }], // Natación
-  8: [{ id: 8, nombre: "Golf", deporteId: 8 }], // Golf
-  9: [{ id: 9, nombre: "Básquet", deporteId: 9 }]  // Básquet
-};
+/*
+  Logo blanco solo.
+  Se usa arriba del título, dentro de la card azul.
+*/
+import LogoSoloBlanco from './logoSoloBlanco.png';
 
+/*
+  Lista de deportes/canchas disponibles.
+  Se separa en una constante para no repetir código dentro del return.
+*/
+const CANCHAS_DISPONIBLES = [
+  'Fútbol 5',
+  'Fútbol 7',
+  'Fútbol 11',
+  'Básquet',
+  'Tenis',
+  'Vóley',
+  'Pádel',
+  'Natación',
+  'Golf',
+];
+
+/*
+  Register
+  Formulario de registro para dueño de club/cancha.
+
+  Funcionalidades:
+  - Guarda los campos en formData.
+  - Permite seleccionar varias canchas.
+  - Permite adjuntar logo.
+  - Envía los datos al backend con FormData.
+  - Usa el endpoint: http://localhost:3000/user/register
+*/
 function Register({ onRegisterComplete, onCancelRegister }) {
-
+  /*
+    Estado principal del formulario.
+    IMPORTANTE:
+    Cada propiedad debe coincidir con el id de cada input.
+    Ejemplo:
+    id="direccion" usa formData.direccion.
+    id="ciudad" usa formData.ciudad.
+    id="provincia" usa formData.provincia.
+  */
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -32,415 +68,618 @@ function Register({ onRegisterComplete, onCancelRegister }) {
     email: '',
     password: '',
     confirmPassword: '',
+    direccion: '',
     ciudad: '',
     provincia: '',
     cp: '',
-    imgClub: '',
-    canchas: [] // Asegurarse de que canchas sea un array vacío por defecto
+    logo: null,
+    canchas: [],
   });
+  const [provincias, setProvincias] = useState([]);
+  const [ciudades, setCiudades] = useState([]);
 
-  useEffect(() => {
-    const savedData = localStorage.getItem('userData');
-    if (savedData) setFormData(JSON.parse(savedData));
-  }, []);
-
+   useEffect(() => {
+      const loadProvincias = async () => {
+        try {
+          const res = await fetch('http://localhost:3000/georef/provincias');
+          const data = await res.json();
+  
+  
+          // 1. Extraemos el arreglo de provincias de forma segura
+          const listaProvincias = Array.isArray(data) ? data : (data.provincias || []);
+  
+          // 2. Ordenamos la lista alfabéticamente por el campo 'nombre' y actualizamos el estado
+          setProvincias(
+            [...listaProvincias].sort((a, b) => {
+              const textoA = a.nombre || "";
+              const textoB = b.nombre || "";
+              return textoA.localeCompare(textoB);
+            })
+          );
+  
+  
+        } catch (err) {
+          console.error('Error provincias', err);
+        }
+      };
+  
+      loadProvincias();
+    }, []);
+  
+    useEffect(() => {
+      if (!formData.provincia) return;
+  
+      const loadCiudades = async () => {
+        try {
+          const res = await fetch(
+            `http://localhost:3000/georef/localidades?provincia=${encodeURIComponent(formData.provincia)}`
+          );
+          const data = await res.json();
+          const listaCiudades = Array.isArray(data) ? data : (data.localidades || []);
+          setCiudades(
+            [...listaCiudades].sort((a, b) => {
+              const textoA = a.nombre || "";
+              const textoB = b.nombre || "";
+              return textoA.localeCompare(textoB);
+            })
+          );
+        } catch (err) {
+          console.error('Error ciudades', err);
+        }
+      };
+  
+      loadCiudades();
+    }, [formData.provincia]);
+  /*
+    Actualiza inputs normales y el input file del logo.
+    Si el campo es archivo, guarda files[0].
+    Si no, guarda el value del input.
+  */
   const handleChange = (e) => {
-    const { id, value } = e.target;
-    setFormData({ ...formData, [id]: value });
+    const { id, value, files, type } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [id]: type === 'file' ? files[0] : value,
+    }));
   };
 
+  /*
+    Agrega o quita una cancha del array formData.canchas.
+  */
   const handleCanchaChange = (e) => {
-    const { value, checked } = e.target;
-    // Convertir el valor a número ya que los IDs de los deportes son numéricos
-    const idNumerico = Number(value);
+    const value = e.target.value;
 
-    if (checked) {
-      setFormData({
-        ...formData,
-        canchas: [...(formData.canchas || []), idNumerico]
-      });
-    } else {
-      setFormData({
-        ...formData,
-        canchas: (formData.canchas || []).filter((c) => c !== idNumerico)
-      });
-    }
+    setFormData((prev) => {
+      const canchasActualizadas = prev.canchas.includes(value)
+        ? prev.canchas.filter((cancha) => cancha !== value)
+        : [...prev.canchas, value];
+
+      return {
+        ...prev,
+        canchas: canchasActualizadas,
+      };
+    });
   };
 
-  const handleSubmit = (e) => {
+  /*
+    Envía el formulario al backend.
+    No se usa JSON porque también se manda un archivo de imagen.
+  */
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validar que las contraseñas coincidan
     if (formData.password !== formData.confirmPassword) {
-      Swal.fire({
+      return Swal.fire({
         icon: 'error',
         title: 'Error',
         text: 'Las contraseñas no coinciden.',
       });
-      return;
     }
 
-
+    if (!/^\d{2}-\d{8}-\d{1}$/.test(formData.CUIT)) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'El formato del CUIT es incorrecto. Debe ser XX-XXXXXXXX-X.',
+      });
+    }
+    
     try {
-      const clubesDesdeStorage = JSON.parse(localStorage.getItem("clubesRegistrados")) || [];
-      // Combinar clubes estáticos con los guardados. Evita duplicados y facilita validaciones posteriores.
-      const clubesGuardados = [...clubesEstaticos, ...clubesDesdeStorage];
-      const usuariosGuardados = JSON.parse(localStorage.getItem("usuariosRegistrados")) || [];
-      const todosLosRegistros = [...clubesGuardados, ...usuariosGuardados];
+      const formDataToSend = new FormData();
 
-      // Validar que email no esté duplicado
-      const emailExiste = todosLosRegistros.some(
-        item => item.email && item.email.toLowerCase() === formData.email.toLowerCase()
-      );
+      formDataToSend.append('nombre', formData.nombre);
+      formDataToSend.append('apellido', formData.apellido);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('password', formData.password);
+      formDataToSend.append('telefono', formData.telefono);
+      formDataToSend.append('razonSocial', formData.razonSocial);
+      formDataToSend.append('CUIT', formData.CUIT);
 
-      if (emailExiste) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Email registrado',
-          text: 'Este email ya está registrado en la plataforma.',
-          confirmButtonText: 'Entendido',
-        });
-        return;
-      }
-      //validar Formato de CUIT
-      if (formData.CUIT !== '' && !/^\d{2}-\d{8}-\d{1}$/.test(formData.CUIT)) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'El formato del CUIT es incorrecto. Debe ser XX-XXXXXXXX-X.',
-        });
-        return;
-      }
-      // Validar que CUIT no esté duplicado
-      const cuitExiste = todosLosRegistros.some(
-        item => item.CUIT && item.CUIT === formData.CUIT
-      );
+      /*
+        Dirección, ciudad y provincia se envían separados.
+        Si tu backend todavía no tiene direccion, podés agregarla luego
+        en la entidad/DTO correspondiente.
+      */
+      formDataToSend.append('direccion', formData.direccion);
+      formDataToSend.append('ciudad', formData.ciudad);
+      formDataToSend.append('provincia', formData.provincia);
+      formDataToSend.append('cp', formData.cp);
+      formDataToSend.append('tipo', 'dueno');
 
-      if (cuitExiste) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'CUIT registrado',
-          text: 'Este CUIT ya está registrado en la plataforma.',
-          confirmButtonText: 'Entendido',
-        });
-        return;
+      formDataToSend.append('canchas', JSON.stringify(formData.canchas));
+
+      if (formData.logo) {
+        formDataToSend.append('logo', formData.logo);
       }
 
-      // Generar las canchas
-      const canchasGeneradas = [];
-      const deportesUnicos = [...new Set(formData.canchas)]; // Evitar duplicados
-
-      deportesUnicos.forEach(deporteId => {
-        if (canchasPredeterminadas[deporteId]) {
-          canchasGeneradas.push(...canchasPredeterminadas[deporteId]);
-        }
+      const response = await fetch('http://localhost:3000/user/register', {
+        method: 'POST',
+        body: formDataToSend,
       });
 
-      // Crear el nuevo club con deportesIds y canchas
-      const nuevoClub = {
-        ...formData,
-        tipo: "club",
-        // Usar los deportes seleccionados como deportesIds
-        deportesIds: deportesUnicos,
-        // Agregar las canchas generadas
-        canchas: canchasGeneradas,
-        horariosDisponibles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
-      };
+      const result = await response.json();
 
-      clubesGuardados.push(nuevoClub);
+      if (!response.ok) {
+        throw new Error(result.message || 'Error al registrar el club.');
+      }
 
-      localStorage.setItem("clubesRegistrados", JSON.stringify(clubesGuardados));
-
-      if (onRegisterComplete) onRegisterComplete(nuevoClub);
-
+      // Mostrar éxito del registro
       Swal.fire({
-        title: "Registro completado",
-        text: "Ahora puede iniciar sesión con sus credenciales.",
-        icon: "success",
-        confirmButtonText: "Aceptar",
+        title: 'Registro completado',
+        text: 'El dueño y el club fueron creados correctamente.',
+        icon: 'success',
+        confirmButtonText: 'Aceptar',
       });
+
+      // Enviar email de bienvenida (sin esperar respuesta)
+      try {
+        const mailResponse = await fetch('http://localhost:3000/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nombre: `${formData.nombre} ${formData.apellido}`,
+            club: formData.razonSocial,
+            email: formData.email,
+            subject: 'Club Registrado en CanchasYa!',
+            message: ``,
+          
+          }),
+        });
+
+        if (!mailResponse.ok) {
+          const mailError = await mailResponse.json();
+          console.warn('El correo no se envió correctamente:', mailError);
+        } else {
+          console.log('Mail enviado exitosamente');
+        }
+      } catch (mailError) {
+        console.error('Error al enviar el mail:', mailError);
+      }
+
+      setFormData({
+        nombre: '',
+        apellido: '',
+        razonSocial: '',
+        CUIT: '',
+        telefono: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        direccion: '',
+        ciudad: '',
+        provincia: '',
+        cp: '',
+        logo: null,
+        canchas: [],
+      });
+
+      if (onRegisterComplete) {
+        onRegisterComplete({ ...result, tipo: 'club' });
+      }
     } catch (error) {
-      console.error("Error al registrar el club:", error);
+      console.error('Error al registrar:', error);
+
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Hubo un error al registrar el club. Por favor, inténtelo de nuevo.',
+        text: error.message || 'Hubo un error al registrar el club.',
       });
     }
   };
 
   return (
-    <div className="register-container d-flex justify-content-center align-items-center vh-100">
-      <div className="card shadow-lg p-4 card-custom">
-        <div className="card-body">
+    <div className="register-page">
+      {/* Header blanco superior. Usa el logo azul con texto. */}
+      <header className="register-header">
+        <img src={Logo} alt="CanchasYa!" className="register-header__logo" />
 
-          {/* Título */}
-          <div className="Titulo">
-            <h2 className="text-center titulo-principal">Software Para Clubes</h2>
-            <h6 className="text-center mb-4 subtitulo-principal">
-              Completa el siguiente formulario para formar parte de nuestra red de clubes.
-            </h6>
-          </div>
+        <div className="register-header__right">
+          <span>
+            <i className="bi bi-shield-check"></i>
+            Únete a la red de clubes
+          </span>
+        </div>
+      </header>
 
-          <form onSubmit={handleSubmit}>
-
-            {/* Nombre y Apellido */}
-            <div className="row mb-3">
-              <div className="col-md-6 position-relative">
-                <label htmlFor="nombre" className="form-label">Nombre</label>
-                <input
-                  type="text"
-                  className="form-control form-control-lg input-with-icon"
-                  id="nombre"
-                  placeholder="Nombre"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  required
-                />
-                <i className="bi bi-person icon-inside"></i>
-              </div>
-
-              <div className="col-md-6 position-relative">
-                <label htmlFor="apellido" className="form-label">Apellido</label>
-                <input
-                  type="text"
-                  className="form-control form-control-lg input-with-icon"
-                  id="apellido"
-                  placeholder="Apellido"
-                  value={formData.apellido}
-                  onChange={handleChange}
-                  required
-                />
-                <i className="bi bi-person-badge icon-inside"></i>
-              </div>
-            </div>
-
-            {/* Razón Social / CUIT */}
-            <div className="row mb-3">
-              <div className="col-md-8 position-relative">
-                <label htmlFor="razonSocial" className="form-label">Razón Social</label>
-                <input
-                  type="text"
-                  className="form-control form-control-lg input-with-icon"
-                  id="razonSocial"
-                  placeholder="Ej: La Ratonera FC"
-                  value={formData.razonSocial}
-                  onChange={handleChange}
-                  required
-                />
-                <i className="bi bi-building icon-inside"></i>
-              </div>
-
-              <div className="col-md-4 position-relative">
-                <label htmlFor="CUIT" className="form-label">CUIT</label>
-                <input
-                  type="text"
-                  className="form-control form-control-lg input-with-icon"
-                  id="CUIT"
-                  placeholder="20-12345678-9"
-                  value={formData.CUIT}
-                  onChange={handleChange}
-                  required
-                />
-                <i className="bi bi-hash icon-inside"></i>
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <label for="formFile" className="form-label">Adjuntar Logo</label>
-              <input
-                className="form-control"
-                type="file"
-                id="imgClub"
-                value={formData.imgVlub}
-                onChange={handleChange}
+      {/* Contenedor central. El fondo de cancha se maneja desde register.css */}
+      <main className="register-container">
+        <section className="card shadow-lg card-custom">
+          <div className="card-body">
+            {/* Encabezado interno de la card. Usa el logo blanco sin texto. */}
+            <div className="Titulo">
+              <img
+                src={LogoSoloBlanco}
+                alt="CanchasYa"
+                className="register-card-logo"
               />
+
+              <h2 className="text-center titulo-principal">
+                Registro de Club / Propietario
+              </h2>
+
+              <h6 className="text-center subtitulo-principal">
+                Completá el siguiente formulario para formar parte de nuestra red de clubes.
+              </h6>
             </div>
 
-            {/* Teléfono y Email */}
-            <div className="row mb-3">
-              <div className="col-md-6 position-relative mb-3">
-                <label htmlFor="telefono" className="form-label">Teléfono</label>
-                <input
-                  type="text"
-                  className="form-control form-control-lg input-with-icon"
-                  id="telefono"
-                  placeholder="Ej: 2983-404040"
-                  value={formData.telefono}
-                  onChange={handleChange}
-                  required
-                />
-                <i className="bi bi-telephone icon-inside"></i>
+            <form onSubmit={handleSubmit}>
+              {/* Nombre y apellido */}
+              <div className="row mb-3">
+                <div className="col-md-6 position-relative">
+                  <label htmlFor="nombre" className="form-label">
+                    Nombre
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control form-control-lg input-with-icon"
+                    id="nombre"
+                    placeholder="Nombre"
+                    value={formData.nombre}
+                    onChange={handleChange}
+                    required
+                  />
+                  <i className="bi bi-person icon-inside"></i>
+                </div>
+
+                <div className="col-md-6 position-relative">
+                  <label htmlFor="apellido" className="form-label">
+                    Apellido
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control form-control-lg input-with-icon"
+                    id="apellido"
+                    placeholder="Apellido"
+                    value={formData.apellido}
+                    onChange={handleChange}
+                    required
+                  />
+                  <i className="bi bi-person icon-inside"></i>
+                </div>
               </div>
 
-              <div className="col-md-6 position-relative mb-3">
-                <label htmlFor="email" className="form-label">Email</label>
-                <input
-                  type="email"
-                  className="form-control form-control-lg input-with-icon"
-                  id="email"
-                  placeholder="Ej: club@gmail.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-                <i className="bi bi-envelope icon-inside"></i>
-              </div>
-            </div>
+              {/* Razón social y CUIT */}
+              <div className="row mb-3">
+                <div className="col-md-6 position-relative">
+                  <label htmlFor="razonSocial" className="form-label">
+                    Razón Social
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control form-control-lg input-with-icon"
+                    id="razonSocial"
+                    placeholder="Ej: River Plate FC"
+                    value={formData.razonSocial}
+                    onChange={handleChange}
+                    required
+                  />
+                  <i className="bi bi-building icon-inside"></i>
+                </div>
 
-            {/* Canchas que alquila */}
-            <div className="card-canchas p-3 mb-3">
-              <h5 className="mb-3">Canchas que alquila</h5>
-              <div className="row">
-                {[
-                  { id: 1, label: "Fútbol 5" },
-                  { id: 2, label: "Fútbol 7" },
-                  { id: 3, label: "Fútbol 11" },
-                  { id: 9, label: "Básquet" },
-                  { id: 4, label: "Tenis" },
-                  { id: 5, label: "Vóley" },
-                  { id: 6, label: "Pádel" },
-                  { id: 7, label: "Natación" },
-                  { id: 8, label: "Golf" }
-                ].map((cancha) => (
-                  <div className="col-md-4 mb-2" key={cancha.id}>
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id={`deporte-${cancha.id}`}
-                        value={cancha.id}
-                        checked={(formData.canchas || []).includes(cancha.id)}
-                        onChange={handleCanchaChange}
-                      />
-                      <label className="form-check-label" htmlFor={`deporte-${cancha.id}`}>
-                        {cancha.label}
-                      </label>
+                <div className="col-md-6 position-relative">
+                  <label htmlFor="CUIT" className="form-label">
+                    CUIT
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control form-control-lg input-with-icon"
+                    id="CUIT"
+                    placeholder="20-12345678-9"
+                    value={formData.CUIT}
+                    onChange={handleChange}
+                    required
+                  />
+                  <i className="bi bi-hash icon-inside"></i>
+                </div>
+              </div>
+
+              {/* Teléfono y email */}
+              <div className="row mb-3">
+                <div className="col-md-6 position-relative">
+                  <label htmlFor="telefono" className="form-label">
+                    Teléfono
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control form-control-lg input-with-icon"
+                    id="telefono"
+                    placeholder="Ej: 2983-404040"
+                    value={formData.telefono}
+                    onChange={handleChange}
+                    required
+                  />
+                  <i className="bi bi-telephone icon-inside"></i>
+                </div>
+
+                <div className="col-md-6 position-relative">
+                  <label htmlFor="email" className="form-label">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    className="form-control form-control-lg input-with-icon"
+                    id="email"
+                    placeholder="Ej: club@gmail.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                  <i className="bi bi-envelope icon-inside"></i>
+                </div>
+              </div>
+
+              {/* Bloque visual separado para las canchas que alquila el club */}
+              <div className="card-canchas">
+                <h5>Canchas que alquila</h5>
+
+                <div className="row">
+                  {CANCHAS_DISPONIBLES.map((cancha) => (
+                    <div className="col-md-4 mb-2" key={cancha}>
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id={`club-${cancha}`}
+                          value={cancha}
+                          checked={formData.canchas.includes(cancha)}
+                          onChange={handleCanchaChange}
+                        />
+                        <label
+                          className="form-check-label"
+                          htmlFor={`club-${cancha}`}
+                        >
+                          {cancha}
+                        </label>
+                      </div>
                     </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Adjuntar logo */}
+              <div className="row mb-3">
+                <div className="col-md-12">
+                  <label htmlFor="logo" className="form-label">
+                    Adjuntar Logo
+                  </label>
+
+                  <div className="upload-box">
+                    <div className="upload-box__top">
+                      <div className="upload-box__left">
+                        <div className="upload-box__icon">
+                          <i className="bi bi-cloud-arrow-up"></i>
+                        </div>
+
+                        <div className="upload-box__text">
+                          <strong>Arrastrá y soltá tu archivo aquí</strong>
+                          <span>o seleccioná un archivo</span>
+                        </div>
+                      </div>
+
+                      <div className="upload-box__info">
+                        <span>Formatos permitidos: JPG, PNG, SVG</span>
+                        <span>Tamaño máximo: 5MB</span>
+                      </div>
+                    </div>
+
+                    <div className="upload-box__bottom">
+                      <label htmlFor="logo" className="upload-box__button">
+                        Seleccionar archivo
+                      </label>
+
+                      <span className="upload-box__filename">
+                        {formData.logo
+                          ? formData.logo.name
+                          : 'Ningún archivo seleccionado'}
+                      </span>
+                    </div>
+
+                    <input
+                      type="file"
+                      id="logo"
+                      accept="image/*"
+                      onChange={handleChange}
+                      className="upload-box__input"
+                    />
                   </div>
-                ))}
+                </div>
               </div>
-            </div>
 
-            {/* Contraseñas */}
-            <div className="row mb-3 mt-3">
-              <div className="col-md-6 position-relative">
-                <label htmlFor="password" className="form-label">Contraseña</label>
+              {/* Contraseñas */}
+              <div className="row mb-3">
+                <div className="col-md-6 position-relative">
+                  <label htmlFor="password" className="form-label">
+                    Contraseña
+                  </label>
+                  <input
+                    type="password"
+                    className="form-control form-control-lg input-with-icon"
+                    id="password"
+                    placeholder="Ingrese su contraseña"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                  />
+                  <i className="bi bi-lock icon-inside"></i>
+                </div>
+
+                <div className="col-md-6 position-relative">
+                  <label htmlFor="confirmPassword" className="form-label">
+                    Repetir Contraseña
+                  </label>
+                  <input
+                    type="password"
+                    className="form-control form-control-lg input-with-icon"
+                    id="confirmPassword"
+                    placeholder="Repita su contraseña"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                  />
+                  <i className="bi bi-lock-fill icon-inside"></i>
+                </div>
+              </div>
+
+               {/* Dirección, provincia, ciudad y código postal */}
+                <div className="row mb-3">
+
+                  {/* Dirección */}
+                  <div className="col-md-4 position-relative">
+                    <label htmlFor="direccion" className="form-label">Dirección</label>
+
+                    <input
+                      type="text"
+                      className="form-control form-control-lg input-with-icon"
+                      id="direccion"
+                      placeholder="Dirección"
+                      value={formData.direccion}
+                      onChange={handleChange}
+                      required
+                    />
+
+                    <i className="bi bi-geo-alt icon-inside"></i>
+                  </div>
+
+                  {/* Provincia (GEoREF - ID) */}
+                  <div className="col-md-3 position-relative">
+                    <label className="form-label">Provincia</label>
+
+                    <select
+                      className="form-select form-select-lg"
+                      id="provincia"
+                      value={formData.provincia}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Provincia</option>
+
+                      {provincias.map((p) => (
+                        <option key={p.id} value={p.nombre}>
+                          {p.nombre}
+                        </option>
+                      ))}
+                    </select>
+
+                    <i className="bi bi-flag icon-inside"></i>
+                  </div>
+
+                  {/* Ciudad / Localidad (GEoREF) */}
+                  <div className="col-md-3 position-relative">
+                    <label className="form-label">Ciudad</label>
+
+                    <select
+                      className="form-select form-select-lg"
+                      id="ciudad"
+                      value={formData.ciudad}
+                      onChange={handleChange}
+                      disabled={!formData.provincia}
+                      required
+                    >
+                      <option value="">Ciudad</option>
+
+                      {ciudades.map((c) => (
+                        <option key={c.id} value={c.nombre}>
+                          {c.nombre}
+                        </option>
+                      ))}
+                    </select>
+
+                    <i className="bi bi-map icon-inside"></i>
+                  </div>
+
+                  {/* CP */}
+                  <div className="col-md-2 position-relative">
+                    <label htmlFor="cp" className="form-label">CP</label>
+
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength="7"
+                      pattern="\d{1,7}"
+                      className="form-control form-control-lg input-with-icon"
+                      id="cp"
+                      placeholder="CP"
+                      value={formData.cp}
+                      onChange={handleChange}
+                      required
+                    />
+
+                    <i className="bi bi-mailbox icon-inside"></i>
+                  </div>
+
+                </div>
+
+              {/* Términos y condiciones */}
+              <div className="form-check mb-4">
                 <input
-                  type="password"
-                  className="form-control form-control-lg input-with-icon"
-                  id="password"
-                  placeholder="Ingrese su contraseña"
-                  value={formData.password}
-                  onChange={handleChange}
+                  className="form-check-input"
+                  type="checkbox"
+                  id="terminosClub"
                   required
                 />
-                <i className="bi bi-lock icon-inside"></i>
+                <label className="form-check-label" htmlFor="terminosClub">
+                  Acepto términos y condiciones
+                </label>
               </div>
 
-              <div className="col-md-6 position-relative">
-                <label htmlFor="confirmPassword" className="form-label">Repetir Contraseña</label>
-                <input
-                  type="password"
-                  className="form-control form-control-lg input-with-icon"
-                  id="confirmPassword"
-                  placeholder="Repita su contraseña"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                />
-                <i className="bi bi-lock-fill icon-inside"></i>
-              </div>
-            </div>
+              {/* Botón principal con ícono */}
+              <button className="btn btn-primary btn-lg w-100" type="submit">
+                <i className="bi bi-send"></i>
+                Enviar Formulario
+              </button>
+            </form>
 
-            {/* Ciudad / Provincia / CP */}
-            <div className="row mb-3">
-              <div className="col-md-6 position-relative">
-                <label htmlFor="ciudad" className="form-label">Ciudad</label>
-                <input
-                  type="text"
-                  className="form-control form-control-lg input-with-icon"
-                  id="ciudad"
-                  placeholder="Ciudad"
-                  value={formData.ciudad}
-                  onChange={handleChange}
-                  required
-                />
-                <i className="bi bi-geo-alt icon-inside"></i>
-              </div>
-
-              <div className="col-md-4 position-relative">
-                <label htmlFor="provincia" className="form-label">Provincia</label>
-                <input
-                  type="text"
-                  className="form-control form-control-lg input-with-icon"
-                  id="provincia"
-                  placeholder="Provincia"
-                  value={formData.provincia}
-                  onChange={handleChange}
-                  required
-                />
-                <i className="bi bi-map icon-inside"></i>
-              </div>
-
-              <div className="col-md-2 position-relative">
-                <label htmlFor="cp" className="form-label">CP</label>
-                <input
-                  type="text"
-                  className="form-control form-control-lg input-with-icon"
-                  id="cp"
-                  placeholder="CP"
-                  value={formData.cp}
-                  onChange={handleChange}
-                  required
-                />
-                <i className="bi bi-mailbox icon-inside"></i>
-              </div>
-            </div>
-
-            {/* Acepto términos */}
-            <div className="form-check mb-4">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="invalidCheck2"
-                required
-              />
-              <label className="form-check-label" htmlFor="invalidCheck2">
-                Acepto términos y condiciones
-              </label>
-            </div>
-
-            {/* Botón enviar */}
-            <button className="btn btn-primary btn-lg w-100" type="submit">
-              Enviar Formulario
+            {/* Botón secundario con ícono */}
+            <button
+              type="button"
+              className="btn btn-outline-light btn-lg w-100 mt-3"
+              onClick={onCancelRegister}
+            >
+              <i className="bi bi-arrow-left"></i>
+              Volver al Login
             </button>
 
-          </form>
+            {/* Footer interno de la card */}
+            <div className="register-card-footer">
+              <h5>Nos pondremos en contacto con usted a la brevedad</h5>
 
-          {/* Botón volver */}
-          <button
-            className="btn btn-primary btn-lg w-100 mt-3"
-            onClick={onCancelRegister}
-          >
-            Volver al Login
-          </button>
+              <div className="register-brand-footer">
+                <span>Gracias por interesarse en</span>
+                <img src={LogoBlanco} alt="CanchasYa!" />
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
 
-          {/* Pie */}
-          <h5 className="text-center mt-2 mb-2">
-            Nos pondremos en contacto con usted a la brevedad
-          </h5>
-          <h5 className="text-center mb-1">
-            Gracias por interesarse en{' '}
-            <img
-              src={Logo}
-              alt="Logo"
-              width="210"
-              style={{ verticalAlign: 'middle', marginLeft: '8px' }}
-            />
-          </h5>
-        </div>
-      </div>
+      {/* Footer blanco inferior de página */}
+      <footer className="register-footer">
+        <span>© 2024 CanchasYa! - Todos los derechos reservados</span>
+        <span>Conectamos clubes con deportistas</span>
+      </footer>
     </div>
   );
 }

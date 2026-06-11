@@ -1,129 +1,166 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './login.css';
-import BannerVertical from '../bannerVertical/BannerVertical';
 import Layout from '../layout/layout';
-import { clubesEstaticos } from '../staticData';  
+import { useAuth } from '../../hooks/useAuth';
 
+/*
+  Componente Login.
+  Permite iniciar sesión tanto como dueño de cancha como usuario común.
+  Primero intenta autenticar contra el endpoint de dueño.
+  Si falla, intenta autenticar contra el endpoint de usuario.
+
+  En esta versión:
+  - Se habilitan banners laterales solamente en la pantalla de login.
+  - Los banners se controlan desde Layout para no afectar otras páginas.
+*/
 const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [usuarios, setUsuarios] = useState([]);
-  const [clubesRegistrados, setClubesRegistrados] = useState([]);
 
-  // Cargar datos del localStorage al iniciar
-  useEffect(() => {
+  // login con l minuscula
+  const { login } = useAuth();
 
-    const storedUsuarios = JSON.parse(localStorage.getItem('usuariosRegistrados') || '[]');
-    const storedClubes = JSON.parse(localStorage.getItem('clubesRegistrados') || '[]');
-    storedClubes.push(...clubesEstaticos); // Agregar clubes estáticos
-    setUsuarios(storedUsuarios);
-    setClubesRegistrados(storedClubes);
-  }, []);
+  /*
+    Realiza una petición POST al endpoint recibido.
+    Envía email y password en el body.
+    Devuelve un objeto normalizado con:
+    - ok: si la respuesta fue exitosa
+    - data: respuesta del backend
+  */
+  const loginRequest = async (url) => {
 
-  const handleLogin = (username, password) => {
-    // Intentar validar contra usuario admin guardado (si existe) o contra credenciales por defecto
-    const savedUser = JSON.parse(localStorage.getItem('userData')) || JSON.parse(sessionStorage.getItem('userData')) || null;
-    const adminEmail = savedUser?.email ?? 'admin@admin.com';
-    const adminPassword = savedUser?.password ?? 'admin';
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: username,
+        password,
+      }),
+    });
 
-    if (username === adminEmail && password === adminPassword) {
-      return { success: true, user: { email: adminEmail, tipo: 'admin' } };
-    }
+    const data = await response.json();
 
-    // Verificar credenciales en clubes registrados primero (prioridad a clubs)
-    const clubEncontrado = clubesRegistrados.find(
-      club => (club.email === username || club.usuario === username) && club.password === password
-    );
-    if (clubEncontrado) {
-      return { success: true, user: { ...clubEncontrado, tipo: 'club' } };
-    }
-
-    // Verificar credenciales en usuarios registrados
-    const usuarioEncontrado = usuarios.find(
-      user => (user.email === username || user.usuario === username) && user.password === password
-    );
-    if (usuarioEncontrado) {
-      // Si accidentalmente un club quedó en usuarios, respetar su tipo
-      if (usuarioEncontrado.tipo === 'club') {
-        return { success: true, user: { ...usuarioEncontrado, tipo: 'club' } };
-      }
-
-      return { success: true, user: { ...usuarioEncontrado, tipo: 'usuario' } };
-    }
-
-    // Credenciales incorrectas
-    return { success: false };
+    return {
+      ok: response.ok,
+      data,
+    };
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Intentar login con las credenciales proporcionadas
-    const loginResult = handleLogin(username, password);
-    
-    if (loginResult.success) {
-      onLoginSuccess(loginResult.user);
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
+
+  try {
+    const response = await fetch('http://localhost:3000/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: username, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      localStorage.setItem('token', data.token); // ← acá se guarda
+      onLoginSuccess(data.user);
     } else {
-      setError('Usuario o contraseña incorrectos');
+      setError(data?.message || 'Usuario o contraseña incorrectos');
     }
-  };
+
+  } catch (error) {
+    console.error('Error al iniciar sesión:', error);
+    setError('No se pudo conectar con el servidor');
+  }
+};
 
   return (
-    <Layout>
-    <div className="login-page-container">
-      <div className="login-container">
-        <h2 className="login-title">Iniciar Sesión</h2>
-        <form onSubmit={handleSubmit} className="login-form">
-          {error && <p className="login-error">{error}</p>}
-          <div className="login-form-group">
-            <label className="login-label">Mail:</label>
-            <input
-              type="text"
-              placeholder="Mail registrado"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="login-input"
-            />
+    <Layout showBanners={true} bannerContext="login">
+      <main className="login-page-container">
+        <section className="login-container">
+          <div className="login-icon-header">
+            <i className="bi bi-trophy-fill"></i>
           </div>
-          <div className="login-form-group">
-            <label className="login-label">Contraseña:</label>
-            <input
-              type="password"
-              placeholder="tu contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="login-input"
-            />
-          </div>
-          <button 
-            type="submit"
-            className="login-submit-button"
-          >
-            Ingresar
-          </button>
-          <div className="login-register-container">
-            <p className="login-register-text">¿No tienes una cuenta?</p>
-            <div className="login-register-buttons">
-              <button 
-                type="button" 
-                onClick={onRegister}
-                className="login-register-user-button"
-              >
-                Registrarse como Usuario
-              </button>
-              <button 
-                type="button" 
-                onClick={onRegisterClub}
-                className="login-register-club-button"
-              >
-                ¿Tienes canchas? Trabaja con nosotros
-              </button>
+
+          <h2 className="login-title">Iniciar Sesión</h2>
+
+          <form onSubmit={handleSubmit} className="login-form">
+            {error && <p className="login-error">{error}</p>}
+
+            <div className="login-form-group">
+              <label htmlFor="login-email" className="login-label">
+                Mail:
+              </label>
+
+              <div className="login-input-wrapper">
+                <i className="bi bi-envelope login-input-icon"></i>
+
+                <input
+                  id="login-email"
+                  type="email"
+                  placeholder="Mail registrado"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="login-input"
+                  required
+                />
+              </div>
             </div>
-          </div>
-        </form>
-      </div>
-    </div>
+
+            <div className="login-form-group">
+              <label htmlFor="login-password" className="login-label">
+                Contraseña:
+              </label>
+
+              <div className="login-input-wrapper">
+                <i className="bi bi-lock login-input-icon"></i>
+
+                <input
+                  id="login-password"
+                  type="password"
+                  placeholder="tu contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="login-input"
+                  required
+                />
+              </div>
+            </div>
+
+            <button type="submit" className="login-submit-button">
+              <span>Ingresar</span>
+              <i className="bi bi-arrow-right"></i>
+            </button>
+
+            <div className="login-register-container">
+              <p className="login-register-text">¿No tienes una cuenta?</p>
+
+              <div className="login-register-buttons">
+                <button
+                  type="button"
+                  onClick={onRegister}
+                  className="login-register-user-button"
+                >
+                  <i className="bi bi-person-plus"></i>
+                  <span>Registrarse como Usuario</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onRegisterClub}
+                  className="login-register-club-button"
+                >
+                  <i className="bi bi-building"></i>
+                  <span>¿Tienes canchas? Trabaja con nosotros</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+      </main>
     </Layout>
   );
 };

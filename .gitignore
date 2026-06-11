@@ -28,3 +28,5 @@ package-lock.json
 *.sw?
 package-lock.json
 package.json
+settings.json
+tsconfig.json
