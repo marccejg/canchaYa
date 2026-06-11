@@ -20,6 +20,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     Controla si se muestra o no la sección de configuración.
   */
   const [showSettings, setShowSettings] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   const [mostrarModalSuscripcion, setMostrarModalSuscripcion] = useState(false);
 
@@ -140,6 +141,34 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     club?.nombre ||
     club?.nombre_dueno ||
     'dueño';
+
+  const getWelcomeStorageKey = () => {
+    const clubId = clubPrincipal?.id_club || 'sin-club';
+    return `canchasya_welcome_panel_seen_${clubId}`;
+  };
+
+  const cerrarWelcomeModal = () => {
+    localStorage.setItem(getWelcomeStorageKey(), 'true');
+    setShowWelcomeModal(false);
+  };
+
+  const irAConfiguracionDesdeWelcome = () => {
+    localStorage.setItem(getWelcomeStorageKey(), 'true');
+    setShowWelcomeModal(false);
+    setShowSettings(true);
+  };
+
+  useEffect(() => {
+    if (!clubPrincipal?.id_club) return;
+
+    const yaVioBienvenida = localStorage.getItem(
+      `canchasya_welcome_panel_seen_${clubPrincipal.id_club}`
+    );
+
+    if (!yaVioBienvenida) {
+      setShowWelcomeModal(true);
+    }
+  }, [clubPrincipal?.id_club]);
 
   /* =========================================================
      FORMATEO DE IMPORTES
@@ -1099,6 +1128,201 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
               >
                 Entendido
               </button>
+              {showWelcomeModal && (
+          <div
+            className="pdc-welcome-modal-backdrop"
+            onClick={cerrarWelcomeModal}
+          >
+            <div
+              className="pdc-welcome-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="pdc-welcome-modal-close"
+                onClick={cerrarWelcomeModal}
+                aria-label="Cerrar bienvenida"
+              >
+                ×
+              </button>
+
+              <span className="pdc-welcome-modal-kicker">
+                Bienvenido a CanchasYa!
+              </span>
+
+              <h2>¡Gracias por sumarte, {nombreDueno}!</h2>
+
+              <p>
+                Nos alegra que tu club forme parte de CanchasYa!. Desde este panel
+                vas a poder gestionar tus canchas, revisar reservas y controlar
+                tus ingresos diarios y mensuales.
+              </p>
+
+              <div className="pdc-welcome-modal-box">
+                <h3>Primer paso recomendado</h3>
+
+                <p>
+                  Te sugerimos asignarle un <strong>precio por hora</strong> a los
+                  turnos de cada cancha o deporte. Esto es importante para que el
+                  sistema pueda calcular correctamente tus ingresos del día y del mes.
+                </p>
+
+                <p>
+                  Si una cancha queda en <strong>$0</strong>, las reservas asociadas
+                  no van a reflejar ingresos reales en el dashboard.
+                </p>
+              </div>
+
+              <div className="pdc-welcome-modal-actions">
+                <button
+                  type="button"
+                  className="pdc-welcome-modal-primary"
+                  onClick={irAConfiguracionDesdeWelcome}
+                >
+                  Configurar mis canchas
+                </button>
+
+                <button
+                  type="button"
+                  className="pdc-welcome-modal-secondary"
+                  onClick={cerrarWelcomeModal}
+                >
+                  Lo haré después
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+            {showWelcomeModal && (
+          <div
+            className="pdc-welcome-modal-backdrop"
+            onClick={cerrarWelcomeModal}
+          >
+            <div
+              className="pdc-welcome-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="pdc-welcome-modal-close"
+                onClick={cerrarWelcomeModal}
+                aria-label="Cerrar bienvenida"
+              >
+                ×
+              </button>
+
+              <span className="pdc-welcome-modal-kicker">
+                Bienvenido a CanchasYa!
+              </span>
+
+              <h2>¡Gracias por sumarte, {nombreDueno}!</h2>
+
+              <p>
+                Nos alegra que tu club forme parte de CanchasYa!. Desde este panel
+                vas a poder gestionar tus canchas, revisar reservas y controlar
+                tus ingresos diarios y mensuales.
+              </p>
+
+              <div className="pdc-welcome-modal-box">
+                <h3>Primer paso recomendado</h3>
+
+                <p>
+                  Te sugerimos asignarle un <strong>precio por hora</strong> a los
+                  turnos de cada cancha o deporte. Esto es importante para que el
+                  sistema pueda calcular correctamente tus ingresos del día y del mes.
+                </p>
+
+                <p>
+                  Si una cancha queda en <strong>$0</strong>, las reservas asociadas
+                  no van a reflejar ingresos reales en el dashboard.
+                </p>
+              </div>
+
+              <div className="pdc-welcome-modal-actions">
+                <button
+                  type="button"
+                  className="pdc-welcome-modal-primary"
+                  onClick={irAConfiguracionDesdeWelcome}
+                >
+                  Configurar mis canchas
+                </button>
+
+                <button
+                  type="button"
+                  className="pdc-welcome-modal-secondary"
+                  onClick={cerrarWelcomeModal}
+                >
+                  Lo haré después
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+        )}
+        {showWelcomeModal && (
+          <div
+            className="pdc-welcome-modal-backdrop"
+            onClick={cerrarWelcomeModal}
+          >
+            <div
+              className="pdc-welcome-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="pdc-welcome-modal-close"
+                onClick={cerrarWelcomeModal}
+                aria-label="Cerrar bienvenida"
+              >
+                ×
+              </button>
+
+              <span className="pdc-welcome-modal-kicker">
+                Bienvenido a CanchasYa!
+              </span>
+
+              <h2>¡Gracias por sumarte, {nombreDueno}!</h2>
+
+              <p>
+                Nos alegra que tu club forme parte de CanchasYa!. Desde este panel
+                vas a poder gestionar tus canchas, revisar reservas y controlar
+                tus ingresos diarios y mensuales.
+              </p>
+
+              <div className="pdc-welcome-modal-box">
+                <h3>Primer paso recomendado</h3>
+
+                <p>
+                  Te sugerimos asignarle un <strong>precio por hora</strong> a los
+                  turnos de cada cancha o deporte. Esto es importante para que el
+                  sistema pueda calcular correctamente tus ingresos del día y del mes.
+                </p>
+
+                <p>
+                  Si una cancha queda en <strong>$0</strong>, las reservas asociadas
+                  no van a reflejar ingresos reales en el dashboard.
+                </p>
+              </div>
+
+              <div className="pdc-welcome-modal-actions">
+                <button
+                  type="button"
+                  className="pdc-welcome-modal-primary"
+                  onClick={irAConfiguracionDesdeWelcome}
+                >
+                  Configurar mis canchas
+                </button>
+
+                <button
+                  type="button"
+                  className="pdc-welcome-modal-secondary"
+                  onClick={cerrarWelcomeModal}
+                >
+                  Lo haré después
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -1139,3 +1139,193 @@
     font-size: 1.6rem;
   }
 }
+
+
+
+/* =========================================================
+   MODAL DE BIENVENIDA AL PANEL DEL CLUB
+   Agregar al final de PanelDelClub.css
+========================================================= */
+
+.pdc-welcome-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(6px);
+}
+
+.pdc-welcome-modal {
+  position: relative;
+
+  width: min(620px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+
+  padding: 36px;
+  border-radius: 24px;
+
+  background: rgba(7, 30, 58, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+
+  color: #ffffff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+
+  animation: pdcWelcomeModalIn 0.25s ease;
+}
+
+.pdc-welcome-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+
+  border: none;
+  background: transparent;
+
+  color: #ffffff;
+  font-size: 36px;
+  line-height: 1;
+  font-weight: 900;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.pdc-welcome-modal-close:hover {
+  color: #168bff;
+  transform: scale(1.08);
+}
+
+.pdc-welcome-modal-kicker {
+  display: inline-flex;
+
+  margin-bottom: 14px;
+  padding: 7px 14px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(22, 139, 255, 0.75);
+
+  color: #42a5ff;
+  font-size: 13px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.pdc-welcome-modal h2 {
+  margin: 0 0 16px;
+  padding-right: 32px;
+
+  font-size: 2.1rem;
+  line-height: 1.05;
+  font-weight: 950;
+}
+
+.pdc-welcome-modal p {
+  margin: 0 0 14px;
+
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.pdc-welcome-modal strong {
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.pdc-welcome-modal-box {
+  margin: 24px 0;
+  padding: 20px;
+
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.pdc-welcome-modal-box h3 {
+  margin: 0 0 12px;
+
+  color: #45eb67;
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.pdc-welcome-modal-box p:last-child {
+  margin-bottom: 0;
+}
+
+.pdc-welcome-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.pdc-welcome-modal-primary,
+.pdc-welcome-modal-secondary {
+  flex: 1;
+
+  border: none;
+  border-radius: 14px;
+
+  padding: 14px 18px;
+
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 900;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.pdc-welcome-modal-primary {
+  background: #087bff;
+  box-shadow: 0 12px 24px rgba(8, 123, 255, 0.3);
+}
+
+.pdc-welcome-modal-primary:hover {
+  background: #006be2;
+  transform: translateY(-2px);
+}
+
+.pdc-welcome-modal-secondary {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.pdc-welcome-modal-secondary:hover {
+  background: rgba(255, 255, 255, 0.24);
+  transform: translateY(-2px);
+}
+
+@keyframes pdcWelcomeModalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .pdc-welcome-modal {
+    padding: 30px 22px;
+  }
+
+  .pdc-welcome-modal h2 {
+    font-size: 1.7rem;
+  }
+
+  .pdc-welcome-modal-actions {
+    flex-direction: column;
+  }
+}
