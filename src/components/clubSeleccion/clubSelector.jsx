@@ -17,7 +17,13 @@ const ClubSelector = ({ selectedSport, onClubSelect, onBack }) => {
   useEffect(() => {
     const fetchCanchas = async () => {
       try {
-        const response = await fetch('http://localhost:3000/cancha');
+        const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
+        const response = await fetch('http://localhost:3000/cancha', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
 
         if (!response.ok) {
           throw new Error('No se pudieron obtener las canchas');

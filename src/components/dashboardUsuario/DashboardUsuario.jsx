@@ -456,6 +456,68 @@ function DashboardUsuario({
   const API_URL = 'http://localhost:3000';
 
   /*
+    Horarios disponibles reales de la cancha seleccionada.
+    Se cargan desde el backend cuando el usuario elige una cancha.
+    Si la cancha no tiene horarios configurados, se muestran todos los del sistema.
+  */
+  const [horariosDeCancha, setHorariosDeCancha] = useState([]);
+
+  /*
+    Carga los horarios disponibles de la cancha seleccionada desde el backend.
+    Si la cancha no tiene disponibilidad configurada, usa todos los horarios del sistema.
+  */
+  useEffect(() => {
+    if (!canchaSeleccionada) {
+      setHorariosDeCancha([]);
+      return;
+    }
+
+    const idCancha = canchaSeleccionada.id || canchaSeleccionada.id_cancha;
+    if (!idCancha) return;
+
+    const cargarHorarios = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(
+          `${API_URL}/disponibilidad/cancha/${idCancha}`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+
+        if (!response.ok) {
+          // Si no hay disponibilidad configurada, usar todos los horarios
+          setHorariosDeCancha(HORARIOS.map((h) => h.hora));
+          return;
+        }
+
+        const disponibilidades = await response.json();
+
+        if (!Array.isArray(disponibilidades) || disponibilidades.length === 0) {
+          // Sin configuración → mostrar todos
+          setHorariosDeCancha(HORARIOS.map((h) => h.hora));
+          return;
+        }
+
+        // Extraer horas únicas desde las disponibilidades
+        const horasUnicas = new Set();
+        disponibilidades.forEach((d) => {
+          const horaCorta = d.hora_inicio?.slice(0, 5);
+          if (horaCorta) horasUnicas.add(horaCorta);
+        });
+
+        // Ordenar las horas
+        const horasOrdenadas = [...horasUnicas].sort();
+        setHorariosDeCancha(horasOrdenadas);
+      } catch (error) {
+        console.error('Error al cargar horarios de cancha:', error);
+        // Fallback: mostrar todos los horarios
+        setHorariosDeCancha(HORARIOS.map((h) => h.hora));
+      }
+    };
+
+    cargarHorarios();
+  }, [canchaSeleccionada]);
+
+  /*
     Banners laterales del dashboard.
     Se guardan en estado para poder cambiarlos automáticamente cada ciertos segundos.
   */
@@ -502,7 +564,13 @@ function DashboardUsuario({
   useEffect(() => {
     const fetchClubes = async () => {
       try {
-        const response = await fetch('http://localhost:3000/club/aceptados');
+        const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
+        const response = await fetch('http://localhost:3000/club/aceptados', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
         if (response.ok) {
           const data = await response.json();
           const activos = data
@@ -900,7 +968,10 @@ function DashboardUsuario({
   const iniciarModificacionReserva = (reserva) => {
     if (!reserva.puedeGestionar) return;
 
+    // Guardamos la reserva original para eliminarla al confirmar la nueva
     setReservaEnEdicion(reserva);
+
+    // Mantenemos deporte, club y cancha seleccionados
     setDeporteSeleccionado(reserva.deporte || null);
     setClubSeleccionado(reserva.club || null);
     const clubDeLaReserva = buscarClubPorNombre(reserva.club, clubesActivos);
@@ -910,9 +981,15 @@ function DashboardUsuario({
         : cancha.nombre === reserva.cancha
     );
     setCanchaSeleccionada(canchaDeLaReserva || null);
-    setFechaSeleccionada(reserva.fechaDate ? formatearFecha(reserva.fechaDate) : reserva.fecha);
-    setHorarioSeleccionado(reserva.hora || null);
+
+    // Limpiamos fecha y hora para que el usuario elija nuevos
+    setFechaSeleccionada(null);
+    setHorarioSeleccionado(null);
+
     setMenuReservaAbierto(null);
+
+    // Llevamos al usuario al panel de selección
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   /*
@@ -955,8 +1032,12 @@ function DashboardUsuario({
     if (!resultado.isConfirmed) return;
 
     try {
+      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
       const response = await fetch(`http://localhost:3000/reserva/${reserva.id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (!response.ok) {
@@ -1007,9 +1088,6 @@ function DashboardUsuario({
     }
 
     // Snapshot del estado de edición ANTES de cualquier await.
-    // Esto evita que cambios de estado durante el await (re-render, click en
-    // "Reiniciar selección", etc.) provoquen que se cree una nueva reserva
-    // en lugar de modificar la existente.
     const reservaEnEdicionSnapshot = reservaEnEdicion;
     const estaModificando = Boolean(reservaEnEdicionSnapshot?.id);
 
@@ -1030,38 +1108,37 @@ function DashboardUsuario({
     setEnviandoReserva(true);
 
     try {
-      let response;
+      const token = localStorage.getItem('token');
 
-      if (estaModificando) {
-        // Primero intentamos PATCH. Si tu backend usa PUT, hacemos fallback automático.
-        response = await fetch(`http://localhost:3000/reserva/${reservaEnEdicionSnapshot.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(reservaDTO),
-        });
-
-        if (response.status === 404 || response.status === 405) {
-          response = await fetch(`http://localhost:3000/reserva/${reservaEnEdicionSnapshot.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(reservaDTO),
-          });
-        }
-      } else {
-        response = await fetch('http://localhost:3000/reserva', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(reservaDTO),
-        });
-      }
+      // Paso 1: Crear la nueva reserva (tanto para modificación como para nueva)
+      const response = await fetch('http://localhost:3000/reserva', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(reservaDTO),
+      });
 
       if (response.ok) {
         const guardada = await response.json();
 
+        // Si era modificación y la nueva se creó bien, borramos la original
+        if (estaModificando) {
+          const deleteResponse = await fetch(`http://localhost:3000/reserva/${reservaEnEdicionSnapshot.id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (deleteResponse.ok && onDeleteReserva) {
+            onDeleteReserva(reservaEnEdicionSnapshot.id);
+          }
+        }
+
         const nuevaReserva = {
-          id: estaModificando
-            ? reservaEnEdicionSnapshot.id
-            : guardada?.id_reserva || Date.now(),
+          id: guardada?.id_reserva || Date.now(),
           id_cancha: canchaSeleccionada.id,
           deporte: deporteSeleccionado,
           club: clubSeleccionado,
@@ -1077,15 +1154,10 @@ function DashboardUsuario({
           accion: estaModificando ? 'modificada' : 'confirmada',
         };
 
-        if (estaModificando && onUpdateReserva) {
-          onUpdateReserva(reservaEnEdicionSnapshot.id, nuevaReserva);
-        } else if (onAddReserva) {
+        if (onAddReserva) {
           onAddReserva(nuevaReserva);
         }
 
-        // Refrescamos desde el backend para que el panel siempre refleje
-        // la verdad de la base de datos (evita que aparezcan duplicados o
-        // versiones viejas si por algún motivo la actualización local falló).
         if (onRefreshReservas) {
           onRefreshReservas();
         }
@@ -1097,7 +1169,7 @@ function DashboardUsuario({
         mostrarError(
           estaModificando ? 'No se pudo modificar' : 'No se pudo reservar',
           estaModificando
-            ? 'Hubo un problema al modificar la reserva en el servidor.'
+            ? 'Hubo un problema al crear la nueva reserva, por lo que se conservó la original.'
             : 'Hubo un problema al procesar la reserva en el servidor.'
         );
       }
@@ -1521,30 +1593,35 @@ function DashboardUsuario({
                         </div>
 
                         <div className="time-grid time-grid--large">
-                          {HORARIOS.map((horario) => {
-                            const horarioBloqueado =
-                              !horario.disponible ||
-                              esHorarioPasado(fechaSeleccionada, horario.hora) ||
-                              esHorarioOcupado(horario.hora);
+                          {horariosDeCancha.length > 0 ? (
+                            horariosDeCancha.map((hora) => {
+                              const horarioBloqueado =
+                                esHorarioPasado(fechaSeleccionada, hora) ||
+                                esHorarioOcupado(hora);
 
-                            return (
-                              <button
-                                key={horario.hora}
-                                type="button"
-                                disabled={horarioBloqueado}
-                                className={
-                                  horarioSeleccionado === horario.hora
-                                    ? 'time-card time-card--large selected'
-                                    : horarioBloqueado
-                                      ? 'time-card time-card--large disabled'
-                                      : 'time-card time-card--large'
-                                }
-                                onClick={() => seleccionarHorario(horario.hora)}
-                              >
-                                {horario.hora}
-                              </button>
-                            );
-                          })}
+                              return (
+                                <button
+                                  key={hora}
+                                  type="button"
+                                  disabled={horarioBloqueado}
+                                  className={
+                                    horarioSeleccionado === hora
+                                      ? 'time-card time-card--large selected'
+                                      : horarioBloqueado
+                                        ? 'time-card time-card--large disabled'
+                                        : 'time-card time-card--large'
+                                  }
+                                  onClick={() => seleccionarHorario(hora)}
+                                >
+                                  {hora}
+                                </button>
+                              );
+                            })
+                          ) : (
+                            <div className="empty-clubs-message">
+                              Cargando horarios disponibles...
+                            </div>
+                          )}
 
                           <div className="time-grid__legend">
                             <span>

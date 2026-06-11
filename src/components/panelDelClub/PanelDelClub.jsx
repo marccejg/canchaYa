@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './PanelDelClub.css';
 import { horarios } from '../staticData';
 import Swal from 'sweetalert2';
+import funcionalidadEnProgreso from '../../assets/PROGRESS.png';
 
 const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   /*
@@ -19,11 +20,58 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     Controla si se muestra o no la sección de configuración.
   */
   const [showSettings, setShowSettings] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
-  /*
-    Controla el chequeo de fecha de vencimiento de pago.
-  */
-  const [updateFecha, setUpdateFecha] = useState(false);
+  const [mostrarModalSuscripcion, setMostrarModalSuscripcion] = useState(false);
+
+  const [updateFecha, setCheckPagoFecha] = useState(false);
+
+
+  /* funcion para chequear la fehca de pagos */
+  const handleCheckFechaPago = async () => {
+    try {
+      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
+      const response = await fetch("http://localhost:3000/dueno-cancha/fecha-vencimiento", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al traer la fecha de vencimiento");
+      }
+
+      const data = await response.json();
+
+      // Suponiendo que el backend devuelve algo como { fecha_vencimiento: "2026-05-20" }
+      const fecha = data.fecha_vencimiento;
+
+      console.log("Fecha de vencimiento:", fecha);
+
+      // Si querés guardarla en un estado de React:
+      // setFechaVencimiento(fecha);
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    if (updateFecha) {
+      handleCheckFechaPago();
+    }
+  }, [updateFecha]);
+
+  const abrirModalSuscripcion = () => {
+    setMostrarModalSuscripcion(true);
+  };
+
+  const cerrarModalSuscripcion = () => {
+    setMostrarModalSuscripcion(false);
+  };
+
 
   /*
     Controla si se muestra o no el formulario para agregar una cancha nueva.
@@ -38,23 +86,27 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   /*
     Guarda los horarios seleccionados como disponibles.
     Inicialmente se cargan todos los horarios desde staticData.
+    Cuando se abren los settings, se actualizan desde el backend.
   */
   const [horariosDisponibles, setHorariosDisponibles] = useState(
     horarios.map((h) => h.id)
   );
 
   /*
-    Estado del formulario para agregar una cancha nueva.
+    Indica si se están guardando los horarios en el backend.
   */
-  const initialNewCancha = {
-    id_club: '',
-    id_deporte: '',
-    nombre_cancha: '',
-    descripcion_cancha: '',
-    precio_por_hora: '',
-  };
+  const [guardandoHorarios, setGuardandoHorarios] = useState(false);
 
-  const [newCancha, setNewCancha] = useState(initialNewCancha);
+  /*
+    Estado del formulario para agregar una cancha nueva.
+    El precio se guarda como texto para permitir mostrarlo con punto de miles.
+  */
+  const [newCancha, setNewCancha] = useState({
+    'id_club': '',
+    'id_deporte': '',
+    'nombre_cancha': '',
+    'descripcion_cancha': '',
+  });
 
   /*
     Guarda el ID de la cancha cuyo precio se está editando.
@@ -70,8 +122,11 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   /*
     Algunas respuestas del login traen los datos del club dentro de club.club.
     Por eso se normaliza en esta constante.
+    El objeto que llega puede ser:
+    - currentUser con estructura { id_usuario, club: {...} }
+    - O directamente el club si viene anidado con id_club
   */
-  const clubPrincipal = club?.club || club;
+  const clubPrincipal = club?.club || (club?.id_club ? club : null);
 
   /*
     Nombre del club.
@@ -93,6 +148,34 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     club?.nombre_dueno ||
     clubPrincipal?.nombre_dueno ||
     'dueño';
+
+  const getWelcomeStorageKey = () => {
+    const clubId = clubPrincipal?.id_club || 'sin-club';
+    return `canchasya_welcome_panel_seen_${clubId}`;
+  };
+
+  const cerrarWelcomeModal = () => {
+    localStorage.setItem(getWelcomeStorageKey(), 'true');
+    setShowWelcomeModal(false);
+  };
+
+  const irAConfiguracionDesdeWelcome = () => {
+    localStorage.setItem(getWelcomeStorageKey(), 'true');
+    setShowWelcomeModal(false);
+    setShowSettings(true);
+  };
+
+  useEffect(() => {
+    if (!clubPrincipal?.id_club) return;
+
+    const yaVioBienvenida = localStorage.getItem(
+      `canchasya_welcome_panel_seen_${clubPrincipal.id_club}`
+    );
+
+    if (!yaVioBienvenida) {
+      setShowWelcomeModal(true);
+    }
+  }, [clubPrincipal?.id_club]);
 
   /* =========================================================
      FORMATEO DE IMPORTES
@@ -186,42 +269,66 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
      CARGA DE CANCHAS Y DEPORTES
   ========================================================= */
 
-  const cargarCanchas = async () => {
-    if (!clubPrincipal?.id_club) return;
-
-    try {
-      const response = await fetch(
-        `http://localhost:3000/cancha/club/${clubPrincipal.id_club}`
-      );
-
-      if (!response.ok) {
-        throw new Error('No se pudieron cargar las canchas');
-      }
-
-      const data = await response.json();
-      setCanchas(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Error cargando canchas:', error);
-      setCanchas([]);
-    }
-  };
-
   useEffect(() => {
-    cargarCanchas();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const fetchCanchas = async () => {
+      try {
+        console.log('Cargando canchas para club ID:', clubPrincipal?.id_club);
+        const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
+        const response = await fetch(
+          `http://localhost:3000/cancha/club/${clubPrincipal?.id_club}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Canchas cargadas:', data);
+        setCanchas(data || []);
+      } catch (error) {
+        console.error('Error cargando canchas:', error);
+        setCanchas([]);
+      }
+    };
+
+    if (clubPrincipal?.id_club) {
+      fetchCanchas();
+    } else {
+      console.warn('Club principal o ID de club no disponible', clubPrincipal);
+    }
   }, [clubPrincipal?.id_club]);
 
   useEffect(() => {
     const fetchDeportes = async () => {
       try {
-        const response = await fetch('http://localhost:3000/deporte');
+        const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
+        const response = await fetch('http://localhost:3000/deporte', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
 
         if (!response.ok) {
           throw new Error('No se pudieron cargar los deportes');
         }
 
         const data = await response.json();
-        setDeportesDisponibles(Array.isArray(data) ? data : []);
+
+        setDeportesDisponibles(
+          Array.isArray(data)
+            ? [...data].sort((a, b) => {
+              const textoA = a.nombre_deporte || "";
+              const textoB = b.nombre_deporte || "";
+              return textoA.localeCompare(textoB);
+            })
+            : []
+        );
+
       } catch (error) {
         console.error('Error cargando deportes:', error);
         setDeportesDisponibles([]);
@@ -232,51 +339,128 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   }, []);
 
   /*
-    Función para chequear la fecha de vencimiento de pagos.
+    Carga los horarios disponibles guardados en el backend
+    cuando el dueño abre la sección de configuración.
+    Usa la primera cancha del club como referencia.
   */
-  const handleCheckFechaPago = async () => {
-    try {
-      const response = await fetch('http://localhost:3000/dueno-cancha/fecha-vencimiento', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+  useEffect(() => {
+    if (!showSettings || !canchas.length) return;
 
-      if (!response.ok) {
-        throw new Error('Error al traer la fecha de vencimiento');
+    const cargarHorariosGuardados = async () => {
+      try {
+        const primeraCancha = canchas[0];
+        const idCancha = primeraCancha.id_cancha || primeraCancha.id;
+        const token = localStorage.getItem('token');
+
+        const response = await fetch(
+          `http://localhost:3000/disponibilidad/cancha/${idCancha}`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+
+        if (!response.ok) return;
+
+        const disponibilidades = await response.json();
+
+        if (!Array.isArray(disponibilidades) || disponibilidades.length === 0) return;
+
+        // Extraer las horas únicas desde las disponibilidades
+        const horasGuardadas = new Set();
+        disponibilidades.forEach((d) => {
+          // hora_inicio viene como "09:00:00" o "09:00"
+          const horaCorta = d.hora_inicio?.slice(0, 5);
+          if (horaCorta) horasGuardadas.add(horaCorta);
+        });
+
+        // Mapear las horas guardadas a los IDs de horarios de staticData
+        const idsHorarios = horarios
+          .filter((h) => horasGuardadas.has(h.hora))
+          .map((h) => h.id);
+
+        if (idsHorarios.length > 0) {
+          setHorariosDisponibles(idsHorarios);
+        }
+      } catch (error) {
+        console.error('Error al cargar horarios guardados:', error);
+      }
+    };
+
+    cargarHorariosGuardados();
+  }, [showSettings, canchas]);
+
+  /*
+    Guarda los horarios seleccionados en el backend para TODAS las canchas del club.
+    Cada hora seleccionada se guarda para los 7 días de la semana.
+  */
+  const handleGuardarHorarios = async () => {
+    if (!canchas.length) return;
+
+    setGuardandoHorarios(true);
+
+    try {
+      // Obtener las horas seleccionadas desde staticData
+      const horasSeleccionadas = horarios
+        .filter((h) => horariosDisponibles.includes(h.id))
+        .map((h) => h.hora);
+
+      // Armar las disponibilidades para los 7 días de la semana
+      const disponibilidades = [];
+      for (let dia = 0; dia < 7; dia++) {
+        horasSeleccionadas.forEach((hora) => {
+          const [h, m] = hora.split(':').map(Number);
+          const horaFin = `${String(h + 1).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+          disponibilidades.push({
+            dia_semana: dia,
+            hora_inicio: `${hora}:00`,
+            hora_fin: horaFin,
+          });
+        });
       }
 
-      const data = await response.json();
-      const fecha = data.fecha_vencimiento;
+      const token = localStorage.getItem('token');
+
+      // Guardar para cada cancha del club
+      const promises = canchas.map(async (cancha) => {
+        const idCancha = cancha.id_cancha || cancha.id;
+        return fetch(`http://localhost:3000/disponibilidad/cancha/${idCancha}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(disponibilidades),
+        });
+      });
+
+      await Promise.all(promises);
+
+      setShowSettings(false);
 
       Swal.fire({
-        icon: 'info',
-        title: 'Fecha de vencimiento',
-        text: fecha ? `Tu vencimiento es: ${fecha}` : 'No hay fecha de vencimiento disponible.',
+        icon: 'success',
+        title: '¡Listo!',
+        text: 'La configuración del club fue guardada correctamente.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#087bff',
+        background: '#ffffff',
+        color: '#071f4d',
+        customClass: {
+          popup: 'cy-alert-popup',
+          title: 'cy-alert-title',
+          confirmButton: 'cy-alert-button',
+        },
       });
     } catch (error) {
-      console.error(error);
-
+      console.error('Error al guardar horarios:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: error.message || 'No se pudo consultar la fecha de vencimiento.',
+        text: 'No se pudieron guardar los horarios. Intentá nuevamente.',
+        confirmButtonText: 'Aceptar',
       });
+    } finally {
+      setGuardandoHorarios(false);
     }
   };
-
-  useEffect(() => {
-    if (updateFecha) {
-      handleCheckFechaPago();
-      setUpdateFecha(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [updateFecha]);
-
-  /*
-    Activa o desactiva un horario disponible.
-  */
   const toggleHorario = (horarioId) => {
     setHorariosDisponibles((prev) =>
       prev.includes(horarioId)
@@ -285,70 +469,106 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     );
   };
 
-  /*
-    Agrega una cancha nueva.
-  */
   const handleAddCancha = async (e) => {
     e.preventDefault();
 
-    if (!newCancha.nombre_cancha || !newCancha.id_deporte) {
+    const precioLimpio = parsePrice(newCancha.precio_por_hora);
+
+    if (!newCancha.nombre || !newCancha.deporte || !precioLimpio) {
       Swal.fire({
         icon: 'warning',
         title: 'Campos incompletos',
-        text: 'Por favor completá el nombre de la cancha y el deporte.',
-      });
-      return;
-    }
-
-    if (!clubPrincipal?.id_club) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Club no identificado',
-        text: 'No se encontró el ID del club logueado.',
+        text: 'Por favor completá los campos requeridos.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#087bff',
+        background: '#ffffff',
+        color: '#071f4d',
+        customClass: {
+          popup: 'cy-alert-popup',
+          title: 'cy-alert-title',
+          confirmButton: 'cy-alert-button',
+        },
       });
       return;
     }
 
     try {
-      const formDataToSend = {
-        id_club: Number(clubPrincipal.id_club),
-        id_deporte: Number(newCancha.id_deporte),
-        nombre_cancha: newCancha.nombre_cancha,
-        descripcion_cancha: newCancha.descripcion_cancha,
-        precio_por_hora: parsePrice(newCancha.precio_por_hora),
-      };
-
+      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
       const response = await fetch('http://localhost:3000/cancha', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formDataToSend),
+        body: JSON.stringify({
+          nombre_cancha: newCancha.nombre,
+          id_deporte: parseInt(newCancha.deporte),
+          id_club: clubPrincipal.id_club,
+          precio_por_hora: precioLimpio,
+          descripcion_cancha: newCancha.superficie
+        }),
       });
 
-      const result = await response.json();
+      if (response.ok) {
+        const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Error al registrar la cancha.');
+        setCanchas((prev) => [...prev, data]);
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Cancha agregada',
+          text: `La cancha "${newCancha.nombre}" fue agregada correctamente.`,
+          confirmButtonText: 'Aceptar',
+          confirmButtonColor: '#087bff',
+          background: '#ffffff',
+          color: '#071f4d',
+          customClass: {
+            popup: 'cy-alert-popup',
+            title: 'cy-alert-title',
+            confirmButton: 'cy-alert-button',
+          },
+        });
+
+        setNewCancha({
+          nombre: '',
+          deporte: '',
+          superficie: '',
+          precio_por_hora: ''
+        });
+
+        setShowAddCancha(false);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'No se pudo agregar la cancha',
+          text: 'Revisá los datos ingresados o intentá nuevamente.',
+          confirmButtonText: 'Aceptar',
+          confirmButtonColor: '#ef4444',
+          background: '#ffffff',
+          color: '#071f4d',
+          customClass: {
+            popup: 'cy-alert-popup',
+            title: 'cy-alert-title',
+            confirmButton: 'cy-alert-button',
+          },
+        });
       }
-
-      Swal.fire({
-        title: 'Registro completado',
-        text: 'La cancha fue creada correctamente.',
-        icon: 'success',
-        confirmButtonText: 'Aceptar',
-      });
-
-      setNewCancha(initialNewCancha);
-      setShowAddCancha(false);
-      cargarCanchas();
     } catch (error) {
-      console.error('Error al registrar:', error);
+      console.error('Error al agregar cancha:', error);
 
       Swal.fire({
         icon: 'error',
-        title: 'Error',
-        text: error.message || 'Hubo un error al registrar la cancha.',
+        title: 'Error de conexión',
+        text: 'No se pudo conectar con el servidor. Intentá nuevamente.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#ef4444',
+        background: '#ffffff',
+        color: '#071f4d',
+        customClass: {
+          popup: 'cy-alert-popup',
+          title: 'cy-alert-title',
+          confirmButton: 'cy-alert-button',
+        },
       });
     }
   };
@@ -370,10 +590,12 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/cancha/${idCancha}/precio`, {
-        method: 'PUT',
+      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
+      const response = await fetch(`http://localhost:3000/cancha/${canchaId}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           precio_por_hora: precioLimpio,
@@ -408,15 +630,11 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
         text: 'El precio de la cancha fue actualizado correctamente.',
       });
     } catch (error) {
-      console.error('Error actualizando precio:', error);
-
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.message || 'No se pudo actualizar el precio.',
-      });
+      console.error('Error al actualizar precio:', error);
+      alert('Error de conexión');
     }
   };
+
 
   const normalizarFecha = (fecha) => {
     const date = new Date(fecha);
@@ -516,11 +734,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     - imagen correspondiente
   */
   const canchasProcesadas = canchas.map((cancha) => {
-    const nombreDeporte =
-      cancha.deporte?.nombre_deporte ||
-      cancha.nombre_deporte ||
-      cancha.deporte ||
-      'Deporte';
+    const nombreDeporte = cancha.id_deporte?.nombre_deporte || 'Deporte';
 
     const reservasDeLaCancha = reservasDelClub.filter(
       (reserva) => reserva.id_cancha === cancha.id_cancha
@@ -568,6 +782,8 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
       return fechaA - fechaB;
     });
 
+
+
   return (
     <div className="pdc-owner-dashboard">
       {/*
@@ -587,25 +803,22 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             <p>¡Hola {nombreDueno}!</p>
           </div>
 
-          <div className="dashboard-header-actions">
+          <div className="pdc-header-actions">
             <button
-              type="button"
-              className="settings-button"
-              onClick={() => setShowSettings((prev) => !prev)}
+              className="pdc-settings-button"
+              onClick={() => setShowSettings(!showSettings)}
               title="Configuración"
             >
               <i className="bi bi-gear"></i>
               Configuración
             </button>
-
             <button
-              type="button"
               className="pdc-pay-button"
-              onClick={() => setUpdateFecha(true)}
-              title="Pagar subscripción"
+              onClick={abrirModalSuscripcion}
+              title="Pagar Suscripción"
             >
               <i className="bi bi-credit-card"></i>
-              Pagar subscripción
+              Pagar Suscripción
             </button>
           </div>
         </header>
@@ -755,19 +968,11 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
 
               <div className="settings-actions">
                 <button
-                  type="button"
-                  className="btn-save-settings"
-                  onClick={() => {
-                    setShowSettings(false);
-
-                    Swal.fire({
-                      icon: 'success',
-                      title: 'Configuración guardada',
-                      text: 'Los cambios fueron guardados correctamente.',
-                    });
-                  }}
+                  className="pdc-btn-save-settings"
+                  onClick={handleGuardarHorarios}
+                  disabled={guardandoHorarios}
                 >
-                  Guardar cambios
+                  {guardandoHorarios ? 'Guardando...' : 'Guardar cambios'}
                 </button>
               </div>
             </div>
@@ -1043,6 +1248,237 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             Cerrar sesión
           </button>
         </div>
+
+        {mostrarModalSuscripcion && (
+          <div className="pdc-progress-modal-backdrop" onClick={cerrarModalSuscripcion}>
+            <div className="pdc-progress-modal" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                className="pdc-progress-modal-close"
+                onClick={cerrarModalSuscripcion}
+                aria-label="Cerrar modal"
+              >
+                ×
+              </button>
+
+              <h2>Funcionalidad en progreso</h2>
+
+              <p>
+                Estamos trabajando para que próximamente puedas gestionar y pagar
+                tu suscripción desde el panel del club.
+              </p>
+
+              <img
+                src={funcionalidadEnProgreso}
+                alt="Funcionalidad en progreso"
+                className="pdc-progress-modal-img"
+              />
+
+              <button
+                type="button"
+                className="pdc-progress-modal-button"
+                onClick={cerrarModalSuscripcion}
+              >
+                Entendido
+              </button>
+              {showWelcomeModal && (
+          <div
+            className="pdc-welcome-modal-backdrop"
+            onClick={cerrarWelcomeModal}
+          >
+            <div
+              className="pdc-welcome-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="pdc-welcome-modal-close"
+                onClick={cerrarWelcomeModal}
+                aria-label="Cerrar bienvenida"
+              >
+                ×
+              </button>
+
+              <span className="pdc-welcome-modal-kicker">
+                Bienvenido a CanchasYa!
+              </span>
+
+              <h2>¡Gracias por sumarte, {nombreDueno}!</h2>
+
+              <p>
+                Nos alegra que tu club forme parte de CanchasYa!. Desde este panel
+                vas a poder gestionar tus canchas, revisar reservas y controlar
+                tus ingresos diarios y mensuales.
+              </p>
+
+              <div className="pdc-welcome-modal-box">
+                <h3>Primer paso recomendado</h3>
+
+                <p>
+                  Te sugerimos asignarle un <strong>precio por hora</strong> a los
+                  turnos de cada cancha o deporte. Esto es importante para que el
+                  sistema pueda calcular correctamente tus ingresos del día y del mes.
+                </p>
+
+                <p>
+                  Si una cancha queda en <strong>$0</strong>, las reservas asociadas
+                  no van a reflejar ingresos reales en el dashboard.
+                </p>
+              </div>
+
+              <div className="pdc-welcome-modal-actions">
+                <button
+                  type="button"
+                  className="pdc-welcome-modal-primary"
+                  onClick={irAConfiguracionDesdeWelcome}
+                >
+                  Configurar mis canchas
+                </button>
+
+                <button
+                  type="button"
+                  className="pdc-welcome-modal-secondary"
+                  onClick={cerrarWelcomeModal}
+                >
+                  Lo haré después
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+            {showWelcomeModal && (
+          <div
+            className="pdc-welcome-modal-backdrop"
+            onClick={cerrarWelcomeModal}
+          >
+            <div
+              className="pdc-welcome-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="pdc-welcome-modal-close"
+                onClick={cerrarWelcomeModal}
+                aria-label="Cerrar bienvenida"
+              >
+                ×
+              </button>
+
+              <span className="pdc-welcome-modal-kicker">
+                Bienvenido a CanchasYa!
+              </span>
+
+              <h2>¡Gracias por sumarte, {nombreDueno}!</h2>
+
+              <p>
+                Nos alegra que tu club forme parte de CanchasYa!. Desde este panel
+                vas a poder gestionar tus canchas, revisar reservas y controlar
+                tus ingresos diarios y mensuales.
+              </p>
+
+              <div className="pdc-welcome-modal-box">
+                <h3>Primer paso recomendado</h3>
+
+                <p>
+                  Te sugerimos asignarle un <strong>precio por hora</strong> a los
+                  turnos de cada cancha o deporte. Esto es importante para que el
+                  sistema pueda calcular correctamente tus ingresos del día y del mes.
+                </p>
+
+                <p>
+                  Si una cancha queda en <strong>$0</strong>, las reservas asociadas
+                  no van a reflejar ingresos reales en el dashboard.
+                </p>
+              </div>
+
+              <div className="pdc-welcome-modal-actions">
+                <button
+                  type="button"
+                  className="pdc-welcome-modal-primary"
+                  onClick={irAConfiguracionDesdeWelcome}
+                >
+                  Configurar mis canchas
+                </button>
+
+                <button
+                  type="button"
+                  className="pdc-welcome-modal-secondary"
+                  onClick={cerrarWelcomeModal}
+                >
+                  Lo haré después
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+        )}
+        {showWelcomeModal && (
+          <div
+            className="pdc-welcome-modal-backdrop"
+            onClick={cerrarWelcomeModal}
+          >
+            <div
+              className="pdc-welcome-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="pdc-welcome-modal-close"
+                onClick={cerrarWelcomeModal}
+                aria-label="Cerrar bienvenida"
+              >
+                ×
+              </button>
+
+              <span className="pdc-welcome-modal-kicker">
+                Bienvenido a CanchasYa!
+              </span>
+
+              <h2>¡Gracias por sumarte, {nombreDueno}!</h2>
+
+              <p>
+                Nos alegra que tu club forme parte de CanchasYa!. Desde este panel
+                vas a poder gestionar tus canchas, revisar reservas y controlar
+                tus ingresos diarios y mensuales.
+              </p>
+
+              <div className="pdc-welcome-modal-box">
+                <h3>Primer paso recomendado</h3>
+
+                <p>
+                  Te sugerimos asignarle un <strong>precio por hora</strong> a los
+                  turnos de cada cancha o deporte. Esto es importante para que el
+                  sistema pueda calcular correctamente tus ingresos del día y del mes.
+                </p>
+
+                <p>
+                  Si una cancha queda en <strong>$0</strong>, las reservas asociadas
+                  no van a reflejar ingresos reales en el dashboard.
+                </p>
+              </div>
+
+              <div className="pdc-welcome-modal-actions">
+                <button
+                  type="button"
+                  className="pdc-welcome-modal-primary"
+                  onClick={irAConfiguracionDesdeWelcome}
+                >
+                  Configurar mis canchas
+                </button>
+
+                <button
+                  type="button"
+                  className="pdc-welcome-modal-secondary"
+                  onClick={cerrarWelcomeModal}
+                >
+                  Lo haré después
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
