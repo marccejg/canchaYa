@@ -502,7 +502,13 @@ function DashboardUsuario({
   useEffect(() => {
     const fetchClubes = async () => {
       try {
-        const response = await fetch('http://localhost:3000/club/aceptados');
+        const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
+        const response = await fetch('http://localhost:3000/club/aceptados', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
         if (response.ok) {
           const data = await response.json();
           const activos = data
@@ -955,8 +961,12 @@ function DashboardUsuario({
     if (!resultado.isConfirmed) return;
 
     try {
+      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
       const response = await fetch(`http://localhost:3000/reserva/${reserva.id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (!response.ok) {
@@ -1033,24 +1043,36 @@ function DashboardUsuario({
       let response;
 
       if (estaModificando) {
-        // Primero intentamos PATCH. Si tu backend usa PUT, hacemos fallback automático.
+        // Primero intentamos PATCH.
+        const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
         response = await fetch(`http://localhost:3000/reserva/${reservaEnEdicionSnapshot.id}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify(reservaDTO),
         });
 
         if (response.status === 404 || response.status === 405) {
+          const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
           response = await fetch(`http://localhost:3000/reserva/${reservaEnEdicionSnapshot.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              //'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify(reservaDTO),
           });
         }
       } else {
+        const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
         response = await fetch('http://localhost:3000/reserva', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify(reservaDTO),
         });
       }
