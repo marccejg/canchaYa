@@ -968,7 +968,10 @@ function DashboardUsuario({
   const iniciarModificacionReserva = (reserva) => {
     if (!reserva.puedeGestionar) return;
 
+    // Guardamos la reserva original para eliminarla al confirmar la nueva
     setReservaEnEdicion(reserva);
+
+    // Mantenemos deporte, club y cancha seleccionados
     setDeporteSeleccionado(reserva.deporte || null);
     setClubSeleccionado(reserva.club || null);
     const clubDeLaReserva = buscarClubPorNombre(reserva.club, clubesActivos);
@@ -978,9 +981,15 @@ function DashboardUsuario({
         : cancha.nombre === reserva.cancha
     );
     setCanchaSeleccionada(canchaDeLaReserva || null);
-    setFechaSeleccionada(reserva.fechaDate ? formatearFecha(reserva.fechaDate) : reserva.fecha);
-    setHorarioSeleccionado(reserva.hora || null);
+
+    // Limpiamos fecha y hora para que el usuario elija nuevos
+    setFechaSeleccionada(null);
+    setHorarioSeleccionado(null);
+
     setMenuReservaAbierto(null);
+
+    // Llevamos al usuario al panel de selección
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   /*
@@ -1079,9 +1088,6 @@ function DashboardUsuario({
     }
 
     // Snapshot del estado de edición ANTES de cualquier await.
-    // Esto evita que cambios de estado durante el await (re-render, click en
-    // "Reiniciar selección", etc.) provoquen que se cree una nueva reserva
-    // en lugar de modificar la existente.
     const reservaEnEdicionSnapshot = reservaEnEdicion;
     const estaModificando = Boolean(reservaEnEdicionSnapshot?.id);
 
@@ -1102,50 +1108,37 @@ function DashboardUsuario({
     setEnviandoReserva(true);
 
     try {
-      let response;
+      const token = localStorage.getItem('token');
 
-      if (estaModificando) {
-        // Primero intentamos PATCH.
-        const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-        response = await fetch(`http://localhost:3000/reserva/${reservaEnEdicionSnapshot.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(reservaDTO),
-        });
-
-        if (response.status === 404 || response.status === 405) {
-          const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-          response = await fetch(`http://localhost:3000/reserva/${reservaEnEdicionSnapshot.id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              //'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(reservaDTO),
-          });
-        }
-      } else {
-        const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-        response = await fetch('http://localhost:3000/reserva', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(reservaDTO),
-        });
-      }
+      // Paso 1: Crear la nueva reserva (tanto para modificación como para nueva)
+      const response = await fetch('http://localhost:3000/reserva', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(reservaDTO),
+      });
 
       if (response.ok) {
         const guardada = await response.json();
 
+        // Si era modificación y la nueva se creó bien, borramos la original
+        if (estaModificando) {
+          const deleteResponse = await fetch(`http://localhost:3000/reserva/${reservaEnEdicionSnapshot.id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (deleteResponse.ok && onDeleteReserva) {
+            onDeleteReserva(reservaEnEdicionSnapshot.id);
+          }
+        }
+
         const nuevaReserva = {
-          id: estaModificando
-            ? reservaEnEdicionSnapshot.id
-            : guardada?.id_reserva || Date.now(),
+          id: guardada?.id_reserva || Date.now(),
           id_cancha: canchaSeleccionada.id,
           deporte: deporteSeleccionado,
           club: clubSeleccionado,
@@ -1161,15 +1154,10 @@ function DashboardUsuario({
           accion: estaModificando ? 'modificada' : 'confirmada',
         };
 
-        if (estaModificando && onUpdateReserva) {
-          onUpdateReserva(reservaEnEdicionSnapshot.id, nuevaReserva);
-        } else if (onAddReserva) {
+        if (onAddReserva) {
           onAddReserva(nuevaReserva);
         }
 
-        // Refrescamos desde el backend para que el panel siempre refleje
-        // la verdad de la base de datos (evita que aparezcan duplicados o
-        // versiones viejas si por algún motivo la actualización local falló).
         if (onRefreshReservas) {
           onRefreshReservas();
         }
@@ -1181,7 +1169,7 @@ function DashboardUsuario({
         mostrarError(
           estaModificando ? 'No se pudo modificar' : 'No se pudo reservar',
           estaModificando
-            ? 'Hubo un problema al modificar la reserva en el servidor.'
+            ? 'Hubo un problema al crear la nueva reserva, por lo que se conservó la original.'
             : 'Hubo un problema al procesar la reserva en el servidor.'
         );
       }
