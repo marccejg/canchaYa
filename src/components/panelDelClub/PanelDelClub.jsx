@@ -284,7 +284,17 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
         }
 
         const data = await response.json();
-        setDeportesDisponibles(Array.isArray(data) ? data : []);
+
+        setDeportesDisponibles(
+          Array.isArray(data)
+            ? [...data].sort((a, b) => {
+              const textoA = a.nombre_deporte || "";
+              const textoB = b.nombre_deporte || "";
+              return textoA.localeCompare(textoB);
+            })
+            : []
+        );
+
       } catch (error) {
         console.error('Error cargando deportes:', error);
         setDeportesDisponibles([]);
@@ -597,8 +607,8 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     });
 
 
-  
-   return (
+
+  return (
     <div className="pdc-owner-dashboard">
       {/* 
         Este contenedor centra todo el contenido del dashboard.

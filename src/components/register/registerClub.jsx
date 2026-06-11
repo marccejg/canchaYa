@@ -78,12 +78,26 @@ function Register({ onRegisterComplete, onCancelRegister }) {
   const [provincias, setProvincias] = useState([]);
   const [ciudades, setCiudades] = useState([]);
 
-  useEffect(() => {
+   useEffect(() => {
       const loadProvincias = async () => {
         try {
           const res = await fetch('http://localhost:3000/georef/provincias');
           const data = await res.json();
-          setProvincias(Array.isArray(data) ? data : data.provincias || []);
+  
+  
+          // 1. Extraemos el arreglo de provincias de forma segura
+          const listaProvincias = Array.isArray(data) ? data : (data.provincias || []);
+  
+          // 2. Ordenamos la lista alfabéticamente por el campo 'nombre' y actualizamos el estado
+          setProvincias(
+            [...listaProvincias].sort((a, b) => {
+              const textoA = a.nombre || "";
+              const textoB = b.nombre || "";
+              return textoA.localeCompare(textoB);
+            })
+          );
+  
+  
         } catch (err) {
           console.error('Error provincias', err);
         }
@@ -101,7 +115,14 @@ function Register({ onRegisterComplete, onCancelRegister }) {
             `http://localhost:3000/georef/localidades?provincia=${encodeURIComponent(formData.provincia)}`
           );
           const data = await res.json();
-          setCiudades(Array.isArray(data) ? data : data.localidades || []);
+          const listaCiudades = Array.isArray(data) ? data : (data.localidades || []);
+          setCiudades(
+            [...listaCiudades].sort((a, b) => {
+              const textoA = a.nombre || "";
+              const textoB = b.nombre || "";
+              return textoA.localeCompare(textoB);
+            })
+          );
         } catch (err) {
           console.error('Error ciudades', err);
         }
