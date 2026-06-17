@@ -241,7 +241,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
           },
           body: JSON.stringify({
             nombre: `${formData.nombre} ${formData.apellido}`,
-            club: formData.razonSocial,
+            razonSocial: formData.razonSocial,
             email: formData.email,
             subject: 'Club Registrado en CanchasYa!',
             message: ``,

@@ -196,6 +196,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
             nombre: `${formData.nombre} ${formData.apellido}`,
             email: formData.email,
             subject: 'Bienvenido a CanchasYa!',
+            razonSocial: '',
             message: ``,
           }),
         });
