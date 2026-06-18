@@ -1294,7 +1294,10 @@ function DashboardUsuario({
               </div>
 
               <nav className="dashboard-header__social">
-                <a href="mailto:canchasYaa@gmail.com" aria-label="Email">
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=ycanchas@gmail.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                aria-label="Email">
                   <i className="bi bi-envelope-fill"></i>
                 </a>
 
