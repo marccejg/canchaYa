@@ -1158,6 +1158,33 @@ function DashboardUsuario({
           onAddReserva(nuevaReserva);
         }
 
+        try {
+          const responseMail = await fetch('http://localhost:3000/contact', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              nombre: `${usuario?.nombre || ''} ${usuario?.apellido || ''}`.trim(),
+              email: usuario?.email,
+              subject: estaModificando ? 'Reserva actualizada' : 'Reserva Exitosa',
+              razonSocial: '',
+              message: `Reserva ${estaModificando ? 'actualizada' : 'confirmada'} para ${canchaSeleccionada?.nombre || ''} en ${clubSeleccionado || ''} el ${fechaSeleccionada} a las ${horarioSeleccionado} hs.`,
+              fecha: fechaSeleccionada,
+              hora: horarioSeleccionado,
+              cancha: canchaSeleccionada?.nombre || '',
+              club: clubSeleccionado || ''
+            }),
+          });
+
+          if (!responseMail.ok) {
+            const errorText = await responseMail.text();
+            console.error('Error al enviar el correo de reserva:', responseMail.status, errorText);
+          }
+        } catch (mailError) {
+          console.warn('El correo de reserva no se pudo enviar:', mailError);
+        }
+
         if (onRefreshReservas) {
           onRefreshReservas();
         }
