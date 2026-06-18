@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 
@@ -14,6 +14,33 @@ import { useAuth } from './hooks/useAuth';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+
+const restaurarUsuarioDesdeStorage = () => {
+  try {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    localStorage.removeItem('user');
+    return null;
+  }
+};
+
+const mapReservaDesdeApi = (r) => ({
+  id: r.id_reserva,
+  id_cancha: r.cancha?.id_cancha,
+  deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
+  club: r.cancha?.club?.nombre_club || 'Club',
+  cancha: r.cancha?.nombre_cancha || 'Cancha',
+  fecha: r.fecha,
+  hora: r.hora_inicio?.slice(0, 5) || '',
+  estado: r.estado
+    ? r.estado.charAt(0).toUpperCase() + r.estado.slice(1)
+    : 'Confirmada',
+  direccion: r.cancha?.club?.direccion_club || '',
+  ciudad: r.cancha?.club?.ciudad_club || '',
+  provincia: r.cancha?.club?.provincia_club || '',
+  precio: r.monto_total,
+});
 
 /*
   App es el componente raíz de CanchasYa.
@@ -34,10 +61,7 @@ function App() {
     adminUser guarda el administrador logueado.
   */
 
-  const [currentUser, setCurrentUser] = useState(() => {
-  const saved = localStorage.getItem('user');
-  return saved ? JSON.parse(saved) : null;
-});
+  const [currentUser, setCurrentUser] = useState(restaurarUsuarioDesdeStorage);
   const [adminUser, setAdminUser] = useState(null);
 
   /*
@@ -72,29 +96,15 @@ function App() {
 
   const fetchReservasPorClub = async (idClub) => {
     try {
-      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:3000/reserva/club/${idClub}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
       if (response.ok) {
         const data = await response.json();
-        const reservasMapeadas = data.map(r => ({
-          id: r.id_reserva,
-          id_cancha: r.cancha?.id_cancha,
-          deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
-          club: r.cancha?.club?.nombre_club || 'Club',
-          cancha: r.cancha?.nombre_cancha || 'Cancha',
-          fecha: r.fecha,
-          hora: r.hora_inicio.slice(0, 5),
-          estado: r.estado.charAt(0).toUpperCase() + r.estado.slice(1),
-          direccion: r.cancha?.club?.direccion_club || '',
-          ciudad: r.cancha?.club?.ciudad_club || '',
-          provincia: r.cancha?.club?.provincia_club || '',
-          precio: r.monto_total
-        }));
-        setReservas(reservasMapeadas);
+        setReservas(data.map(mapReservaDesdeApi));
       }
     } catch (error) {
       console.error('Error al cargar reservas del club:', error);
@@ -103,28 +113,15 @@ function App() {
 
   const fetchReservas = async (idUsuario) => {
     try {
-      const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:3000/reserva/usuario/${idUsuario}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
       if (response.ok) {
         const data = await response.json();
-        const reservasMapeadas = data.map(r => ({
-          id: r.id_reserva,
-          id_cancha: r.cancha?.id_cancha,
-          deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
-          club: r.cancha?.club?.nombre_club || 'Club',
-          cancha: r.cancha?.nombre_cancha || 'Cancha',
-          fecha: r.fecha,
-          hora: r.hora_inicio.slice(0, 5),
-          estado: r.estado.charAt(0).toUpperCase() + r.estado.slice(1),
-          direccion: r.cancha?.club?.direccion_club || '',
-          ciudad: r.cancha?.club?.ciudad_club || '',
-          provincia: r.cancha?.club?.provincia_club || '',
-          precio: r.monto_total
-        }));
+        const reservasMapeadas = data.map(mapReservaDesdeApi);
         setReservas(reservasMapeadas);
         return reservasMapeadas;
       }
@@ -136,16 +133,39 @@ function App() {
   };
 
   /*
+    Al recargar la página, React reinicia el estado en memoria.
+    El usuario y el token quedan en localStorage, pero reservas vuelve a [].
+    Este efecto vuelve a pedir los datos al backend si la sesión sigue activa.
+  */
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!currentUser || !token) return;
+
+    if (currentUser.tipo === 'usuario' && currentUser.id_usuario) {
+      fetchReservas(currentUser.id_usuario);
+      return;
+    }
+
+    if (
+      (currentUser.tipo === 'club' || currentUser.tipo === 'dueno') &&
+      currentUser.club?.id_club
+    ) {
+      fetchReservasPorClub(currentUser.club.id_club);
+    }
+  }, []);
+
+  /*
     Cierra sesión.
     Limpia usuario común y administrador por seguridad.
   */
 
-  const handleLogout = () => {    
-    logout(); // llama a la función logout de useAuth para limpiar el estado de autenticación
+  const handleLogout = () => {
+    logout();
     setCurrentUser(null);
+    setReservas([]);
     localStorage.removeItem('token');
-    localStorage.removeItem('user'); // ← agregar esto para limpiar el usuario guardado en localStorage
-    // setAdminUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('auth_user');
     navigate('/');
   };
 

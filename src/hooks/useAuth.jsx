@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
  // coment //
 // ─── Storage helpers ───────────────────────────────────────────────────────────
-const STORAGE_KEY = "auth_user";
+const STORAGE_KEY = "user";
  
 const persist = (user) =>
   user
@@ -19,16 +19,18 @@ const restore = () => {
  
 
 export function useAuth() {
-  const init = restore()||{};
+  const [user, setUser] = useState(restore);
 
-    const [user, setUser] = useState(init);
- 
+  useEffect(() => {
+    persist(user);
+  }, [user]);
 
-  useEffect(() => { persist(user); }, [user]);
- 
-  const login      = useCallback((userData) => setUser(userData), []);
-  const logout     = useCallback(() => setUser(null), []);
-  const updateUser = useCallback((partial) => setUser((prev) => ({ ...prev, ...partial })), []);
- 
-  return { user, isLoggedIn: user !== null, login, logout, updateUser };
+  const login = useCallback((userData) => setUser(userData), []);
+  const logout = useCallback(() => setUser(null), []);
+  const updateUser = useCallback(
+    (partial) => setUser((prev) => (prev ? { ...prev, ...partial } : prev)),
+    []
+  );
+
+  return { user, isLoggedIn: Boolean(user), login, logout, updateUser };
 }
