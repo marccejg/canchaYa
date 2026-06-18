@@ -1044,6 +1044,35 @@ function DashboardUsuario({
         throw new Error('No se pudo eliminar la reserva en el servidor.');
       }
 
+      if (usuario?.email) {
+        try {
+          const responseMail = await fetch('http://localhost:3000/contact', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              nombre: `${usuario?.nombre || ''} ${usuario?.apellido || ''}`.trim(),
+              email: usuario.email,
+              subject: 'Reserva cancelada',
+              razonSocial: '',
+              message: `Tu reserva en ${reserva.club} (${reserva.cancha}) para el ${reserva.fecha} a las ${reserva.hora} hs fue cancelada.`,
+              fecha: reserva.fecha,
+              hora: reserva.hora,
+              cancha: reserva.cancha,
+              club: reserva.club,
+            }),
+          });
+
+          if (!responseMail.ok) {
+            const errorText = await responseMail.text();
+            console.error('Error al enviar el correo de cancelación:', responseMail.status, errorText);
+          }
+        } catch (mailError) {
+          console.warn('El correo de cancelación no se pudo enviar:', mailError);
+        }
+      }
+
       setReservasEliminadas((prev) => [...prev, reserva.id]);
       onDeleteReserva?.(reserva.id);
       if (onRefreshReservas) {
@@ -1134,6 +1163,37 @@ function DashboardUsuario({
 
           if (deleteResponse.ok && onDeleteReserva) {
             onDeleteReserva(reservaEnEdicionSnapshot.id);
+          }
+        }
+
+        if (usuario?.email) {
+          try {
+            const responseMail = await fetch('http://localhost:3000/contact', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                nombre: `${usuario?.nombre || ''} ${usuario?.apellido || ''}`.trim(),
+                email: usuario.email,
+                subject: estaModificando ? 'Reserva modificada' : 'Reserva Exitosa',
+                razonSocial: '',
+                message: estaModificando
+                  ? `Tu reserva fue modificada para ${canchaSeleccionada?.nombre || ''} en ${clubSeleccionado || ''} el ${fechaSeleccionada} a las ${horarioSeleccionado} hs.`
+                  : `Tu reserva fue confirmada para ${canchaSeleccionada?.nombre || ''} en ${clubSeleccionado || ''} el ${fechaSeleccionada} a las ${horarioSeleccionado} hs.`,
+                fecha: fechaSeleccionada,
+                hora: horarioSeleccionado,
+                cancha: canchaSeleccionada?.nombre || '',
+                club: clubSeleccionado || ''
+              }),
+            });
+
+            if (!responseMail.ok) {
+              const errorText = await responseMail.text();
+              console.error('Error al enviar el correo de reserva:', responseMail.status, errorText);
+            }
+          } catch (mailError) {
+            console.warn('El correo de reserva no se pudo enviar:', mailError);
           }
         }
 
