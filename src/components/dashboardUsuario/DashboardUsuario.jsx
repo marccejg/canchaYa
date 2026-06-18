@@ -1308,7 +1308,7 @@ function DashboardUsuario({
                 </a>
 
                 <a
-                  href="https://www.facebook.com/canchasyaa/"
+                  href="https://www.facebook.com/profile.php?id=61590861895261"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook"
