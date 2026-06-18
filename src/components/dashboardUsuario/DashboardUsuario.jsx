@@ -3,6 +3,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import './DashboardUsuario.css';
+import ClubUbicacionMapa, { construirUbicacionCompleta } from './ClubUbicacionMapa';
 // import { useAuth } from '../../hooks/useAuth';
 
 import logoCanchasYa from '../../assets/logo_blanco_720.png';
@@ -384,6 +385,16 @@ const normalizarReserva = (reserva, listaClubes = []) => {
       reserva.limite || '24 hs antes del turno',
     direccion:
       reserva.direccion || clubEncontrado?.direccion || '',
+    ciudad:
+      reserva.ciudad || clubEncontrado?.ciudad || '',
+    provincia:
+      reserva.provincia || clubEncontrado?.provincia || '',
+    ubicacionCompleta: construirUbicacionCompleta({
+      club: reserva.club || clubEncontrado?.nombre,
+      direccion: reserva.direccion || clubEncontrado?.direccion,
+      ciudad: reserva.ciudad || clubEncontrado?.ciudad,
+      provincia: reserva.provincia || clubEncontrado?.provincia,
+    }),
     fechaDate,
     fechaHoraDate,
   };
@@ -591,6 +602,8 @@ function DashboardUsuario({
                 id: c.id,
                 nombre: c.nombre || 'Club sin nombre',
                 direccion: c.direccion || 'Sin dirección',
+                ciudad: c.ciudad || '',
+                provincia: c.provincia || '',
                 email: c.email || 'No disponible',
                 telefono: c.telefono || 'No disponible',
                 distancia: 'A calcular',
@@ -1211,6 +1224,8 @@ function DashboardUsuario({
           ),
           limite: '24 hs antes del turno',
           direccion: clubActual?.direccion || '',
+          ciudad: clubActual?.ciudad || '',
+          provincia: clubActual?.provincia || '',
           accion: estaModificando ? 'modificada' : 'confirmada',
         };
 
@@ -1366,15 +1381,28 @@ function DashboardUsuario({
               </div>
 
               <nav className="dashboard-header__social">
-                <a href="#" aria-label="Email">
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=ycanchas@gmail.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                aria-label="Email">
                   <i className="bi bi-envelope-fill"></i>
                 </a>
 
-                <a href="#" aria-label="Instagram">
+                <a
+                  href="https://www.instagram.com/canchasyaa/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                >
                   <i className="bi bi-instagram"></i>
                 </a>
 
-                <a href="#" aria-label="Facebook">
+                <a
+                  href="https://www.facebook.com/profile.php?id=61590861895261"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                >
                   <i className="bi bi-facebook"></i>
                 </a>
               </nav>
@@ -1834,6 +1862,14 @@ function DashboardUsuario({
                         </small>
                       </div>
                     </div>
+
+                    <ClubUbicacionMapa
+                      club={proximaReserva.club}
+                      direccion={proximaReserva.direccion}
+                      ciudad={proximaReserva.ciudad}
+                      provincia={proximaReserva.provincia}
+                      titulo="Cómo llegar"
+                    />
                   </div>
                 ) : (
                   <div className="next-reservation next-reservation--empty">

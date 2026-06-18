@@ -361,6 +361,14 @@
   font-size: 0.9rem;
 }
 
+.pdc-court-info small {
+  display: block;
+  margin: -2px 0 8px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
 .pdc-court-info span {
   display: inline-block;
   padding: 4px 11px;
@@ -744,6 +752,21 @@
   margin-top: 14px;
 }
 
+.pdc-edit-cancha-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.pdc-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
 .pdc-form-group {
   display: flex;
   flex-direction: column;
@@ -814,6 +837,103 @@
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.pdc-settings-courts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pdc-settings-court {
+  padding: 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.pdc-settings-court-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.pdc-settings-court-summary strong {
+  display: block;
+  font-size: 0.98rem;
+  font-weight: 900;
+}
+
+.pdc-settings-court-summary span {
+  display: block;
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.84rem;
+}
+
+.pdc-settings-court-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pdc-icon-action {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.2s ease;
+}
+
+.pdc-icon-action:hover {
+  background: rgba(102, 126, 234, 0.42);
+  border-color: rgba(102, 126, 234, 0.95);
+}
+
+.pdc-icon-action-edit {
+  border-color: rgba(56, 189, 248, 0.65);
+  background: rgba(14, 165, 233, 0.18);
+  color: #dff7ff;
+}
+
+.pdc-icon-action-edit:hover {
+  background: rgba(14, 165, 233, 0.34);
+  border-color: rgba(56, 189, 248, 0.95);
+}
+
+.pdc-icon-action-clock {
+  border-color: rgba(251, 146, 60, 0.68);
+  background: rgba(249, 115, 22, 0.18);
+  color: #fff1df;
+}
+
+.pdc-icon-action-clock:hover {
+  background: rgba(249, 115, 22, 0.34);
+  border-color: rgba(251, 146, 60, 0.95);
+}
+
+.pdc-icon-action-delete {
+  border-color: rgba(255, 77, 77, 0.55);
+  background: rgba(239, 68, 68, 0.18);
+  color: #ffffff;
+}
+
+.pdc-icon-action-delete:hover {
+  background: rgba(239, 68, 68, 0.34);
+  border-color: rgba(255, 77, 77, 0.95);
+}
+
+.pdc-court-schedule-editor {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .pdc-btn-save-settings {
@@ -996,6 +1116,7 @@
   .pdc-court-reservas {
     grid-column: 2;
   }
+
 }
 
 @media (max-width: 768px) {
@@ -1028,6 +1149,15 @@
 
   .pdc-court-reservas {
     grid-column: auto;
+  }
+
+  .pdc-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdc-settings-court-summary {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .pdc-panel-header,
