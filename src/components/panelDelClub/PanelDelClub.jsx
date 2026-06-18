@@ -83,29 +83,30 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   */
   const [showCalendar, setShowCalendar] = useState(false);
 
-  /*
-    Guarda los horarios seleccionados como disponibles.
-    Inicialmente se cargan todos los horarios desde staticData.
-    Cuando se abren los settings, se actualizan desde el backend.
-  */
-  const [horariosDisponibles, setHorariosDisponibles] = useState(
-    horarios.map((h) => h.id)
-  );
-
-  /*
-    Indica si se están guardando los horarios en el backend.
-  */
-  const [guardandoHorarios, setGuardandoHorarios] = useState(false);
+  const horariosIniciales = horarios.map((h) => h.id);
+  const [horariosPorCancha, setHorariosPorCancha] = useState({});
+  const [canchaEditandoId, setCanchaEditandoId] = useState(null);
+  const [canchaHorariosId, setCanchaHorariosId] = useState(null);
+  const [guardandoHorariosId, setGuardandoHorariosId] = useState(null);
+  const [guardandoCanchaId, setGuardandoCanchaId] = useState(null);
+  const [editCancha, setEditCancha] = useState({
+    nombre: '',
+    deporte: '',
+    tipo_suelo: '',
+    descripcion: '',
+    precio_por_hora: '',
+  });
 
   /*
     Estado del formulario para agregar una cancha nueva.
     El precio se guarda como texto para permitir mostrarlo con punto de miles.
   */
   const [newCancha, setNewCancha] = useState({
-    'id_club': '',
-    'id_deporte': '',
-    'nombre_cancha': '',
-    'descripcion_cancha': '',
+    nombre: '',
+    deporte: '',
+    tipo_suelo: '',
+    descripcion: '',
+    precio_por_hora: '',
   });
 
   /*
@@ -264,6 +265,63 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     });
   };
 
+  const handleEditCanchaPriceChange = (e) => {
+    setEditCancha({
+      ...editCancha,
+      precio_por_hora: formatPrice(e.target.value)
+    });
+  };
+
+  const getCanchaId = (cancha) => cancha.id_cancha || cancha.id;
+
+  const getDeporteId = (cancha) =>
+    cancha.id_deporte?.id_deporte || cancha.deporte?.id_deporte || cancha.id_deporte || '';
+
+  const getHorariosDeCancha = (idCancha) =>
+    horariosPorCancha[idCancha] || horariosIniciales;
+
+  const mapDisponibilidadesAHorarios = (disponibilidades) => {
+    if (!Array.isArray(disponibilidades) || disponibilidades.length === 0) {
+      return horariosIniciales;
+    }
+
+    const horasGuardadas = new Set();
+
+    disponibilidades.forEach((d) => {
+      const horaCorta = d.hora_inicio?.slice(0, 5);
+      if (horaCorta) horasGuardadas.add(horaCorta);
+    });
+
+    const idsHorarios = horarios
+      .filter((h) => horasGuardadas.has(h.hora))
+      .map((h) => h.id);
+
+    return idsHorarios.length > 0 ? idsHorarios : horariosIniciales;
+  };
+
+  const construirDisponibilidades = (idsHorarios) => {
+    const horasSeleccionadas = horarios
+      .filter((h) => idsHorarios.includes(h.id))
+      .map((h) => h.hora);
+
+    const disponibilidades = [];
+
+    for (let dia = 0; dia < 7; dia++) {
+      horasSeleccionadas.forEach((hora) => {
+        const [h, m] = hora.split(':').map(Number);
+        const horaFin = `${String(h + 1).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+
+        disponibilidades.push({
+          dia_semana: dia,
+          hora_inicio: `${hora}:00`,
+          hora_fin: horaFin,
+        });
+      });
+    }
+
+    return disponibilidades;
+  };
+
   /* =========================================================
      CARGA DE CANCHAS DEL CLUB
      Cuando el componente se monta, consulta al backend
@@ -339,47 +397,32 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     fetchDeportes();
   }, []);
 
-  /*
-    Carga los horarios disponibles guardados en el backend
-    cuando el dueño abre la sección de configuración.
-    Usa la primera cancha del club como referencia.
-  */
   useEffect(() => {
     if (!showSettings || !canchas.length) return;
 
     const cargarHorariosGuardados = async () => {
       try {
-        const primeraCancha = canchas[0];
-        const idCancha = primeraCancha.id_cancha || primeraCancha.id;
         const token = localStorage.getItem('token');
 
-        const response = await fetch(
-          `http://localhost:3000/disponibilidad/cancha/${idCancha}`,
-          { headers: { 'Authorization': `Bearer ${token}` } }
+        const entradas = await Promise.all(
+          canchas.map(async (cancha) => {
+            const idCancha = getCanchaId(cancha);
+            const response = await fetch(
+              `http://localhost:3000/disponibilidad/cancha/${idCancha}`,
+              { headers: { 'Authorization': `Bearer ${token}` } }
+            );
+
+            if (!response.ok) return [idCancha, horariosIniciales];
+
+            const disponibilidades = await response.json();
+            return [idCancha, mapDisponibilidadesAHorarios(disponibilidades)];
+          })
         );
 
-        if (!response.ok) return;
-
-        const disponibilidades = await response.json();
-
-        if (!Array.isArray(disponibilidades) || disponibilidades.length === 0) return;
-
-        // Extraer las horas únicas desde las disponibilidades
-        const horasGuardadas = new Set();
-        disponibilidades.forEach((d) => {
-          // hora_inicio viene como "09:00:00" o "09:00"
-          const horaCorta = d.hora_inicio?.slice(0, 5);
-          if (horaCorta) horasGuardadas.add(horaCorta);
-        });
-
-        // Mapear las horas guardadas a los IDs de horarios de staticData
-        const idsHorarios = horarios
-          .filter((h) => horasGuardadas.has(h.hora))
-          .map((h) => h.id);
-
-        if (idsHorarios.length > 0) {
-          setHorariosDisponibles(idsHorarios);
-        }
+        setHorariosPorCancha((prev) => ({
+          ...prev,
+          ...Object.fromEntries(entradas),
+        }));
       } catch (error) {
         console.error('Error al cargar horarios guardados:', error);
       }
@@ -388,58 +431,47 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     cargarHorariosGuardados();
   }, [showSettings, canchas]);
 
-  /*
-    Guarda los horarios seleccionados en el backend para TODAS las canchas del club.
-    Cada hora seleccionada se guarda para los 7 días de la semana.
-  */
-  const handleGuardarHorarios = async () => {
-    if (!canchas.length) return;
+  const toggleHorarioCancha = (idCancha, horarioId) => {
+    setHorariosPorCancha((prev) => {
+      const actuales = prev[idCancha] || horariosIniciales;
 
-    setGuardandoHorarios(true);
+      return {
+        ...prev,
+        [idCancha]: actuales.includes(horarioId)
+          ? actuales.filter((id) => id !== horarioId)
+          : [...actuales, horarioId],
+      };
+    });
+  };
+
+  const handleGuardarHorarios = async (idCancha) => {
+    if (!idCancha) return;
+
+    setGuardandoHorariosId(idCancha);
 
     try {
-      // Obtener las horas seleccionadas desde staticData
-      const horasSeleccionadas = horarios
-        .filter((h) => horariosDisponibles.includes(h.id))
-        .map((h) => h.hora);
-
-      // Armar las disponibilidades para los 7 días de la semana
-      const disponibilidades = [];
-      for (let dia = 0; dia < 7; dia++) {
-        horasSeleccionadas.forEach((hora) => {
-          const [h, m] = hora.split(':').map(Number);
-          const horaFin = `${String(h + 1).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
-          disponibilidades.push({
-            dia_semana: dia,
-            hora_inicio: `${hora}:00`,
-            hora_fin: horaFin,
-          });
-        });
-      }
-
+      const disponibilidades = construirDisponibilidades(getHorariosDeCancha(idCancha));
       const token = localStorage.getItem('token');
 
-      // Guardar para cada cancha del club
-      const promises = canchas.map(async (cancha) => {
-        const idCancha = cancha.id_cancha || cancha.id;
-        return fetch(`http://localhost:3000/disponibilidad/cancha/${idCancha}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify(disponibilidades),
-        });
+      const response = await fetch(`http://localhost:3000/disponibilidad/cancha/${idCancha}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(disponibilidades),
       });
 
-      await Promise.all(promises);
+      if (!response.ok) {
+        throw new Error('No se pudieron guardar los horarios');
+      }
 
-      setShowSettings(false);
+      setCanchaHorariosId(null);
 
       Swal.fire({
         icon: 'success',
         title: '¡Listo!',
-        text: 'La configuración del club fue guardada correctamente.',
+        text: 'Los horarios de la cancha fueron guardados correctamente.',
         confirmButtonText: 'Aceptar',
         confirmButtonColor: '#087bff',
         background: '#ffffff',
@@ -455,19 +487,12 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'No se pudieron guardar los horarios. Intentá nuevamente.',
+        text: 'No se pudieron guardar los horarios de esta cancha. Intentá nuevamente.',
         confirmButtonText: 'Aceptar',
       });
     } finally {
-      setGuardandoHorarios(false);
+      setGuardandoHorariosId(null);
     }
-  };
-  const toggleHorario = (horarioId) => {
-    setHorariosDisponibles((prev) =>
-      prev.includes(horarioId)
-        ? prev.filter((id) => id !== horarioId)
-        : [...prev, horarioId]
-    );
   };
 
   const handleAddCancha = async (e) => {
@@ -506,7 +531,8 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
           id_deporte: parseInt(newCancha.deporte),
           id_club: clubPrincipal.id_club,
           precio_por_hora: precioLimpio,
-          descripcion_cancha: newCancha.superficie
+          tipo_suelo: newCancha.tipo_suelo,
+          descripcion_cancha: newCancha.descripcion,
         }),
       });
 
@@ -533,8 +559,9 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
         setNewCancha({
           nombre: '',
           deporte: '',
-          superficie: '',
-          precio_por_hora: ''
+          tipo_suelo: '',
+          descripcion: '',
+          precio_por_hora: '',
         });
 
         setShowAddCancha(false);
@@ -570,6 +597,169 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
           title: 'cy-alert-title',
           confirmButton: 'cy-alert-button',
         },
+      });
+    }
+  };
+
+  const iniciarEdicionCancha = (cancha) => {
+    setCanchaHorariosId(null);
+    setCanchaEditandoId(cancha.id_cancha);
+    setEditCancha({
+      nombre: cancha.nombre_cancha || '',
+      deporte: String(getDeporteId(cancha) || ''),
+      tipo_suelo: cancha.tipo_suelo || '',
+      descripcion: cancha.descripcion_cancha || '',
+      precio_por_hora: formatPrice(normalizarImporteDesdeBackend(cancha.precio_por_hora || 0)),
+    });
+  };
+
+  const cancelarEdicionCancha = () => {
+    setCanchaEditandoId(null);
+    setEditCancha({
+      nombre: '',
+      deporte: '',
+      tipo_suelo: '',
+      descripcion: '',
+      precio_por_hora: '',
+    });
+  };
+
+  const handleUpdateCancha = async (e, canchaId) => {
+    e.preventDefault();
+
+    const precioLimpio = parsePrice(editCancha.precio_por_hora);
+
+    if (!editCancha.nombre || !editCancha.deporte || !precioLimpio) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos incompletos',
+        text: 'Completá nombre, deporte y precio para guardar la cancha.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#087bff',
+      });
+      return;
+    }
+
+    setGuardandoCanchaId(canchaId);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:3000/cancha/${canchaId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          nombre_cancha: editCancha.nombre,
+          id_deporte: parseInt(editCancha.deporte),
+          precio_por_hora: precioLimpio,
+          tipo_suelo: editCancha.tipo_suelo,
+          descripcion_cancha: editCancha.descripcion,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudo actualizar la cancha');
+      }
+
+      const canchaActualizada = await response.json();
+
+      setCanchas((prev) =>
+        prev.map((cancha) =>
+          cancha.id_cancha === canchaId
+            ? { ...cancha, ...canchaActualizada }
+            : cancha
+        )
+      );
+
+      cancelarEdicionCancha();
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Cancha actualizada',
+        text: 'Los datos de la cancha fueron guardados correctamente.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#087bff',
+        background: '#ffffff',
+        color: '#071f4d',
+        customClass: {
+          popup: 'cy-alert-popup',
+          title: 'cy-alert-title',
+          confirmButton: 'cy-alert-button',
+        },
+      });
+    } catch (error) {
+      console.error('Error al actualizar cancha:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo actualizar la cancha. Intentá nuevamente.',
+        confirmButtonText: 'Aceptar',
+      });
+    } finally {
+      setGuardandoCanchaId(null);
+    }
+  };
+
+  const handleDeleteCancha = async (cancha) => {
+    const canchaId = getCanchaId(cancha);
+
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Eliminar cancha',
+      text: `¿Querés eliminar "${cancha.nombre_cancha}"?`,
+      showCancelButton: true,
+      confirmButtonText: 'Eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      background: '#ffffff',
+      color: '#071f4d',
+      customClass: {
+        popup: 'cy-alert-popup',
+        title: 'cy-alert-title',
+        confirmButton: 'cy-alert-button cy-alert-button--danger',
+        cancelButton: 'cy-alert-cancel',
+      },
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:3000/cancha/${canchaId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudo eliminar la cancha');
+      }
+
+      setCanchas((prev) => prev.filter((item) => getCanchaId(item) !== canchaId));
+      setHorariosPorCancha((prev) => {
+        const next = { ...prev };
+        delete next[canchaId];
+        return next;
+      });
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Cancha eliminada',
+        text: 'La cancha ya no aparece en el panel.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#087bff',
+      });
+    } catch (error) {
+      console.error('Error al eliminar cancha:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo eliminar la cancha. Intentá nuevamente.',
+        confirmButtonText: 'Aceptar',
       });
     }
   };
@@ -808,27 +998,6 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             <div className="pdc-settings-container">
               <h2>Configuración del Club</h2>
 
-              {/* Selector de horarios disponibles */}
-              <div className="pdc-settings-box">
-                <h3>Selecciona tus horarios disponibles</h3>
-                <p className="pdc-settings-description">
-                  Elige en qué horas tu club estará disponible para reservas
-                </p>
-
-                <div className="pdc-horarios-grid">
-                  {horarios.map((horario) => (
-                    <label key={horario.id} className="pdc-horario-checkbox">
-                      <input
-                        type="checkbox"
-                        checked={horariosDisponibles.includes(horario.id)}
-                        onChange={() => toggleHorario(horario.id)}
-                      />
-                      <span className="pdc-horario-label">{horario.hora}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
               {/* Formulario para agregar canchas */}
               <div className="pdc-settings-box">
                 <h3>Gestionar canchas</h3>
@@ -878,13 +1047,25 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
                     </div>
 
                     <div className="pdc-form-group">
-                      <label>Superficie:</label>
+                      <label>Tipo de suelo:</label>
                       <input
                         type="text"
-                        placeholder="Ej: Cemento, Pasto sintético, etc"
-                        value={newCancha.superficie}
+                        placeholder="Ej: Cemento, césped sintético, polvo de ladrillo"
+                        value={newCancha.tipo_suelo}
                         onChange={(e) =>
-                          setNewCancha({ ...newCancha, superficie: e.target.value })
+                          setNewCancha({ ...newCancha, tipo_suelo: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    <div className="pdc-form-group">
+                      <label>Descripción:</label>
+                      <input
+                        type="text"
+                        placeholder="Ej: Techada, iluminación LED, medidas oficiales"
+                        value={newCancha.descripcion}
+                        onChange={(e) =>
+                          setNewCancha({ ...newCancha, descripcion: e.target.value })
                         }
                       />
                     </div>
@@ -918,15 +1099,191 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
                 )}
               </div>
 
-              {/* Botón guardar configuración */}
-              <div className="pdc-settings-actions">
-                <button
-                  className="pdc-btn-save-settings"
-                  onClick={handleGuardarHorarios}
-                  disabled={guardandoHorarios}
-                >
-                  {guardandoHorarios ? 'Guardando...' : 'Guardar cambios'}
-                </button>
+              <div className="pdc-settings-box">
+                <h3>Canchas configuradas</h3>
+                <p className="pdc-settings-description">
+                  Editá los datos de cada cancha o abrí el reloj para definir sus horarios.
+                </p>
+
+                {canchasProcesadas.length === 0 ? (
+                  <p className="pdc-alert pdc-alert-info">Todavía no hay canchas para configurar.</p>
+                ) : (
+                  <div className="pdc-settings-courts-list">
+                    {canchasProcesadas.map((cancha) => {
+                      const idCancha = getCanchaId(cancha);
+                      const editando = canchaEditandoId === idCancha;
+                      const editandoHorarios = canchaHorariosId === idCancha;
+                      const horariosActuales = getHorariosDeCancha(idCancha);
+
+                      return (
+                        <div className="pdc-settings-court" key={idCancha}>
+                          <div className="pdc-settings-court-summary">
+                            <div>
+                              <strong>{cancha.nombre_cancha}</strong>
+                              <span>
+                                {cancha.deporte}
+                                {cancha.tipo_suelo ? ` · ${cancha.tipo_suelo}` : ''}
+                              </span>
+                            </div>
+
+                            <div className="pdc-settings-court-actions">
+                              <button
+                                type="button"
+                                className="pdc-icon-action pdc-icon-action-edit"
+                                title="Editar cancha"
+                                onClick={() => iniciarEdicionCancha(cancha)}
+                              >
+                                <i className="bi bi-pencil-square"></i>
+                              </button>
+
+                              <button
+                                type="button"
+                                className="pdc-icon-action pdc-icon-action-clock"
+                                title="Editar horarios"
+                                onClick={() => {
+                                  setCanchaEditandoId(null);
+                                  setCanchaHorariosId(editandoHorarios ? null : idCancha);
+                                }}
+                              >
+                                <i className="bi bi-clock"></i>
+                              </button>
+
+                              <button
+                                type="button"
+                                className="pdc-icon-action pdc-icon-action-delete"
+                                title="Eliminar cancha"
+                                onClick={() => handleDeleteCancha(cancha)}
+                              >
+                                <i className="bi bi-trash"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          {editando && (
+                            <form
+                              className="pdc-edit-cancha-form"
+                              onSubmit={(e) => handleUpdateCancha(e, idCancha)}
+                            >
+                              <div className="pdc-form-grid">
+                                <div className="pdc-form-group">
+                                  <label>Nombre:</label>
+                                  <input
+                                    type="text"
+                                    value={editCancha.nombre}
+                                    onChange={(e) =>
+                                      setEditCancha({ ...editCancha, nombre: e.target.value })
+                                    }
+                                    required
+                                  />
+                                </div>
+
+                                <div className="pdc-form-group">
+                                  <label>Deporte:</label>
+                                  <select
+                                    value={editCancha.deporte}
+                                    onChange={(e) =>
+                                      setEditCancha({ ...editCancha, deporte: e.target.value })
+                                    }
+                                    required
+                                  >
+                                    <option value="">Selecciona un deporte</option>
+                                    {deportesDisponibles.map((deporte) => (
+                                      <option
+                                        key={deporte.id_deporte}
+                                        value={deporte.id_deporte}
+                                      >
+                                        {deporte.nombre_deporte}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+
+                                <div className="pdc-form-group">
+                                  <label>Tipo de suelo:</label>
+                                  <input
+                                    type="text"
+                                    value={editCancha.tipo_suelo}
+                                    onChange={(e) =>
+                                      setEditCancha({ ...editCancha, tipo_suelo: e.target.value })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="pdc-form-group">
+                                  <label>Precio por hora ($):</label>
+                                  <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={editCancha.precio_por_hora}
+                                    onChange={handleEditCanchaPriceChange}
+                                    required
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="pdc-form-group">
+                                <label>Descripción:</label>
+                                <input
+                                  type="text"
+                                  value={editCancha.descripcion}
+                                  onChange={(e) =>
+                                    setEditCancha({ ...editCancha, descripcion: e.target.value })
+                                  }
+                                />
+                              </div>
+
+                              <div className="pdc-form-actions">
+                                <button
+                                  type="submit"
+                                  className="pdc-btn-success"
+                                  disabled={guardandoCanchaId === idCancha}
+                                >
+                                  {guardandoCanchaId === idCancha ? 'Guardando...' : 'Guardar cancha'}
+                                </button>
+
+                                <button
+                                  type="button"
+                                  className="pdc-btn-cancel"
+                                  onClick={cancelarEdicionCancha}
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+                            </form>
+                          )}
+
+                          {editandoHorarios && (
+                            <div className="pdc-court-schedule-editor">
+                              <div className="pdc-horarios-grid">
+                                {horarios.map((horario) => (
+                                  <label key={horario.id} className="pdc-horario-checkbox">
+                                    <input
+                                      type="checkbox"
+                                      checked={horariosActuales.includes(horario.id)}
+                                      onChange={() => toggleHorarioCancha(idCancha, horario.id)}
+                                    />
+                                    <span className="pdc-horario-label">{horario.hora}</span>
+                                  </label>
+                                ))}
+                              </div>
+
+                              <div className="pdc-settings-actions">
+                                <button
+                                  type="button"
+                                  className="pdc-btn-save-settings"
+                                  onClick={() => handleGuardarHorarios(idCancha)}
+                                  disabled={guardandoHorariosId === idCancha}
+                                >
+                                  {guardandoHorariosId === idCancha ? 'Guardando...' : 'Guardar horarios'}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </section>
@@ -1023,6 +1380,12 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
                   <div className="pdc-court-info">
                     <h4>{cancha.nombre_cancha}</h4>
                     <p>{cancha.deporte}</p>
+                    {(cancha.tipo_suelo || cancha.descripcion_cancha) && (
+                      <small>
+                        {cancha.tipo_suelo || 'Sin tipo de suelo'}
+                        {cancha.descripcion_cancha ? ` · ${cancha.descripcion_cancha}` : ''}
+                      </small>
+                    )}
                     <span>Activa</span>
                   </div>
 
@@ -1085,6 +1448,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
                     <strong>{cancha.reservasHoy}</strong>
                     <small>Próxima: {cancha.proxima}</small>
                   </div>
+
                 </div>
               ))
             )}

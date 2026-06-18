@@ -90,6 +90,8 @@ function App() {
           hora: r.hora_inicio.slice(0, 5),
           estado: r.estado.charAt(0).toUpperCase() + r.estado.slice(1),
           direccion: r.cancha?.club?.direccion_club || '',
+          ciudad: r.cancha?.club?.ciudad_club || '',
+          provincia: r.cancha?.club?.provincia_club || '',
           precio: r.monto_total
         }));
         setReservas(reservasMapeadas);
@@ -119,6 +121,8 @@ function App() {
           hora: r.hora_inicio.slice(0, 5),
           estado: r.estado.charAt(0).toUpperCase() + r.estado.slice(1),
           direccion: r.cancha?.club?.direccion_club || '',
+          ciudad: r.cancha?.club?.ciudad_club || '',
+          provincia: r.cancha?.club?.provincia_club || '',
           precio: r.monto_total
         }));
         setReservas(reservasMapeadas);

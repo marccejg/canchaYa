@@ -3,6 +3,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import './DashboardUsuario.css';
+import ClubUbicacionMapa, { construirUbicacionCompleta } from './ClubUbicacionMapa';
 // import { useAuth } from '../../hooks/useAuth';
 
 import logoCanchasYa from '../../assets/logo_blanco_720.png';
@@ -384,6 +385,16 @@ const normalizarReserva = (reserva, listaClubes = []) => {
       reserva.limite || '24 hs antes del turno',
     direccion:
       reserva.direccion || clubEncontrado?.direccion || '',
+    ciudad:
+      reserva.ciudad || clubEncontrado?.ciudad || '',
+    provincia:
+      reserva.provincia || clubEncontrado?.provincia || '',
+    ubicacionCompleta: construirUbicacionCompleta({
+      club: reserva.club || clubEncontrado?.nombre,
+      direccion: reserva.direccion || clubEncontrado?.direccion,
+      ciudad: reserva.ciudad || clubEncontrado?.ciudad,
+      provincia: reserva.provincia || clubEncontrado?.provincia,
+    }),
     fechaDate,
     fechaHoraDate,
   };
@@ -591,6 +602,8 @@ function DashboardUsuario({
                 id: c.id,
                 nombre: c.nombre || 'Club sin nombre',
                 direccion: c.direccion || 'Sin dirección',
+                ciudad: c.ciudad || '',
+                provincia: c.provincia || '',
                 email: c.email || 'No disponible',
                 telefono: c.telefono || 'No disponible',
                 distancia: 'A calcular',
@@ -1151,6 +1164,8 @@ function DashboardUsuario({
           ),
           limite: '24 hs antes del turno',
           direccion: clubActual?.direccion || '',
+          ciudad: clubActual?.ciudad || '',
+          provincia: clubActual?.provincia || '',
           accion: estaModificando ? 'modificada' : 'confirmada',
         };
 
@@ -1747,6 +1762,14 @@ function DashboardUsuario({
                         </small>
                       </div>
                     </div>
+
+                    <ClubUbicacionMapa
+                      club={proximaReserva.club}
+                      direccion={proximaReserva.direccion}
+                      ciudad={proximaReserva.ciudad}
+                      provincia={proximaReserva.provincia}
+                      titulo="Cómo llegar"
+                    />
                   </div>
                 ) : (
                   <div className="next-reservation next-reservation--empty">

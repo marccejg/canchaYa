@@ -17,6 +17,7 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [mostrarPassword, setMostrarPassword] = useState(false);
 
   // login con l minuscula
   const { login } = useAuth();
@@ -120,13 +121,19 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
 
                 <input
                   id="login-password"
-                  type="password"
+                  type={mostrarPassword ? 'text' : 'password'}
                   placeholder="tu contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="login-input"
+                  className="login-input login-input-password"
                   required
                 />
+
+                <i
+                  className={`bi ${mostrarPassword ? 'bi-eye-slash' : 'bi-eye'} login-toggle-password-icon`}
+                  onClick={() => setMostrarPassword(!mostrarPassword)}
+                  title={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                ></i>
               </div>
             </div>
 
