@@ -1294,15 +1294,25 @@ function DashboardUsuario({
               </div>
 
               <nav className="dashboard-header__social">
-                <a href="#" aria-label="Email">
+                <a href="mailto:canchasYaa@gmail.com" aria-label="Email">
                   <i className="bi bi-envelope-fill"></i>
                 </a>
 
-                <a href="#" aria-label="Instagram">
+                <a
+                  href="https://www.instagram.com/canchasyaa/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                >
                   <i className="bi bi-instagram"></i>
                 </a>
 
-                <a href="#" aria-label="Facebook">
+                <a
+                  href="https://www.facebook.com/canchasyaa/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                >
                   <i className="bi bi-facebook"></i>
                 </a>
               </nav>

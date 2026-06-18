@@ -13,7 +13,7 @@ export default function Header() {
     {/*logos del centro*/}
     <div className="header-centro">
         {/*Mail*/}
-        <a href="mailto:lzuugl@gmail.com" 
+        <a href="mailto:canchasYaa@gmail.com" 
         className="header-centro-link">
             <i className="bi bi-envelope"></i>
         </a>
