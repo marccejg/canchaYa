@@ -34,22 +34,46 @@ const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub, onAdminLogin }) =>
   const [usuariosRegistrados, setUsuariosRegistrados] = useState(0);
 
   useEffect(() => {
-    const totalUsuariosDemo = 350;
+  const BASE_USUARIOS = 350;
+
+  const animarContador = (total) => {
     let contador = 0;
+    const incremento = Math.max(1, Math.ceil(total / 70));
 
     const intervalo = setInterval(() => {
-      contador += 5;
+      contador += incremento;
 
-      if (contador >= totalUsuariosDemo) {
-        contador = totalUsuariosDemo;
+      if (contador >= total) {
+        contador = total;
         clearInterval(intervalo);
       }
 
       setUsuariosRegistrados(contador);
-    }, 25);
+    }, 20);
+  };
 
-    return () => clearInterval(intervalo);
-  }, []);
+  const obtenerCantidadUsuarios = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/user/count");
+
+      if (!response.ok) {
+        throw new Error("No se pudo obtener la cantidad de usuarios");
+      }
+
+      const data = await response.json();
+
+      const totalConBase = BASE_USUARIOS + data.total;
+
+      animarContador(totalConBase);
+    } catch (error) {
+      console.error("Error al obtener usuarios registrados:", error);
+
+      animarContador(BASE_USUARIOS);
+    }
+  };
+
+  obtenerCantidadUsuarios();
+}, []);
 
   const irAlLogin = () => {
     setMostrarLogin(true);
