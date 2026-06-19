@@ -3,6 +3,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import './DashboardUsuario.css';
+import ClubUbicacionMapa, { construirUbicacionCompleta } from './ClubUbicacionMapa';
 // import { useAuth } from '../../hooks/useAuth';
 
 import logoCanchasYa from '../../assets/logo_blanco_720.png';
@@ -384,6 +385,16 @@ const normalizarReserva = (reserva, listaClubes = []) => {
       reserva.limite || '24 hs antes del turno',
     direccion:
       reserva.direccion || clubEncontrado?.direccion || '',
+    ciudad:
+      reserva.ciudad || clubEncontrado?.ciudad || '',
+    provincia:
+      reserva.provincia || clubEncontrado?.provincia || '',
+    ubicacionCompleta: construirUbicacionCompleta({
+      club: reserva.club || clubEncontrado?.nombre,
+      direccion: reserva.direccion || clubEncontrado?.direccion,
+      ciudad: reserva.ciudad || clubEncontrado?.ciudad,
+      provincia: reserva.provincia || clubEncontrado?.provincia,
+    }),
     fechaDate,
     fechaHoraDate,
   };
@@ -591,6 +602,8 @@ function DashboardUsuario({
                 id: c.id,
                 nombre: c.nombre || 'Club sin nombre',
                 direccion: c.direccion || 'Sin dirección',
+                ciudad: c.ciudad || '',
+                provincia: c.provincia || '',
                 email: c.email || 'No disponible',
                 telefono: c.telefono || 'No disponible',
                 distancia: 'A calcular',
@@ -1044,6 +1057,35 @@ function DashboardUsuario({
         throw new Error('No se pudo eliminar la reserva en el servidor.');
       }
 
+      if (usuario?.email) {
+        try {
+          const responseMail = await fetch('http://localhost:3000/contact', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              nombre: `${usuario?.nombre || ''} ${usuario?.apellido || ''}`.trim(),
+              email: usuario.email,
+              subject: 'Reserva cancelada',
+              razonSocial: '',
+              message: `Tu reserva en ${reserva.club} (${reserva.cancha}) para el ${reserva.fecha} a las ${reserva.hora} hs fue cancelada.`,
+              fecha: reserva.fecha,
+              hora: reserva.hora,
+              cancha: reserva.cancha,
+              club: reserva.club,
+            }),
+          });
+
+          if (!responseMail.ok) {
+            const errorText = await responseMail.text();
+            console.error('Error al enviar el correo de cancelación:', responseMail.status, errorText);
+          }
+        } catch (mailError) {
+          console.warn('El correo de cancelación no se pudo enviar:', mailError);
+        }
+      }
+
       setReservasEliminadas((prev) => [...prev, reserva.id]);
       onDeleteReserva?.(reserva.id);
       if (onRefreshReservas) {
@@ -1094,7 +1136,6 @@ function DashboardUsuario({
     const [dia, mes, anio] = fechaSeleccionada.split('/');
     const fechaSQL = `${anio}-${mes}-${dia}`;
 
-    // Preparar datos para el backend
     const reservaDTO = {
       id_usuario: usuario.id_usuario,
       id_cancha: canchaSeleccionada.id,
@@ -1102,7 +1143,7 @@ function DashboardUsuario({
       hora_inicio: `${horarioSeleccionado}:00`,
       hora_fin: `${parseInt(horarioSeleccionado.split(':')[0]) + 1}:00:00`,
       monto_total: canchaSeleccionada.precio || 0,
-      estado: 'confirmada'
+      estado: 'confirmada',
     };
 
     setEnviandoReserva(true);
@@ -1110,69 +1151,116 @@ function DashboardUsuario({
     try {
       const token = localStorage.getItem('token');
 
-      // Paso 1: Crear la nueva reserva (tanto para modificación como para nueva)
       const response = await fetch('http://localhost:3000/reserva', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(reservaDTO),
       });
 
-      if (response.ok) {
-        const guardada = await response.json();
-
-        // Si era modificación y la nueva se creó bien, borramos la original
-        if (estaModificando) {
-          const deleteResponse = await fetch(`http://localhost:3000/reserva/${reservaEnEdicionSnapshot.id}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-
-          if (deleteResponse.ok && onDeleteReserva) {
-            onDeleteReserva(reservaEnEdicionSnapshot.id);
-          }
-        }
-
-        const nuevaReserva = {
-          id: guardada?.id_reserva || Date.now(),
-          id_cancha: canchaSeleccionada.id,
-          deporte: deporteSeleccionado,
-          club: clubSeleccionado,
-          cancha: canchaSeleccionada.nombre,
-          fecha: fechaSeleccionada,
-          hora: horarioSeleccionado,
-          estado: 'Confirmada',
-          puedeGestionar: puedeGestionarPorAnticipacion(
-            crearFechaHoraDesdeReserva(fechaSeleccionada, horarioSeleccionado)
-          ),
-          limite: '24 hs antes del turno',
-          direccion: clubActual?.direccion || '',
-          accion: estaModificando ? 'modificada' : 'confirmada',
-        };
-
-        if (onAddReserva) {
-          onAddReserva(nuevaReserva);
-        }
-
-        if (onRefreshReservas) {
-          onRefreshReservas();
-        }
-
-        setReservaConfirmada(nuevaReserva);
-        setMostrarModalReserva(true);
-        setReservaEnEdicion(null);
-      } else {
+      if (!response.ok) {
         mostrarError(
           estaModificando ? 'No se pudo modificar' : 'No se pudo reservar',
           estaModificando
             ? 'Hubo un problema al crear la nueva reserva, por lo que se conservó la original.'
             : 'Hubo un problema al procesar la reserva en el servidor.'
         );
+        return;
       }
+
+      const guardada = await response.json();
+
+      // Si era modificación y la nueva se creó bien, borramos la reserva original.
+      if (estaModificando) {
+        const deleteResponse = await fetch(
+          `http://localhost:3000/reserva/${reservaEnEdicionSnapshot.id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (deleteResponse.ok && onDeleteReserva) {
+          onDeleteReserva(reservaEnEdicionSnapshot.id);
+        }
+      }
+
+      const nuevaReserva = {
+        id: guardada?.id_reserva || Date.now(),
+        id_cancha: canchaSeleccionada.id,
+        deporte: deporteSeleccionado,
+        club: clubSeleccionado,
+        cancha: canchaSeleccionada.nombre,
+        fecha: fechaSeleccionada,
+        hora: horarioSeleccionado,
+        estado: 'Confirmada',
+        puedeGestionar: puedeGestionarPorAnticipacion(
+          crearFechaHoraDesdeReserva(fechaSeleccionada, horarioSeleccionado)
+        ),
+        limite: '24 hs antes del turno',
+        direccion: clubActual?.direccion || '',
+        ciudad: clubActual?.ciudad || '',
+        provincia: clubActual?.provincia || '',
+        accion: estaModificando ? 'modificada' : 'confirmada',
+      };
+
+      if (onAddReserva) {
+        onAddReserva(nuevaReserva);
+      }
+
+      // ÚNICO MAIL PARA RESERVA CONFIRMADA O MODIFICADA.
+      if (usuario?.email) {
+        try {
+          const subject = estaModificando
+            ? 'Reserva modificada'
+            : 'Reserva confirmada';
+
+          const message = estaModificando
+            ? `Tu reserva fue modificada correctamente para ${canchaSeleccionada?.nombre || ''} en ${clubSeleccionado || ''} el ${fechaSeleccionada} a las ${horarioSeleccionado} hs.`
+            : `Tu reserva fue confirmada correctamente para ${canchaSeleccionada?.nombre || ''} en ${clubSeleccionado || ''} el ${fechaSeleccionada} a las ${horarioSeleccionado} hs.`;
+
+          const responseMail = await fetch('http://localhost:3000/contact', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              nombre: `${usuario?.nombre || ''} ${usuario?.apellido || ''}`.trim(),
+              email: usuario.email,
+              subject,
+              razonSocial: '',
+              message,
+              fecha: fechaSeleccionada,
+              hora: horarioSeleccionado,
+              cancha: canchaSeleccionada?.nombre || '',
+              club: clubSeleccionado || '',
+            }),
+          });
+
+          if (!responseMail.ok) {
+            const errorText = await responseMail.text();
+            console.error(
+              'Error al enviar el correo de reserva:',
+              responseMail.status,
+              errorText
+            );
+          }
+        } catch (mailError) {
+          console.warn('El correo de reserva no se pudo enviar:', mailError);
+        }
+      }
+
+      if (onRefreshReservas) {
+        onRefreshReservas();
+      }
+
+      setReservaConfirmada(nuevaReserva);
+      setMostrarModalReserva(true);
+      setReservaEnEdicion(null);
     } catch (error) {
       console.error('Error al confirmar reserva:', error);
       mostrarError(
@@ -1279,15 +1367,28 @@ function DashboardUsuario({
               </div>
 
               <nav className="dashboard-header__social">
-                <a href="#" aria-label="Email">
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=ycanchas@gmail.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                aria-label="Email">
                   <i className="bi bi-envelope-fill"></i>
                 </a>
 
-                <a href="#" aria-label="Instagram">
+                <a
+                  href="https://www.instagram.com/canchasyaa/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                >
                   <i className="bi bi-instagram"></i>
                 </a>
 
-                <a href="#" aria-label="Facebook">
+                <a
+                  href="https://www.facebook.com/profile.php?id=61590861895261"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                >
                   <i className="bi bi-facebook"></i>
                 </a>
               </nav>
@@ -1747,6 +1848,14 @@ function DashboardUsuario({
                         </small>
                       </div>
                     </div>
+
+                    <ClubUbicacionMapa
+                      club={proximaReserva.club}
+                      direccion={proximaReserva.direccion}
+                      ciudad={proximaReserva.ciudad}
+                      provincia={proximaReserva.provincia}
+                      titulo="Cómo llegar"
+                    />
                   </div>
                 ) : (
                   <div className="next-reservation next-reservation--empty">

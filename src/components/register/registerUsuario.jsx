@@ -25,6 +25,8 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
   });
   const [provincias, setProvincias] = useState([]);
   const [ciudades, setCiudades] = useState([]);
+  const [mostrarProvincias, setMostrarProvincias] = useState(false);
+  const [mostrarCiudades, setMostrarCiudades] = useState(false);
 
   useEffect(() => {
     const loadProvincias = async () => {
@@ -87,6 +89,22 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     }
   }, []);
 
+
+  const normalizarTexto = (texto = '') => {
+    return texto
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  };
+
+  const provinciasFiltradas = provincias.filter((p) =>
+    normalizarTexto(p.nombre).startsWith(normalizarTexto(formData.provincia))
+  );
+
+  const ciudadesFiltradas = ciudades.filter((c) =>
+    normalizarTexto(c.nombre).startsWith(normalizarTexto(formData.ciudad))
+  );
+
   /*
     Actualiza el estado cada vez que el usuario escribe en un input.
   */
@@ -96,7 +114,19 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     setFormData((prev) => ({
       ...prev,
       [id]: value,
+      ...(id === 'provincia' && {
+        ciudad: '',
+      }),
     }));
+
+    if (id === 'provincia') {
+      setCiudades([]);
+      setMostrarProvincias(true);
+    }
+
+    if (id === 'ciudad') {
+      setMostrarCiudades(true);
+    }
   };
 
 
@@ -196,6 +226,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
             nombre: `${formData.nombre} ${formData.apellido}`,
             email: formData.email,
             subject: 'Bienvenido a CanchasYa!',
+            razonSocial: '',
             message: ``,
           }),
         });
@@ -399,47 +430,131 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
 
                 {/* Provincia (GEoREF - ID) */}
                 <div className="col-md-3 position-relative">
-                  <label className="form-label">Provincia</label>
+                  <label htmlFor="provincia" className="form-label">Provincia</label>
 
-                  <select
-                    className="form-select form-select-lg"
+                  <input
+                    type="text"
+                    className="form-control form-control-lg input-with-icon"
                     id="provincia"
                     value={formData.provincia}
                     onChange={handleChange}
+                    onFocus={() => setMostrarProvincias(true)}
+                    placeholder="Provincia"
+                    autoComplete="off"
                     required
-                  >
-                    <option value="">Provincia</option>
+                  />
 
-                    {provincias.map((p) => (
-                      <option key={p.id} value={p.nombre}>
-                        {p.nombre}
-                      </option>
-                    ))}
-                  </select>
+                  {mostrarProvincias && formData.provincia && provinciasFiltradas.length > 0 && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        zIndex: 1000,
+                        left: 0,
+                        right: 0,
+                        maxHeight: '220px',
+                        overflowY: 'auto',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #ced4da',
+                        borderRadius: '0 0 10px 10px',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.18)',
+                      }}
+                    >
+                      {provinciasFiltradas.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          className="dropdown-item"
+                          style={{
+                            padding: '10px 14px',
+                            textAlign: 'left',
+                            width: '100%',
+                            border: 'none',
+                            backgroundColor: '#ffffff',
+                            color: '#1e293b',
+                            fontSize: '15px',
+                            cursor: 'pointer',
+                          }}
+                          onMouseDown={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              provincia: p.nombre,
+                              ciudad: '',
+                            }));
+
+                            setCiudades([]);
+                            setMostrarProvincias(false);
+                          }}
+                        >
+                          {p.nombre}
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
                   <i className="bi bi-flag icon-inside"></i>
                 </div>
 
                 {/* Ciudad / Localidad (GEoREF) */}
                 <div className="col-md-3 position-relative">
-                  <label className="form-label">Ciudad</label>
+                  <label htmlFor="ciudad" className="form-label">Ciudad</label>
 
-                  <select
-                    className="form-select form-select-lg"
+                  <input
+                    type="text"
+                    className="form-control form-control-lg input-with-icon"
                     id="ciudad"
                     value={formData.ciudad}
                     onChange={handleChange}
+                    onFocus={() => setMostrarCiudades(true)}
                     disabled={!formData.provincia}
+                    placeholder="Ciudad"
+                    autoComplete="off"
                     required
-                  >
-                    <option value="">Ciudad</option>
+                  />
 
-                    {ciudades.map((c) => (
-                      <option key={c.id} value={c.nombre}>
-                        {c.nombre}
-                      </option>
-                    ))}
-                  </select>
+                  {mostrarCiudades && formData.ciudad && ciudadesFiltradas.length > 0 && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        zIndex: 1000,
+                        left: 0,
+                        right: 0,
+                        maxHeight: '220px',
+                        overflowY: 'auto',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #ced4da',
+                        borderRadius: '0 0 10px 10px',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.18)',
+                      }}
+                    >
+                      {ciudadesFiltradas.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className="dropdown-item"
+                          style={{
+                            padding: '10px 14px',
+                            textAlign: 'left',
+                            width: '100%',
+                            border: 'none',
+                            backgroundColor: '#ffffff',
+                            color: '#1e293b',
+                            fontSize: '15px',
+                            cursor: 'pointer',
+                          }}
+                          onMouseDown={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              ciudad: c.nombre,
+                            }));
+
+                            setMostrarCiudades(false);
+                          }}
+                        >
+                          {c.nombre}
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
                   <i className="bi bi-map icon-inside"></i>
                 </div>

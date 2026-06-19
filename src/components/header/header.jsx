@@ -13,7 +13,9 @@ export default function Header() {
     {/*logos del centro*/}
     <div className="header-centro">
         {/*Mail*/}
-        <a href="mailto:lzuugl@gmail.com" 
+        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=ycanchas@gmail.com"
+        target="_blank"
+        rel="noopener noreferrer"
         className="header-centro-link">
             <i className="bi bi-envelope"></i>
         </a>
@@ -28,7 +30,7 @@ export default function Header() {
         </a>
                 {/*Facebook*/}
         <a
-        href="https://www.facebook.com/canchasyaa/"
+        href="https://www.facebook.com/profile.php?id=61590861895261"
         target="_blank"
         rel="noopener noreferrer"
         className="header-centro-link"
