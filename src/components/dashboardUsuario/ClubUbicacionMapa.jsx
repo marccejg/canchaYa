@@ -3,15 +3,31 @@ import './ClubUbicacionMapa.css';
 const DIRECCION_INVALIDA = /^(sin direcci[oó]n|no disponible)$/i;
 
 const esDireccionValida = (valor) =>
-  Boolean(valor && typeof valor === 'string' && !DIRECCION_INVALIDA.test(valor.trim()));
+  Boolean(
+    valor &&
+      typeof valor === 'string' &&
+      !DIRECCION_INVALIDA.test(valor.trim())
+  );
 
+/*
+  Construye la ubicación real que Google Maps debe buscar.
+
+  Importante:
+  No usamos el nombre del club dentro de la búsqueda del mapa,
+  porque Google puede interpretarlo como un lugar distinto y marcar mal la ubicación.
+
+  Ejemplo correcto:
+  "Mazzini 880, Tres Arroyos, Buenos Aires, Argentina"
+*/
 export const construirUbicacionCompleta = ({
-  club = '',
   direccion = '',
   ciudad = '',
   provincia = '',
 } = {}) => {
-  const partes = [club, direccion, ciudad, provincia].filter(esDireccionValida);
+  const partes = [direccion, ciudad, provincia, 'Argentina'].filter(
+    esDireccionValida
+  );
+
   return partes.join(', ');
 };
 
@@ -23,11 +39,13 @@ const obtenerUrlMapaEmbebido = (consulta) => {
     return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${query}`;
   }
 
-  return `https://maps.google.com/maps?q=${query}&z=15&output=embed`;
+  return `https://maps.google.com/maps?q=${query}&z=16&output=embed`;
 };
 
 const obtenerUrlMapaExterno = (consulta) =>
-  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(consulta)}`;
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    consulta
+  )}`;
 
 function ClubUbicacionMapa({
   club = '',
@@ -38,7 +56,6 @@ function ClubUbicacionMapa({
   className = '',
 }) {
   const ubicacionCompleta = construirUbicacionCompleta({
-    club,
     direccion,
     ciudad,
     provincia,
@@ -56,6 +73,7 @@ function ClubUbicacionMapa({
     <div className={`club-mapa ${className}`.trim()}>
       <div className="club-mapa__header">
         <span className="club-mapa__titulo">{titulo}</span>
+
         <a
           href={obtenerUrlMapaExterno(ubicacionCompleta)}
           target="_blank"
@@ -80,6 +98,7 @@ function ClubUbicacionMapa({
 
       <p className="club-mapa__direccion">
         <i className="bi bi-geo-alt-fill" aria-hidden="true" />
+        {club ? `${club} - ` : ''}
         {ubicacionCompleta}
       </p>
     </div>

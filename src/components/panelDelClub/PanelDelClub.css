@@ -361,14 +361,6 @@
   font-size: 0.9rem;
 }
 
-.pdc-court-info small {
-  display: block;
-  margin: -2px 0 8px;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 0.78rem;
-  line-height: 1.3;
-}
-
 .pdc-court-info span {
   display: inline-block;
   padding: 4px 11px;
@@ -752,21 +744,6 @@
   margin-top: 14px;
 }
 
-.pdc-edit-cancha-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.pdc-form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
 .pdc-form-group {
   display: flex;
   flex-direction: column;
@@ -837,103 +814,6 @@
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.pdc-settings-courts-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.pdc-settings-court {
-  padding: 14px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.pdc-settings-court-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
-}
-
-.pdc-settings-court-summary strong {
-  display: block;
-  font-size: 0.98rem;
-  font-weight: 900;
-}
-
-.pdc-settings-court-summary span {
-  display: block;
-  margin-top: 4px;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 0.84rem;
-}
-
-.pdc-settings-court-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.pdc-icon-action {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition: all 0.2s ease;
-}
-
-.pdc-icon-action:hover {
-  background: rgba(102, 126, 234, 0.42);
-  border-color: rgba(102, 126, 234, 0.95);
-}
-
-.pdc-icon-action-edit {
-  border-color: rgba(56, 189, 248, 0.65);
-  background: rgba(14, 165, 233, 0.18);
-  color: #dff7ff;
-}
-
-.pdc-icon-action-edit:hover {
-  background: rgba(14, 165, 233, 0.34);
-  border-color: rgba(56, 189, 248, 0.95);
-}
-
-.pdc-icon-action-clock {
-  border-color: rgba(251, 146, 60, 0.68);
-  background: rgba(249, 115, 22, 0.18);
-  color: #fff1df;
-}
-
-.pdc-icon-action-clock:hover {
-  background: rgba(249, 115, 22, 0.34);
-  border-color: rgba(251, 146, 60, 0.95);
-}
-
-.pdc-icon-action-delete {
-  border-color: rgba(255, 77, 77, 0.55);
-  background: rgba(239, 68, 68, 0.18);
-  color: #ffffff;
-}
-
-.pdc-icon-action-delete:hover {
-  background: rgba(239, 68, 68, 0.34);
-  border-color: rgba(255, 77, 77, 0.95);
-}
-
-.pdc-court-schedule-editor {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .pdc-btn-save-settings {
@@ -1039,6 +919,371 @@
   z-index: 99999 !important;
 }
 
+
+/* =========================================================
+   ACCIONES PRINCIPALES DE CONFIGURACIÓN
+========================================================= */
+
+.pdc-settings-main-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pdc-logo-file-input {
+  display: none;
+}
+
+/* =========================================================
+   LOGO DEL CLUB
+========================================================= */
+
+.pdc-club-logo-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.pdc-club-logo-content {
+  flex: 1;
+  min-height: 150px;
+  margin-top: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 8px;
+}
+
+.pdc-club-logo-img {
+  width: 100%;
+  height: 100%;
+  max-height: 178px;
+  object-fit: contain;
+  display: block;
+}
+
+.pdc-club-logo-initials {
+  width: 100%;
+  height: 100%;
+  min-height: 150px;
+  display: grid;
+  place-items: center;
+  color: #0a2244;
+  font-size: clamp(3rem, 6vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+/* =========================================================
+   MODAL FUNCIONALIDAD EN PROGRESO
+========================================================= */
+
+.pdc-progress-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99990;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.pdc-progress-modal {
+  position: relative;
+  width: min(92vw, 520px);
+  border-radius: 18px;
+  padding: 32px 30px 26px;
+  background: #061f43;
+  color: #ffffff;
+  border: 1px solid rgba(117, 160, 211, 0.55);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
+  text-align: center;
+}
+
+.pdc-progress-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 32px;
+  line-height: 1;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.pdc-progress-modal h2 {
+  margin: 0 0 12px;
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.pdc-progress-modal p {
+  max-width: 420px;
+  margin: 0 auto 18px;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.pdc-progress-modal-img {
+  width: min(100%, 380px);
+  max-height: 300px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 18px;
+}
+
+.pdc-progress-modal-button {
+  border: none;
+  border-radius: 12px;
+  min-width: 150px;
+  padding: 13px 26px;
+  background: #6fc400;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 14px 34px rgba(111, 196, 0, 0.32);
+}
+
+/* =========================================================
+   MODAL DE BIENVENIDA
+========================================================= */
+
+.pdc-welcome-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99980;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.pdc-welcome-modal {
+  position: relative;
+  width: min(92vw, 580px);
+  border-radius: 20px;
+  padding: 34px 32px 28px;
+  background: #061f43;
+  color: #ffffff;
+  border: 1px solid rgba(117, 160, 211, 0.55);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
+}
+
+.pdc-welcome-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 30px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.pdc-welcome-modal-kicker {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #65ff7b;
+  font-weight: 900;
+}
+
+.pdc-welcome-modal h2 {
+  margin: 0 0 12px;
+  font-size: 1.8rem;
+  font-weight: 900;
+}
+
+.pdc-welcome-modal p {
+  line-height: 1.55;
+  font-weight: 600;
+}
+
+.pdc-welcome-modal-box {
+  margin: 18px 0;
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.pdc-welcome-modal-box h3 {
+  margin: 0 0 10px;
+}
+
+.pdc-welcome-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.pdc-welcome-modal-primary,
+.pdc-welcome-modal-secondary {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-family: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.pdc-welcome-modal-primary {
+  background: #087bff;
+  color: #ffffff;
+}
+
+.pdc-welcome-modal-secondary {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   CANCHAS CONFIGURADAS EN CONFIGURACIÓN
+========================================================= */
+
+.pdc-settings-courts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pdc-settings-court {
+  padding: 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.pdc-settings-court-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.pdc-settings-court-summary strong {
+  display: block;
+  font-size: 0.98rem;
+  font-weight: 900;
+}
+
+.pdc-settings-court-summary span {
+  display: block;
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.84rem;
+}
+
+.pdc-settings-court-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pdc-icon-action {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.2s ease;
+}
+
+.pdc-icon-action:hover {
+  background: rgba(102, 126, 234, 0.42);
+  border-color: rgba(102, 126, 234, 0.95);
+}
+
+.pdc-icon-action-edit {
+  border-color: rgba(56, 189, 248, 0.65);
+  background: rgba(14, 165, 233, 0.18);
+  color: #dff7ff;
+}
+
+.pdc-icon-action-edit:hover {
+  background: rgba(14, 165, 233, 0.34);
+  border-color: rgba(56, 189, 248, 0.95);
+}
+
+.pdc-icon-action-clock {
+  border-color: rgba(251, 146, 60, 0.68);
+  background: rgba(249, 115, 22, 0.18);
+  color: #fff1df;
+}
+
+.pdc-icon-action-clock:hover {
+  background: rgba(249, 115, 22, 0.34);
+  border-color: rgba(251, 146, 60, 0.95);
+}
+
+.pdc-icon-action-delete {
+  border-color: rgba(255, 77, 77, 0.55);
+  background: rgba(239, 68, 68, 0.18);
+  color: #ffffff;
+}
+
+.pdc-icon-action-delete:hover {
+  background: rgba(239, 68, 68, 0.34);
+  border-color: rgba(255, 77, 77, 0.95);
+}
+
+.pdc-edit-cancha-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.pdc-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.pdc-court-schedule-editor {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 768px) {
+  .pdc-settings-court-summary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pdc-settings-court-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .pdc-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* =========================================================
    RESPONSIVE
 ========================================================= */
@@ -1116,7 +1361,6 @@
   .pdc-court-reservas {
     grid-column: 2;
   }
-
 }
 
 @media (max-width: 768px) {
@@ -1151,15 +1395,6 @@
     grid-column: auto;
   }
 
-  .pdc-form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .pdc-settings-court-summary {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
   .pdc-panel-header,
   .pdc-status-content,
   .pdc-actions,
@@ -1169,293 +1404,22 @@
   }
 }
 
-
-/* =========================================================
-   MODAL PAGO SUSCRIPCIÓN EN PROGRESO
-========================================================= */
-
-.pdc-progress-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: rgba(0, 0, 0, 0.64);
-  backdrop-filter: blur(6px);
-}
-
-.pdc-progress-modal {
-  position: relative;
-  width: min(560px, 100%);
-  max-height: calc(100vh - 48px);
-  overflow-y: auto;
-  padding: 34px 28px 26px;
-  border-radius: 22px;
-  background: rgba(7, 30, 58, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  color: #ffffff;
-  text-align: center;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
-}
-
-.pdc-progress-modal-close {
-  position: absolute;
-  top: 12px;
-  right: 18px;
-  border: none;
-  background: transparent;
-  color: #ffffff;
-  font-size: 36px;
-  line-height: 1;
-  font-weight: 800;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.pdc-progress-modal-close:hover {
-  color: #6fc400;
-  transform: scale(1.08);
-}
-
-.pdc-progress-modal h2 {
-  margin: 0 0 12px;
-  padding-right: 28px;
-  font-size: 2rem;
-  line-height: 1.05;
-  font-weight: 900;
-}
-
-.pdc-progress-modal p {
-  max-width: 430px;
-  margin: 0 auto 18px;
-  color: rgba(255, 255, 255, 0.86);
-  line-height: 1.5;
-  font-size: 1rem;
-}
-
-.pdc-progress-modal-img {
-  display: block;
-  width: min(320px, 100%);
-  height: auto;
-  margin: 4px auto 22px;
-}
-
-.pdc-progress-modal-button {
-  border: none;
-  border-radius: 12px;
-  padding: 12px 24px;
-  background: #6fc400;
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 1rem;
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow: 0 12px 26px rgba(111, 196, 0, 0.25);
-  transition: 0.2s ease;
-}
-
-.pdc-progress-modal-button:hover {
-  background: #5eaa00;
-  transform: translateY(-2px);
-}
-
-@media (max-width: 640px) {
-  .pdc-progress-modal {
-    padding: 30px 20px 24px;
-  }
-
-  .pdc-progress-modal h2 {
-    font-size: 1.6rem;
-  }
-}
-
-
-
-/* =========================================================
-   MODAL DE BIENVENIDA AL PANEL DEL CLUB
-   Agregar al final de PanelDelClub.css
-========================================================= */
-
-.pdc-welcome-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 24px;
-  background: rgba(0, 0, 0, 0.68);
-  backdrop-filter: blur(6px);
-}
-
-.pdc-welcome-modal {
-  position: relative;
-
-  width: min(620px, 100%);
-  max-height: calc(100vh - 48px);
-  overflow-y: auto;
-
-  padding: 36px;
-  border-radius: 24px;
-
-  background: rgba(7, 30, 58, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-
-  color: #ffffff;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
-
-  animation: pdcWelcomeModalIn 0.25s ease;
-}
-
-.pdc-welcome-modal-close {
-  position: absolute;
-  top: 12px;
-  right: 18px;
-
-  border: none;
-  background: transparent;
-
-  color: #ffffff;
-  font-size: 36px;
-  line-height: 1;
-  font-weight: 900;
-
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.pdc-welcome-modal-close:hover {
-  color: #168bff;
-  transform: scale(1.08);
-}
-
-.pdc-welcome-modal-kicker {
-  display: inline-flex;
-
-  margin-bottom: 14px;
-  padding: 7px 14px;
-
-  border-radius: 999px;
-  border: 1px solid rgba(22, 139, 255, 0.75);
-
-  color: #42a5ff;
-  font-size: 13px;
-  font-weight: 950;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.pdc-welcome-modal h2 {
-  margin: 0 0 16px;
-  padding-right: 32px;
-
-  font-size: 2.1rem;
-  line-height: 1.05;
-  font-weight: 950;
-}
-
-.pdc-welcome-modal p {
-  margin: 0 0 14px;
-
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 1rem;
-  line-height: 1.55;
-}
-
-.pdc-welcome-modal strong {
-  color: #ffffff;
-  font-weight: 900;
-}
-
-.pdc-welcome-modal-box {
-  margin: 24px 0;
-  padding: 20px;
-
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.pdc-welcome-modal-box h3 {
-  margin: 0 0 12px;
-
-  color: #45eb67;
-  font-size: 1.15rem;
-  font-weight: 900;
-}
-
-.pdc-welcome-modal-box p:last-child {
-  margin-bottom: 0;
-}
-
-.pdc-welcome-modal-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 22px;
-}
-
-.pdc-welcome-modal-primary,
-.pdc-welcome-modal-secondary {
-  flex: 1;
-
-  border: none;
-  border-radius: 14px;
-
-  padding: 14px 18px;
-
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 0.98rem;
-  font-weight: 900;
-
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.pdc-welcome-modal-primary {
-  background: #087bff;
-  box-shadow: 0 12px 24px rgba(8, 123, 255, 0.3);
-}
-
-.pdc-welcome-modal-primary:hover {
-  background: #006be2;
-  transform: translateY(-2px);
-}
-
-.pdc-welcome-modal-secondary {
-  background: rgba(255, 255, 255, 0.16);
-}
-
-.pdc-welcome-modal-secondary:hover {
-  background: rgba(255, 255, 255, 0.24);
-  transform: translateY(-2px);
-}
-
-@keyframes pdcWelcomeModalIn {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-@media (max-width: 640px) {
-  .pdc-welcome-modal {
-    padding: 30px 22px;
-  }
-
-  .pdc-welcome-modal h2 {
-    font-size: 1.7rem;
-  }
-
-  .pdc-welcome-modal-actions {
+@media (max-width: 768px) {
+  .pdc-settings-main-actions {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pdc-settings-main-actions .pdc-btn-add-cancha {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pdc-club-logo-content {
+    min-height: 180px;
+  }
+
+  .pdc-club-logo-img {
+    max-height: 220px;
   }
 }

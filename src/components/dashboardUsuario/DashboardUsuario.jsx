@@ -1592,21 +1592,31 @@ function DashboardUsuario({
                                       onError={(e) => {
                                         e.currentTarget.style.display = 'none';
                                         e.currentTarget.parentElement.textContent = cancha.clubNombre
+                                          .split(' ')
+                                          .filter(Boolean)
                                           .slice(0, 2)
+                                          .map((palabra) => palabra[0])
+                                          .join('')
                                           .toUpperCase();
                                       }}
                                     />
                                   ) : (
-                                    cancha.nombre.slice(0, 2).toUpperCase()
+                                    cancha.clubNombre
+                                      .split(' ')
+                                      .filter(Boolean)
+                                      .slice(0, 2)
+                                      .map((palabra) => palabra[0])
+                                      .join('')
+                                      .toUpperCase()
                                   )}
                                 </div>
 
-                                <strong>{cancha.nombre}</strong>
-                                <small>{cancha.clubNombre}</small>
+                                <strong>{cancha.clubNombre}</strong>
+                                <small>{cancha.deporte || deporteSeleccionado}</small>
                                 <small>{cancha.clubDireccion}</small>
                                 <span>
-                                  {cancha.precio
-                                    ? `$${Number(cancha.precio).toLocaleString('es-AR')}/hora`
+                                  {cancha.precio || cancha.precio_por_hora
+                                    ? `$${Number(cancha.precio || cancha.precio_por_hora).toLocaleString('es-AR')}/hora`
                                     : 'Precio a confirmar'}
                                 </span>
                               </button>

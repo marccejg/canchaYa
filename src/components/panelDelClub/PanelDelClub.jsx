@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './PanelDelClub.css';
 import { horarios } from '../staticData';
 import Swal from 'sweetalert2';
@@ -148,6 +148,157 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     club?.nombre ||
     club?.nombre_dueno ||
     'dueño';
+
+  const [logoClubActual, setLogoClubActual] = useState('');
+  const [subiendoLogo, setSubiendoLogo] = useState(false);
+  const logoInputRef = useRef(null);
+
+  const obtenerLogoDesdeClub = () =>
+    clubPrincipal?.logo_club ||
+    clubPrincipal?.logo ||
+    club?.logo_club ||
+    club?.logo ||
+    '';
+
+  useEffect(() => {
+    setLogoClubActual(obtenerLogoDesdeClub());
+  }, [clubPrincipal?.logo_club, clubPrincipal?.logo, club?.logo_club, club?.logo]);
+
+  const construirUrlLogo = (logo) => {
+    if (!logo) return '';
+
+    if (logo.startsWith('http://') || logo.startsWith('https://')) {
+      return logo;
+    }
+
+    return `http://localhost:3000${logo}`;
+  };
+
+  const logoClubUrl = construirUrlLogo(logoClubActual);
+
+  const inicialesClub = nombreClub
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 3)
+    .map((palabra) => palabra[0])
+    .join('')
+    .toUpperCase();
+
+  const abrirSelectorLogo = () => {
+    logoInputRef.current?.click();
+  };
+
+  const handleUploadLogo = async (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp'];
+
+    if (!tiposPermitidos.includes(file.type)) {
+      e.target.value = '';
+
+      Swal.fire({
+        icon: 'warning',
+        title: 'Formato no permitido',
+        text: 'El logo debe ser JPG, PNG o WEBP.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#087bff',
+      });
+
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      e.target.value = '';
+
+      Swal.fire({
+        icon: 'warning',
+        title: 'Archivo demasiado grande',
+        text: 'El logo no puede superar los 2MB.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#087bff',
+      });
+
+      return;
+    }
+
+    if (!clubPrincipal?.id_club) {
+      e.target.value = '';
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Club no disponible',
+        text: 'No se pudo identificar el club para actualizar el logo.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#ef4444',
+      });
+
+      return;
+    }
+
+    setSubiendoLogo(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      const data = new FormData();
+
+      data.append('logo', file);
+
+      const response = await fetch(`http://localhost:3000/club/${clubPrincipal.id_club}/logo`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: data,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'No se pudo actualizar el logo.');
+      }
+
+      const nuevoLogo =
+        result.logo ||
+        result.logo_club ||
+        result.club?.logo_club ||
+        result.club?.logo ||
+        '';
+
+      if (nuevoLogo) {
+        setLogoClubActual(nuevoLogo);
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Logo actualizado',
+        text: 'El logo del club fue actualizado correctamente.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#087bff',
+        background: '#ffffff',
+        color: '#071f4d',
+        customClass: {
+          popup: 'cy-alert-popup',
+          title: 'cy-alert-title',
+          confirmButton: 'cy-alert-button',
+        },
+      });
+    } catch (error) {
+      console.error('Error al subir logo:', error);
+
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo subir el logo',
+        text: error.message || 'Intentá nuevamente.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#ef4444',
+      });
+    } finally {
+      setSubiendoLogo(false);
+      e.target.value = '';
+    }
+  };
 
   const getWelcomeStorageKey = () => {
     const clubId = clubPrincipal?.id_club || 'sin-club';
@@ -1002,15 +1153,38 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
               <div className="pdc-settings-box">
                 <h3>Gestionar canchas</h3>
 
-                {!showAddCancha ? (
+                <div className="pdc-settings-main-actions">
+                  {!showAddCancha && (
+                    <button
+                      type="button"
+                      className="pdc-btn-add-cancha"
+                      onClick={() => setShowAddCancha(true)}
+                    >
+                      <i className="bi bi-plus-circle"></i>
+                      Agregar nueva cancha
+                    </button>
+                  )}
+
                   <button
+                    type="button"
                     className="pdc-btn-add-cancha"
-                    onClick={() => setShowAddCancha(true)}
+                    onClick={abrirSelectorLogo}
+                    disabled={subiendoLogo}
                   >
-                    <i className="bi bi-plus-circle"></i>
-                    Agregar nueva cancha
+                    <i className="bi bi-image"></i>
+                    {subiendoLogo ? 'Subiendo logo...' : 'Agregar logo'}
                   </button>
-                ) : (
+
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleUploadLogo}
+                    className="pdc-logo-file-input"
+                  />
+                </div>
+
+                {showAddCancha && (
                   <form onSubmit={handleAddCancha} className="pdc-add-cancha-form">
                     <div className="pdc-form-group">
                       <label>Nombre de la cancha:</label>
@@ -1531,30 +1705,21 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
             <div className="pdc-fake-chart"></div>
           </div>
 
-          <div className="pdc-panel pdc-status-panel">
-            <h3>Reservas por estado</h3>
+          <div className="pdc-panel pdc-club-logo-panel">
+            <h3>Logo del club</h3>
 
-            <div className="pdc-status-content">
-              <div className="pdc-donut"></div>
-
-              <div className="pdc-status-list">
-                <p>
-                  <span className="pdc-dot pdc-green-dot"></span>
-                  Confirmadas <strong>{reservasDelClub.length > 0 ? '100%' : '0%'}</strong>
-                </p>
-
-                <p>
-                  <span className="pdc-dot pdc-yellow-dot"></span>
-                  Pendientes <strong>0%</strong>
-                </p>
-
-                <p>
-                  <span className="pdc-dot pdc-gray-dot"></span>
-                  Canceladas <strong>0%</strong>
-                </p>
-
-                <h4>Total: {reservasDelClub.length} reservas</h4>
-              </div>
+            <div className="pdc-club-logo-content">
+              {logoClubUrl ? (
+                <img
+                  src={logoClubUrl}
+                  alt={`Logo de ${nombreClub}`}
+                  className="pdc-club-logo-img"
+                />
+              ) : (
+                <div className="pdc-club-logo-initials">
+                  {inicialesClub || 'CY'}
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -1602,139 +1767,10 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
               >
                 Entendido
               </button>
-              {showWelcomeModal && (
-          <div
-            className="pdc-welcome-modal-backdrop"
-            onClick={cerrarWelcomeModal}
-          >
-            <div
-              className="pdc-welcome-modal"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                type="button"
-                className="pdc-welcome-modal-close"
-                onClick={cerrarWelcomeModal}
-                aria-label="Cerrar bienvenida"
-              >
-                ×
-              </button>
-
-              <span className="pdc-welcome-modal-kicker">
-                Bienvenido a CanchasYa!
-              </span>
-
-              <h2>¡Gracias por sumarte, {nombreDueno}!</h2>
-
-              <p>
-                Nos alegra que tu club forme parte de CanchasYa!. Desde este panel
-                vas a poder gestionar tus canchas, revisar reservas y controlar
-                tus ingresos diarios y mensuales.
-              </p>
-
-              <div className="pdc-welcome-modal-box">
-                <h3>Primer paso recomendado</h3>
-
-                <p>
-                  Te sugerimos asignarle un <strong>precio por hora</strong> a los
-                  turnos de cada cancha o deporte. Esto es importante para que el
-                  sistema pueda calcular correctamente tus ingresos del día y del mes.
-                </p>
-
-                <p>
-                  Si una cancha queda en <strong>$0</strong>, las reservas asociadas
-                  no van a reflejar ingresos reales en el dashboard.
-                </p>
-              </div>
-
-              <div className="pdc-welcome-modal-actions">
-                <button
-                  type="button"
-                  className="pdc-welcome-modal-primary"
-                  onClick={irAConfiguracionDesdeWelcome}
-                >
-                  Configurar mis canchas
-                </button>
-
-                <button
-                  type="button"
-                  className="pdc-welcome-modal-secondary"
-                  onClick={cerrarWelcomeModal}
-                >
-                  Lo haré después
-                </button>
-              </div>
             </div>
           </div>
         )}
-      </div>
-            {showWelcomeModal && (
-          <div
-            className="pdc-welcome-modal-backdrop"
-            onClick={cerrarWelcomeModal}
-          >
-            <div
-              className="pdc-welcome-modal"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                type="button"
-                className="pdc-welcome-modal-close"
-                onClick={cerrarWelcomeModal}
-                aria-label="Cerrar bienvenida"
-              >
-                ×
-              </button>
 
-              <span className="pdc-welcome-modal-kicker">
-                Bienvenido a CanchasYa!
-              </span>
-
-              <h2>¡Gracias por sumarte, {nombreDueno}!</h2>
-
-              <p>
-                Nos alegra que tu club forme parte de CanchasYa!. Desde este panel
-                vas a poder gestionar tus canchas, revisar reservas y controlar
-                tus ingresos diarios y mensuales.
-              </p>
-
-              <div className="pdc-welcome-modal-box">
-                <h3>Primer paso recomendado</h3>
-
-                <p>
-                  Te sugerimos asignarle un <strong>precio por hora</strong> a los
-                  turnos de cada cancha o deporte. Esto es importante para que el
-                  sistema pueda calcular correctamente tus ingresos del día y del mes.
-                </p>
-
-                <p>
-                  Si una cancha queda en <strong>$0</strong>, las reservas asociadas
-                  no van a reflejar ingresos reales en el dashboard.
-                </p>
-              </div>
-
-              <div className="pdc-welcome-modal-actions">
-                <button
-                  type="button"
-                  className="pdc-welcome-modal-primary"
-                  onClick={irAConfiguracionDesdeWelcome}
-                >
-                  Configurar mis canchas
-                </button>
-
-                <button
-                  type="button"
-                  className="pdc-welcome-modal-secondary"
-                  onClick={cerrarWelcomeModal}
-                >
-                  Lo haré después
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-        )}
         {showWelcomeModal && (
           <div
             className="pdc-welcome-modal-backdrop"
@@ -1762,7 +1798,8 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
               <p>
                 Nos alegra que tu club forme parte de CanchasYa!. Desde este panel
                 vas a poder gestionar tus canchas, revisar reservas y controlar
-                tus ingresos diarios y mensuales.
+                tus ingresos diarios y mensuales, como asi también agregar un logo 
+                si no lo hiciste al momento de completar el formulario.
               </p>
 
               <div className="pdc-welcome-modal-box">
