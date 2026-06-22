@@ -14,6 +14,7 @@ import { useAuth } from './hooks/useAuth';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { API_URL } from './config';
 
 const restaurarUsuarioDesdeStorage = () => {
   try {
@@ -97,7 +98,7 @@ function App() {
   const fetchReservasPorClub = async (idClub) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/reserva/club/${idClub}`, {
+      const response = await fetch(`${API_URL}/reserva/club/${idClub}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -114,7 +115,7 @@ function App() {
   const fetchReservas = async (idUsuario) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/reserva/usuario/${idUsuario}`, {
+      const response = await fetch(`${API_URL}/reserva/usuario/${idUsuario}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

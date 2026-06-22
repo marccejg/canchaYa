@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './login.css';
 import Layout from '../layout/layout';
 import { useAuth } from '../../hooks/useAuth';
+import { API_URL } from '../../config';
 
 const recoveryModalStyles = {
   overlay: {
@@ -170,7 +171,7 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
     setRecoverySuccess('');
 
     try {
-      const response = await fetch('http://localhost:3000/auth/forgot-password/send-code', {
+      const response = await fetch(`${API_URL}/auth/forgot-password/send-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: recoveryEmail }),
@@ -209,7 +210,7 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
     setRecoverySuccess('');
 
     try {
-      const response = await fetch('http://localhost:3000/auth/forgot-password/reset', {
+      const response = await fetch(`${API_URL}/auth/forgot-password/reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -257,7 +258,7 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3000/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: username, password }),
