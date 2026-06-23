@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './clubSelector.css';
+import { API_URL } from '../../config';
 
 const ClubSelector = ({ selectedSport, onClubSelect, onBack }) => {
   const [canchas, setCanchas] = useState([]);
@@ -18,7 +19,7 @@ const ClubSelector = ({ selectedSport, onClubSelect, onBack }) => {
     const fetchCanchas = async () => {
       try {
         const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-        const response = await fetch('http://localhost:3000/cancha', {
+        const response = await fetch(`${API_URL}/cancha`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -110,7 +111,7 @@ const ClubSelector = ({ selectedSport, onClubSelect, onBack }) => {
               <img
                 src={
                   club.logo_club
-                    ? `http://localhost:3000${club.logo_club}`
+                    ? `${API_URL}${club.logo_club}`
                     : 'https://img.freepik.com/vector-premium/diseno-camiseta-deportiva-logotipo-deporte-deporte-muestra-triangulo-medio_856405-2413.jpg?semt=ais_hybrid&w=740&q=80'
                 }
                 alt={club.nombre_club}

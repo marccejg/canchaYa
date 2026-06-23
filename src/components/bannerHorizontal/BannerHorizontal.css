@@ -1,12 +1,13 @@
 .banner-horizontal {
-  width: 900px;
-  height: 200px;
+  width: min(900px, calc(100% - 20px));
+  max-width: 900px;
+  height: clamp(120px, 22vw, 200px);
   border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  margin: 10px;
+  margin: 10px auto;
 }
 
 .banner-horizontal:hover {
@@ -28,7 +29,16 @@
   justify-content: center;
   background-color: #f0f0f0;
   color: #666;
-  font-size: 18px;
+  font-size: clamp(14px, 3vw, 18px);
   font-weight: bold;
   text-align: center;
+  padding: 12px;
+}
+
+@media (max-width: 480px) {
+  .banner-horizontal {
+    width: calc(100% - 16px);
+    height: 120px;
+    margin: 8px auto;
+  }
 }
