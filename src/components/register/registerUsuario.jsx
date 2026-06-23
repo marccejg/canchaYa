@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
 import './register.css';
+import { API_URL } from '../../config';
 import Logo from './logo.jpg';
 import LogoBlanco from './logo blanco.png';
 import LogoSoloBlanco from './logoSoloBlanco.png';
@@ -25,11 +26,13 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
   });
   const [provincias, setProvincias] = useState([]);
   const [ciudades, setCiudades] = useState([]);
+  const [mostrarProvincias, setMostrarProvincias] = useState(false);
+  const [mostrarCiudades, setMostrarCiudades] = useState(false);
 
   useEffect(() => {
     const loadProvincias = async () => {
       try {
-        const res = await fetch('http://localhost:3000/georef/provincias');
+        const res = await fetch(`${API_URL}/georef/provincias`);
         const data = await res.json();
 
 
@@ -60,7 +63,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     const loadCiudades = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3000/georef/localidades?provincia=${encodeURIComponent(formData.provincia)}`
+          `${API_URL}/georef/localidades?provincia=${encodeURIComponent(formData.provincia)}`
         );
         const data = await res.json();
         const listaCiudades = Array.isArray(data) ? data : (data.localidades || []);
@@ -87,6 +90,33 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     }
   }, []);
 
+
+  const normalizarTexto = (texto = '') => {
+    return texto
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  };
+
+  const provinciasFiltradas = provincias.filter((p) =>
+    normalizarTexto(p.nombre).startsWith(normalizarTexto(formData.provincia))
+  );
+
+  const ciudadesFiltradas = ciudades.filter((c) =>
+    normalizarTexto(c.nombre).startsWith(normalizarTexto(formData.ciudad))
+  );
+
+  const validarPassword = (password) => {
+    const tieneMinimoCaracteres = password.length >= 8;
+    const tieneLetra = /[a-zA-ZáéíóúÁÉÍÓÚñÑ]/.test(password);
+    const tieneNumero = /\d/.test(password);
+
+    return tieneMinimoCaracteres && tieneLetra && tieneNumero;
+  };
+
+  const PASSWORD_POLICY_MESSAGE =
+    'La contraseña debe tener al menos 8 caracteres, incluir una letra y un número.';
+
   /*
     Actualiza el estado cada vez que el usuario escribe en un input.
   */
@@ -96,7 +126,19 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     setFormData((prev) => ({
       ...prev,
       [id]: value,
+      ...(id === 'provincia' && {
+        ciudad: '',
+      }),
     }));
+
+    if (id === 'provincia') {
+      setCiudades([]);
+      setMostrarProvincias(true);
+    }
+
+    if (id === 'ciudad') {
+      setMostrarCiudades(true);
+    }
   };
 
 
@@ -115,16 +157,25 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
       return;
     }
 
+    if (!validarPassword(formData.password)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Contraseña inválida',
+        text: PASSWORD_POLICY_MESSAGE,
+      });
+      return;
+    }
+
     const emailExists = async (email) => {
       try {
-        const response = await fetch('http://localhost:3000/user/email', {
+        const response = await fetch(`${API_URL}/user/email`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ email: email }),
         });
-        const dniExistsResponse = await fetch('http://localhost:3000/user/dni', {
+        const dniExistsResponse = await fetch(`${API_URL}/user/dni`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ dni: formData.DNI }),
@@ -159,7 +210,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/user', {
+      const response = await fetch(`${API_URL}/user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -187,7 +238,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
 
       // Enviar email de bienvenida (sin bloquear el flujo)
       try {
-        await fetch('http://localhost:3000/contact', {
+        await fetch(`${API_URL}/contact`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -196,6 +247,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
             nombre: `${formData.nombre} ${formData.apellido}`,
             email: formData.email,
             subject: 'Bienvenido a CanchasYa!',
+            razonSocial: '',
             message: ``,
           }),
         });
@@ -360,6 +412,9 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
                     required
                   />
                   <i className="bi bi-lock icon-inside"></i>
+                  <small className="text-light d-block mt-1">
+                    Mínimo 8 caracteres, una letra y un número.
+                  </small>
                 </div>
 
                 <div className="col-md-6 position-relative">
@@ -399,47 +454,131 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
 
                 {/* Provincia (GEoREF - ID) */}
                 <div className="col-md-3 position-relative">
-                  <label className="form-label">Provincia</label>
+                  <label htmlFor="provincia" className="form-label">Provincia</label>
 
-                  <select
-                    className="form-select form-select-lg"
+                  <input
+                    type="text"
+                    className="form-control form-control-lg input-with-icon"
                     id="provincia"
                     value={formData.provincia}
                     onChange={handleChange}
+                    onFocus={() => setMostrarProvincias(true)}
+                    placeholder="Provincia"
+                    autoComplete="off"
                     required
-                  >
-                    <option value="">Provincia</option>
+                  />
 
-                    {provincias.map((p) => (
-                      <option key={p.id} value={p.nombre}>
-                        {p.nombre}
-                      </option>
-                    ))}
-                  </select>
+                  {mostrarProvincias && formData.provincia && provinciasFiltradas.length > 0 && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        zIndex: 1000,
+                        left: 0,
+                        right: 0,
+                        maxHeight: '220px',
+                        overflowY: 'auto',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #ced4da',
+                        borderRadius: '0 0 10px 10px',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.18)',
+                      }}
+                    >
+                      {provinciasFiltradas.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          className="dropdown-item"
+                          style={{
+                            padding: '10px 14px',
+                            textAlign: 'left',
+                            width: '100%',
+                            border: 'none',
+                            backgroundColor: '#ffffff',
+                            color: '#1e293b',
+                            fontSize: '15px',
+                            cursor: 'pointer',
+                          }}
+                          onMouseDown={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              provincia: p.nombre,
+                              ciudad: '',
+                            }));
+
+                            setCiudades([]);
+                            setMostrarProvincias(false);
+                          }}
+                        >
+                          {p.nombre}
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
                   <i className="bi bi-flag icon-inside"></i>
                 </div>
 
                 {/* Ciudad / Localidad (GEoREF) */}
                 <div className="col-md-3 position-relative">
-                  <label className="form-label">Ciudad</label>
+                  <label htmlFor="ciudad" className="form-label">Ciudad</label>
 
-                  <select
-                    className="form-select form-select-lg"
+                  <input
+                    type="text"
+                    className="form-control form-control-lg input-with-icon"
                     id="ciudad"
                     value={formData.ciudad}
                     onChange={handleChange}
+                    onFocus={() => setMostrarCiudades(true)}
                     disabled={!formData.provincia}
+                    placeholder="Ciudad"
+                    autoComplete="off"
                     required
-                  >
-                    <option value="">Ciudad</option>
+                  />
 
-                    {ciudades.map((c) => (
-                      <option key={c.id} value={c.nombre}>
-                        {c.nombre}
-                      </option>
-                    ))}
-                  </select>
+                  {mostrarCiudades && formData.ciudad && ciudadesFiltradas.length > 0 && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        zIndex: 1000,
+                        left: 0,
+                        right: 0,
+                        maxHeight: '220px',
+                        overflowY: 'auto',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #ced4da',
+                        borderRadius: '0 0 10px 10px',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.18)',
+                      }}
+                    >
+                      {ciudadesFiltradas.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className="dropdown-item"
+                          style={{
+                            padding: '10px 14px',
+                            textAlign: 'left',
+                            width: '100%',
+                            border: 'none',
+                            backgroundColor: '#ffffff',
+                            color: '#1e293b',
+                            fontSize: '15px',
+                            cursor: 'pointer',
+                          }}
+                          onMouseDown={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              ciudad: c.nombre,
+                            }));
+
+                            setMostrarCiudades(false);
+                          }}
+                        >
+                          {c.nombre}
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
                   <i className="bi bi-map icon-inside"></i>
                 </div>

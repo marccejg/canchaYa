@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from '../../config';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
@@ -47,7 +48,7 @@ const CANCHAS_DISPONIBLES = [
   - Permite seleccionar varias canchas.
   - Permite adjuntar logo.
   - Envía los datos al backend con FormData.
-  - Usa el endpoint: http://localhost:3000/user/register
+  - Usa el endpoint: API_URL/user/register
 */
 function Register({ onRegisterComplete, onCancelRegister }) {
   /*
@@ -77,71 +78,113 @@ function Register({ onRegisterComplete, onCancelRegister }) {
   });
   const [provincias, setProvincias] = useState([]);
   const [ciudades, setCiudades] = useState([]);
+  const [mostrarProvincias, setMostrarProvincias] = useState(false);
+  const [mostrarCiudades, setMostrarCiudades] = useState(false);
 
-   useEffect(() => {
-      const loadProvincias = async () => {
-        try {
-          const res = await fetch('http://localhost:3000/georef/provincias');
-          const data = await res.json();
-  
-  
-          // 1. Extraemos el arreglo de provincias de forma segura
-          const listaProvincias = Array.isArray(data) ? data : (data.provincias || []);
-  
-          // 2. Ordenamos la lista alfabéticamente por el campo 'nombre' y actualizamos el estado
-          setProvincias(
-            [...listaProvincias].sort((a, b) => {
-              const textoA = a.nombre || "";
-              const textoB = b.nombre || "";
-              return textoA.localeCompare(textoB);
-            })
-          );
-  
-  
-        } catch (err) {
-          console.error('Error provincias', err);
-        }
-      };
-  
-      loadProvincias();
-    }, []);
-  
-    useEffect(() => {
-      if (!formData.provincia) return;
-  
-      const loadCiudades = async () => {
-        try {
-          const res = await fetch(
-            `http://localhost:3000/georef/localidades?provincia=${encodeURIComponent(formData.provincia)}`
-          );
-          const data = await res.json();
-          const listaCiudades = Array.isArray(data) ? data : (data.localidades || []);
-          setCiudades(
-            [...listaCiudades].sort((a, b) => {
-              const textoA = a.nombre || "";
-              const textoB = b.nombre || "";
-              return textoA.localeCompare(textoB);
-            })
-          );
-        } catch (err) {
-          console.error('Error ciudades', err);
-        }
-      };
-  
-      loadCiudades();
-    }, [formData.provincia]);
+  useEffect(() => {
+    const loadProvincias = async () => {
+      try {
+        const res = await fetch(`${API_URL}/georef/provincias`);
+        const data = await res.json();
+
+
+        // 1. Extraemos el arreglo de provincias de forma segura
+        const listaProvincias = Array.isArray(data) ? data : (data.provincias || []);
+
+        // 2. Ordenamos la lista alfabéticamente por el campo 'nombre' y actualizamos el estado
+        setProvincias(
+          [...listaProvincias].sort((a, b) => {
+            const textoA = a.nombre || "";
+            const textoB = b.nombre || "";
+            return textoA.localeCompare(textoB);
+          })
+        );
+
+
+      } catch (err) {
+        console.error('Error provincias', err);
+      }
+    };
+
+    loadProvincias();
+  }, []);
+
+  useEffect(() => {
+    if (!formData.provincia) return;
+
+    const loadCiudades = async () => {
+      try {
+        const res = await fetch(
+          `${API_URL}/georef/localidades?provincia=${encodeURIComponent(formData.provincia)}`
+        );
+        const data = await res.json();
+        const listaCiudades = Array.isArray(data) ? data : (data.localidades || []);
+        setCiudades(
+          [...listaCiudades].sort((a, b) => {
+            const textoA = a.nombre || "";
+            const textoB = b.nombre || "";
+            return textoA.localeCompare(textoB);
+          })
+        );
+      } catch (err) {
+        console.error('Error ciudades', err);
+      }
+    };
+
+    loadCiudades();
+  }, [formData.provincia]);
+
+  const normalizarTexto = (texto = '') => {
+    return texto
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  };
+
+  const provinciasFiltradas = provincias.filter((p) =>
+    normalizarTexto(p.nombre).startsWith(normalizarTexto(formData.provincia))
+  );
+
+  const ciudadesFiltradas = ciudades.filter((c) =>
+    normalizarTexto(c.nombre).startsWith(normalizarTexto(formData.ciudad))
+  );
+
+  const validarPassword = (password) => {
+    const tieneMinimoCaracteres = password.length >= 8;
+    const tieneLetra = /[a-zA-ZáéíóúÁÉÍÓÚñÑ]/.test(password);
+    const tieneNumero = /\d/.test(password);
+
+    return tieneMinimoCaracteres && tieneLetra && tieneNumero;
+  };
+
+  const PASSWORD_POLICY_MESSAGE =
+    'La contraseña debe tener al menos 8 caracteres, incluir una letra y un número.';
+
   /*
     Actualiza inputs normales y el input file del logo.
     Si el campo es archivo, guarda files[0].
     Si no, guarda el value del input.
   */
   const handleChange = (e) => {
-    const { id, value, files, type } = e.target;
+    const { id, name, value, files, type } = e.target;
+    const fieldName = name || id;
 
     setFormData((prev) => ({
       ...prev,
-      [id]: type === 'file' ? files[0] : value,
+      [fieldName]: type === 'file' ? files[0] || null : value,
+      ...(fieldName === 'provincia' && {
+        ciudad: '',
+      }),
     }));
+
+    if (fieldName === 'provincia') {
+      setCiudades([]);
+      setMostrarProvincias(true);
+    }
+
+    if (fieldName === 'ciudad') {
+      setMostrarCiudades(true);
+    }
   };
 
   /*
@@ -177,6 +220,14 @@ function Register({ onRegisterComplete, onCancelRegister }) {
       });
     }
 
+    if (!validarPassword(formData.password)) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Contraseña inválida',
+        text: PASSWORD_POLICY_MESSAGE,
+      });
+    }
+
     if (!/^\d{2}-\d{8}-\d{1}$/.test(formData.CUIT)) {
       return Swal.fire({
         icon: 'error',
@@ -184,7 +235,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
         text: 'El formato del CUIT es incorrecto. Debe ser XX-XXXXXXXX-X.',
       });
     }
-    
+
     try {
       const formDataToSend = new FormData();
 
@@ -213,7 +264,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
         formDataToSend.append('logo', formData.logo);
       }
 
-      const response = await fetch('http://localhost:3000/user/register', {
+      const response = await fetch(`${API_URL}/user/register`, {
         method: 'POST',
         body: formDataToSend,
       });
@@ -234,18 +285,18 @@ function Register({ onRegisterComplete, onCancelRegister }) {
 
       // Enviar email de bienvenida (sin esperar respuesta)
       try {
-        const mailResponse = await fetch('http://localhost:3000/contact', {
+        const mailResponse = await fetch(`${API_URL}/contact`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             nombre: `${formData.nombre} ${formData.apellido}`,
-            club: formData.razonSocial,
+            razonSocial: formData.razonSocial,
             email: formData.email,
             subject: 'Club Registrado en CanchasYa!',
             message: ``,
-          
+
           }),
         });
 
@@ -480,8 +531,8 @@ function Register({ onRegisterComplete, onCancelRegister }) {
                       </div>
 
                       <div className="upload-box__info">
-                        <span>Formatos permitidos: JPG, PNG, SVG</span>
-                        <span>Tamaño máximo: 5MB</span>
+                        <span>Formatos permitidos: JPG, PNG, WEBP</span>
+                        <span>Tamaño máximo: 2MB</span>
                       </div>
                     </div>
 
@@ -500,10 +551,12 @@ function Register({ onRegisterComplete, onCancelRegister }) {
                     <input
                       type="file"
                       id="logo"
-                      accept="image/*"
+                      name="logo"
+                      accept="image/jpeg,image/png,image/webp"
                       onChange={handleChange}
                       className="upload-box__input"
                     />
+
                   </div>
                 </div>
               </div>
@@ -524,6 +577,9 @@ function Register({ onRegisterComplete, onCancelRegister }) {
                     required
                   />
                   <i className="bi bi-lock icon-inside"></i>
+                  <small className="text-light d-block mt-1">
+                    Mínimo 8 caracteres, una letra y un número.
+                  </small>
                 </div>
 
                 <div className="col-md-6 position-relative">
@@ -543,94 +599,178 @@ function Register({ onRegisterComplete, onCancelRegister }) {
                 </div>
               </div>
 
-               {/* Dirección, provincia, ciudad y código postal */}
-                <div className="row mb-3">
+              {/* Dirección, provincia, ciudad y código postal */}
+              <div className="row mb-3">
 
-                  {/* Dirección */}
-                  <div className="col-md-4 position-relative">
-                    <label htmlFor="direccion" className="form-label">Dirección</label>
+                {/* Dirección */}
+                <div className="col-md-4 position-relative">
+                  <label htmlFor="direccion" className="form-label">Dirección</label>
 
-                    <input
-                      type="text"
-                      className="form-control form-control-lg input-with-icon"
-                      id="direccion"
-                      placeholder="Dirección"
-                      value={formData.direccion}
-                      onChange={handleChange}
-                      required
-                    />
+                  <input
+                    type="text"
+                    className="form-control form-control-lg input-with-icon"
+                    id="direccion"
+                    placeholder="Dirección"
+                    value={formData.direccion}
+                    onChange={handleChange}
+                    required
+                  />
 
-                    <i className="bi bi-geo-alt icon-inside"></i>
-                  </div>
-
-                  {/* Provincia (GEoREF - ID) */}
-                  <div className="col-md-3 position-relative">
-                    <label className="form-label">Provincia</label>
-
-                    <select
-                      className="form-select form-select-lg"
-                      id="provincia"
-                      value={formData.provincia}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="">Provincia</option>
-
-                      {provincias.map((p) => (
-                        <option key={p.id} value={p.nombre}>
-                          {p.nombre}
-                        </option>
-                      ))}
-                    </select>
-
-                    <i className="bi bi-flag icon-inside"></i>
-                  </div>
-
-                  {/* Ciudad / Localidad (GEoREF) */}
-                  <div className="col-md-3 position-relative">
-                    <label className="form-label">Ciudad</label>
-
-                    <select
-                      className="form-select form-select-lg"
-                      id="ciudad"
-                      value={formData.ciudad}
-                      onChange={handleChange}
-                      disabled={!formData.provincia}
-                      required
-                    >
-                      <option value="">Ciudad</option>
-
-                      {ciudades.map((c) => (
-                        <option key={c.id} value={c.nombre}>
-                          {c.nombre}
-                        </option>
-                      ))}
-                    </select>
-
-                    <i className="bi bi-map icon-inside"></i>
-                  </div>
-
-                  {/* CP */}
-                  <div className="col-md-2 position-relative">
-                    <label htmlFor="cp" className="form-label">CP</label>
-
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      maxLength="7"
-                      pattern="\d{1,7}"
-                      className="form-control form-control-lg input-with-icon"
-                      id="cp"
-                      placeholder="CP"
-                      value={formData.cp}
-                      onChange={handleChange}
-                      required
-                    />
-
-                    <i className="bi bi-mailbox icon-inside"></i>
-                  </div>
-
+                  <i className="bi bi-geo-alt icon-inside"></i>
                 </div>
+
+                {/* Provincia (GEoREF - ID) */}
+                <div className="col-md-3 position-relative">
+                  <label htmlFor="provincia" className="form-label">Provincia</label>
+
+                  <input
+                    type="text"
+                    className="form-control form-control-lg input-with-icon"
+                    id="provincia"
+                    value={formData.provincia}
+                    onChange={handleChange}
+                    onFocus={() => setMostrarProvincias(true)}
+                    placeholder="Provincia"
+                    autoComplete="off"
+                    required
+                  />
+
+                  {mostrarProvincias && formData.provincia && provinciasFiltradas.length > 0 && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        zIndex: 1000,
+                        left: 0,
+                        right: 0,
+                        maxHeight: '220px',
+                        overflowY: 'auto',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #ced4da',
+                        borderRadius: '0 0 10px 10px',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.18)',
+                      }}
+                    >
+                      {provinciasFiltradas.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          className="dropdown-item"
+                          style={{
+                            padding: '10px 14px',
+                            textAlign: 'left',
+                            width: '100%',
+                            border: 'none',
+                            backgroundColor: '#ffffff',
+                            color: '#1e293b',
+                            fontSize: '15px',
+                            cursor: 'pointer',
+                          }}
+                          onMouseDown={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              provincia: p.nombre,
+                              ciudad: '',
+                            }));
+
+                            setCiudades([]);
+                            setMostrarProvincias(false);
+                          }}
+                        >
+                          {p.nombre}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <i className="bi bi-flag icon-inside"></i>
+                </div>
+
+                {/* Ciudad / Localidad (GEoREF) */}
+                <div className="col-md-3 position-relative">
+                  <label htmlFor="ciudad" className="form-label">Ciudad</label>
+
+                  <input
+                    type="text"
+                    className="form-control form-control-lg input-with-icon"
+                    id="ciudad"
+                    value={formData.ciudad}
+                    onChange={handleChange}
+                    onFocus={() => setMostrarCiudades(true)}
+                    disabled={!formData.provincia}
+                    placeholder="Ciudad"
+                    autoComplete="off"
+                    required
+                  />
+
+                  {mostrarCiudades && formData.ciudad && ciudadesFiltradas.length > 0 && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        zIndex: 1000,
+                        left: 0,
+                        right: 0,
+                        maxHeight: '220px',
+                        overflowY: 'auto',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #ced4da',
+                        borderRadius: '0 0 10px 10px',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.18)',
+                      }}
+                    >
+                      {ciudadesFiltradas.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className="dropdown-item"
+                          style={{
+                            padding: '10px 14px',
+                            textAlign: 'left',
+                            width: '100%',
+                            border: 'none',
+                            backgroundColor: '#ffffff',
+                            color: '#1e293b',
+                            fontSize: '15px',
+                            cursor: 'pointer',
+                          }}
+                          onMouseDown={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              ciudad: c.nombre,
+                            }));
+
+                            setMostrarCiudades(false);
+                          }}
+                        >
+                          {c.nombre}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <i className="bi bi-map icon-inside"></i>
+                </div>
+
+                {/* CP */}
+                <div className="col-md-2 position-relative">
+                  <label htmlFor="cp" className="form-label">CP</label>
+
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength="7"
+                    pattern="\d{1,7}"
+                    className="form-control form-control-lg input-with-icon"
+                    id="cp"
+                    placeholder="CP"
+                    value={formData.cp}
+                    onChange={handleChange}
+                    required
+                  />
+
+                  <i className="bi bi-mailbox icon-inside"></i>
+                </div>
+
+              </div>
 
               {/* Términos y condiciones */}
               <div className="form-check mb-4">

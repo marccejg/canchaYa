@@ -2569,6 +2569,152 @@
 }
 
 /* =========================================================
+   FIX DROPDOWN ÚLTIMA RESERVA
+   - Evita que el menú Modificar/Eliminar genere scroll hacia abajo
+   - Hace que el menú de la última reserva abra hacia arriba
+========================================================= */
+
+.reservations-list {
+  overflow-y: auto !important;
+  overflow-x: visible !important;
+  padding-right: 4px !important;
+  padding-bottom: 8px !important;
+}
+
+.reservation-card {
+  position: relative !important;
+  overflow: visible !important;
+  z-index: 1;
+}
+
+.reservation-card:has(.reservation-card__dropdown) {
+  z-index: 20;
+}
+
+.reservation-card__actions,
+.reservation-card__menu {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.reservation-card__dropdown {
+  position: absolute !important;
+  right: 0 !important;
+  top: 32px !important;
+  bottom: auto !important;
+
+  z-index: 9999 !important;
+
+  min-width: 145px !important;
+  padding: 8px !important;
+
+  background: #ffffff !important;
+  border: 1px solid #d7e4f4 !important;
+  border-radius: 12px !important;
+
+  box-shadow: 0 18px 40px rgba(9, 37, 76, 0.22) !important;
+}
+
+/* 
+   Cuando la reserva es la última de la lista,
+   el menú abre hacia arriba.
+*/
+.reservations-list .reservation-card:last-child .reservation-card__dropdown {
+  top: auto !important;
+  bottom: 34px !important;
+}
+
+/*
+   También aplicamos el mismo comportamiento para las últimas 2 reservas.
+   Esto ayuda cuando el panel tiene poco alto disponible.
+*/
+.reservations-list .reservation-card:nth-last-child(2) .reservation-card__dropdown {
+  top: auto !important;
+  bottom: 34px !important;
+}
+
+/* Botones internos del dropdown */
+.reservation-card__dropdown button {
+  width: 100% !important;
+  min-height: 42px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+
+  padding: 10px 12px !important;
+
+  border: none !important;
+  border-radius: 9px !important;
+
+  background: transparent !important;
+  color: var(--azul-texto) !important;
+
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  text-align: left !important;
+
+  cursor: pointer !important;
+}
+
+.reservation-card__dropdown button:hover {
+  background: #eef5ff !important;
+}
+
+.reservation-card__dropdown-danger {
+  color: #d71920 !important;
+}
+
+.reservation-card__dropdown-danger:hover {
+  background: #fff0f0 !important;
+}
+
+/* En mobile dejamos que abra normal hacia abajo porque las cards se apilan */
+@media (max-width: 760px) {
+  .reservations-list .reservation-card:last-child .reservation-card__dropdown,
+  .reservations-list .reservation-card:nth-last-child(2) .reservation-card__dropdown {
+    top: 32px !important;
+    bottom: auto !important;
+  }
+}
+/* =========================================================
+   FIX COLOR DROPDOWN RESERVAS
+   - Modificar en rojo
+   - Eliminar en negro
+========================================================= */
+
+/* Todos los botones del dropdown en negro por defecto */
+.reservation-card__dropdown button,
+.reservation-card__dropdown button i,
+.reservation-card__dropdown button .bi {
+  color: var(--azul-texto) !important;
+}
+
+/* Botón de modificar en rojo */
+.reservation-card__dropdown button:first-child,
+.reservation-card__dropdown button:first-child i,
+.reservation-card__dropdown button:first-child .bi {
+  color: #d71920 !important;
+}
+
+/* Botón eliminar en negro, aunque tenga clase danger */
+.reservation-card__dropdown-danger,
+.reservation-card__dropdown-danger i,
+.reservation-card__dropdown-danger .bi {
+  color: var(--azul-texto) !important;
+}
+
+/* Hover de modificar */
+.reservation-card__dropdown button:first-child:hover {
+  background: #fff0f0 !important;
+}
+
+/* Hover de eliminar */
+.reservation-card__dropdown-danger:hover {
+  background: #eef5ff !important;
+=======
+
+/* =========================================================
    RESPONSIVE FINAL DASHBOARD USUARIO
    Pegar al final del archivo.
    Solo corrige comportamiento responsive.
@@ -2992,7 +3138,7 @@ body,
     padding: 16px 10px !important;
   }
 
-  .stage-heading h2 {
+  .stage-headi h2 {
     font-size: 20px !important;
   }
 }
@@ -3028,4 +3174,5 @@ body,
     right: auto !important;
     transform: translateX(-50%) !important;
   }
+
 }
