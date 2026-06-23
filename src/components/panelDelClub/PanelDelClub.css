@@ -1423,3 +1423,421 @@
     max-height: 220px;
   }
 }
+/* =========================================================
+   RESPONSIVE FINAL PANEL DEL CLUB
+   Pegar al final de PanelDelClub.css
+   Solo corrige comportamiento responsive.
+========================================================= */
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+.pdc-owner-dashboard {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.pdc-shell,
+.pdc-header,
+.pdc-stats-grid,
+.pdc-main-grid,
+.pdc-bottom-grid,
+.pdc-panel,
+.pdc-court-row,
+.pdc-reservation-row,
+.pdc-settings-section,
+.pdc-settings-box,
+.pdc-add-cancha-form,
+.pdc-actions {
+  min-width: 0;
+}
+
+/* =========================================================
+   NOTEBOOKS / TABLETS GRANDES
+========================================================= */
+
+@media (max-width: 1180px) {
+  .pdc-owner-dashboard {
+    padding: 16px 18px 36px;
+  }
+
+  .pdc-header {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    min-height: auto;
+    text-align: center;
+  }
+
+  .pdc-main-title,
+  .pdc-club-title,
+  .pdc-header-actions {
+    grid-column: auto;
+    justify-self: center;
+    text-align: center;
+    padding-top: 0;
+  }
+
+  .pdc-header-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .pdc-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pdc-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdc-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdc-court-row {
+    grid-template-columns: 120px minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .pdc-court-row .pdc-court-reservas:last-child {
+    grid-column: 2 / -1;
+  }
+}
+
+/* =========================================================
+   TABLETS
+========================================================= */
+
+@media (max-width: 768px) {
+  .pdc-owner-dashboard {
+    padding: 14px 10px 32px;
+    background-attachment: scroll;
+  }
+
+  .pdc-main-title h1,
+  .pdc-club-title h2 {
+    font-size: 1.75rem;
+    line-height: 1.1;
+  }
+
+  .pdc-main-title p,
+  .pdc-club-title p {
+    font-size: 0.95rem;
+  }
+
+  .pdc-header-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pdc-settings-button,
+  .pdc-pay-button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pdc-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .pdc-stat-card {
+    min-height: auto;
+    padding: 14px;
+  }
+
+  .pdc-panel {
+    padding: 14px;
+  }
+
+  .pdc-panel-header {
+    padding: 0 0 12px;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .pdc-panel-header h3 {
+    text-align: center;
+  }
+
+  .pdc-light-button,
+  .pdc-dark-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pdc-court-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .pdc-court-row img {
+    width: 100%;
+    height: 160px;
+  }
+
+  .pdc-court-info,
+  .pdc-court-reservas {
+    width: 100%;
+    align-items: center;
+  }
+
+  .pdc-price-display,
+  .pdc-price-editor {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .pdc-price-input {
+    width: min(180px, 100%);
+  }
+
+  .pdc-reservation-row {
+    grid-template-columns: 1fr;
+    text-align: center;
+    justify-items: center;
+  }
+
+  .pdc-calendar-preview-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pdc-status-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .pdc-status-list {
+    width: 100%;
+  }
+
+  .pdc-status-list p {
+    gap: 10px;
+  }
+
+  .pdc-income-value {
+    font-size: 1.55rem;
+    text-align: center;
+  }
+
+  .pdc-income-value span {
+    display: inline-flex;
+    margin-top: 8px;
+    margin-left: 0;
+  }
+
+  .pdc-actions {
+    flex-direction: column;
+  }
+
+  .pdc-btn {
+    width: 100%;
+  }
+
+  .pdc-settings-section {
+    padding: 18px 14px;
+  }
+
+  .pdc-settings-section h2 {
+    font-size: 1.35rem;
+    text-align: center;
+  }
+
+  .pdc-settings-box {
+    padding: 14px;
+  }
+
+  .pdc-horarios-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pdc-form-actions {
+    flex-direction: column;
+  }
+
+  .pdc-btn-success,
+  .pdc-btn-cancel,
+  .pdc-btn-save-settings,
+  .pdc-btn-add-cancha {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* =========================================================
+   CELULARES
+========================================================= */
+
+@media (max-width: 480px) {
+  .pdc-owner-dashboard {
+    padding: 12px 8px 28px;
+  }
+
+  .pdc-main-title h1,
+  .pdc-club-title h2 {
+    font-size: 1.5rem;
+  }
+
+  .pdc-main-title p,
+  .pdc-club-title p {
+    font-size: 0.88rem;
+  }
+
+  .pdc-stat-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .pdc-stat-card h3 {
+    font-size: 1.35rem;
+    word-break: break-word;
+  }
+
+  .pdc-stat-icon {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+  }
+
+  .pdc-panel {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .pdc-panel-header h3,
+  .pdc-panel h3 {
+    font-size: 1rem;
+  }
+
+  .pdc-court-row img {
+    height: 135px;
+  }
+
+  .pdc-court-info h4 {
+    font-size: 0.95rem;
+  }
+
+  .pdc-court-info p,
+  .pdc-court-reservas p,
+  .pdc-court-reservas small {
+    font-size: 0.78rem;
+  }
+
+  .pdc-price-display strong {
+    font-size: 1rem !important;
+  }
+
+  .pdc-reservation-row {
+    gap: 8px;
+  }
+
+  .pdc-confirmed,
+  .pdc-pending {
+    width: 100%;
+    text-align: center;
+  }
+
+  .pdc-income-value {
+    font-size: 1.35rem;
+    word-break: break-word;
+  }
+
+  .pdc-fake-chart {
+    height: 95px;
+  }
+
+  .pdc-donut {
+    width: 88px;
+    height: 88px;
+  }
+
+  .pdc-donut::after {
+    inset: 23px;
+  }
+
+  .pdc-status-list p {
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .pdc-horarios-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdc-progress-modal,
+  .pdc-welcome-modal {
+    width: 100%;
+    max-height: calc(100vh - 32px);
+    padding: 28px 18px 22px;
+  }
+
+  .pdc-progress-modal h2,
+  .pdc-welcome-modal h2 {
+    font-size: 1.45rem;
+  }
+
+  .cy-alert-title {
+    font-size: 23px !important;
+  }
+
+  .cy-alert-popup {
+    width: min(94vw, 420px) !important;
+    padding: 22px 18px 20px !important;
+  }
+}
+
+/* =========================================================
+   CELULARES MUY ANGOSTOS
+========================================================= */
+
+@media (max-width: 360px) {
+  .pdc-owner-dashboard {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .pdc-settings-button,
+  .pdc-pay-button,
+  .pdc-light-button,
+  .pdc-dark-button,
+  .pdc-btn {
+    font-size: 0.82rem;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .pdc-main-title h1,
+  .pdc-club-title h2 {
+    font-size: 1.35rem;
+  }
+
+  .pdc-panel {
+    padding: 10px;
+  }
+
+  .pdc-court-row img {
+    height: 120px;
+  }
+
+  .pdc-price-editor {
+    flex-direction: column;
+  }
+
+  .pdc-price-input {
+    width: 100%;
+    text-align: center;
+  }
+}

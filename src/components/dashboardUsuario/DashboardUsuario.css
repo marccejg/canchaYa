@@ -2567,6 +2567,7 @@
     padding: 0 10px 8px !important;
   }
 }
+
 /* =========================================================
    FIX DROPDOWN ÚLTIMA RESERVA
    - Evita que el menú Modificar/Eliminar genere scroll hacia abajo
@@ -2711,4 +2712,467 @@
 /* Hover de eliminar */
 .reservation-card__dropdown-danger:hover {
   background: #eef5ff !important;
+=======
+
+/* =========================================================
+   RESPONSIVE FINAL DASHBOARD USUARIO
+   Pegar al final del archivo.
+   Solo corrige comportamiento responsive.
+========================================================= */
+
+/* Base segura: evita scroll horizontal global */
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+.dashboard-usuario {
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+}
+
+/* Evita que hijos de grid/flex fuercen ancho */
+.dashboard-usuario__overlay,
+.dashboard-shell,
+.dashboard-shell__main,
+.dashboard-layout,
+.booking-panel,
+.reservations-panel,
+.booking-wizard,
+.booking-stage,
+.stage-content,
+.reservations-list {
+  min-width: 0 !important;
+}
+
+/* =========================================================
+   TABLETS / NOTEBOOKS CHICAS
+========================================================= */
+
+@media (max-width: 1180px) {
+  .dashboard-usuario {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .dashboard-banner {
+    display: none !important;
+  }
+
+  .dashboard-usuario__overlay,
+  .dashboard-shell,
+  .dashboard-shell__main {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow: visible !important;
+  }
+
+  .dashboard-shell__main {
+    padding: 0 12px 16px !important;
+  }
+
+  .dashboard-layout {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .booking-panel,
+  .reservations-panel {
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+
+  .reservations-panel {
+    order: 2 !important;
+  }
+
+  .booking-panel {
+    order: 1 !important;
+  }
+
+  .dashboard-benefits {
+    height: auto !important;
+    min-height: auto !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    overflow: visible !important;
+  }
+}
+
+/* =========================================================
+   TABLETS VERTICALES
+========================================================= */
+
+@media (max-width: 900px) {
+  .dashboard-header {
+    height: auto !important;
+    min-height: 58px !important;
+    padding: 10px 14px !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    justify-items: center !important;
+  }
+
+  .dashboard-header__brand,
+  .dashboard-header__social,
+  .dashboard-header__user {
+    justify-content: center !important;
+    justify-self: center !important;
+  }
+
+  .dashboard-header__user {
+    flex-wrap: wrap !important;
+    white-space: normal !important;
+  }
+
+  .booking-panel__top {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .steps-indicator {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .booking-wizard {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .booking-sidebar {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    grid-template-rows: auto !important;
+    gap: 8px !important;
+  }
+
+  .booking-sidebar::before {
+    display: none !important;
+  }
+
+  .booking-side-step {
+    grid-template-columns: 1fr !important;
+    justify-items: center !important;
+    text-align: center !important;
+    padding: 8px 6px !important;
+  }
+
+  .booking-side-step small {
+    display: none !important;
+  }
+
+  .booking-stage {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+
+  .stage-content {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    padding: 20px 16px !important;
+  }
+
+  .sports-grid,
+  .sports-grid--large {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .clubs-grid,
+  .clubs-grid--large {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .date-selector__days,
+  .date-selector__days--large {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .time-grid,
+  .time-grid--large {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .booking-summary,
+  .booking-summary--large {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* =========================================================
+   CELULARES
+========================================================= */
+
+@media (max-width: 600px) {
+  .dashboard-shell__main {
+    padding: 0 8px 14px !important;
+  }
+
+  .dashboard-header__logo-img {
+    height: 32px !important;
+  }
+
+  .dashboard-header__social {
+    gap: 18px !important;
+  }
+
+  .dashboard-header__user {
+    font-size: 12px !important;
+    gap: 7px !important;
+  }
+
+  .dashboard-header__logout {
+    min-height: 30px !important;
+    padding: 0 10px !important;
+  }
+
+  .booking-panel,
+  .reservations-panel {
+    padding: 12px !important;
+    border-radius: 12px !important;
+  }
+
+  .booking-panel h1 {
+    font-size: 21px !important;
+    text-align: center !important;
+  }
+
+  .booking-panel p {
+    text-align: center !important;
+  }
+
+  .steps-indicator {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 3px !important;
+  }
+
+  .step span {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 12px !important;
+  }
+
+  .step small {
+    font-size: 9px !important;
+  }
+
+  .booking-sidebar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .booking-side-step {
+    grid-template-columns: 32px minmax(0, 1fr) !important;
+    justify-items: start !important;
+    text-align: left !important;
+  }
+
+  .booking-side-step small {
+    display: block !important;
+  }
+
+  .stage-heading {
+    margin-bottom: 16px !important;
+  }
+
+  .stage-heading h2 {
+    font-size: 22px !important;
+  }
+
+  .stage-heading p {
+    font-size: 12px !important;
+  }
+
+  .sports-grid,
+  .sports-grid--large,
+  .clubs-grid,
+  .clubs-grid--large,
+  .date-selector__days,
+  .date-selector__days--large,
+  .time-grid,
+  .time-grid--large,
+  .booking-summary,
+  .booking-summary--large {
+    grid-template-columns: 1fr !important;
+  }
+
+  .sport-card,
+  .sport-card--large {
+    min-height: 96px !important;
+  }
+
+  .club-card,
+  .club-card--large {
+    min-height: 170px !important;
+  }
+
+  .date-selector__month {
+    gap: 14px !important;
+    font-size: 17px !important;
+  }
+
+  .day-card,
+  .day-card--large {
+    min-height: 82px !important;
+  }
+
+  .time-card,
+  .time-card--large {
+    height: 52px !important;
+    font-size: 15px !important;
+  }
+
+  .time-grid__legend {
+    justify-self: center !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+
+  .reservations-panel__header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .reservations-panel__header h2 {
+    white-space: normal !important;
+    text-align: center !important;
+    font-size: 22px !important;
+  }
+
+  .reservations-panel__header button,
+  .see-all-button {
+    width: 100% !important;
+  }
+
+  .next-reservation > div:first-child {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .next-reservation__body {
+    align-items: flex-start !important;
+  }
+
+  .reservation-card {
+    grid-template-columns: 1fr !important;
+    text-align: center !important;
+    justify-items: center !important;
+  }
+
+  .reservation-card__info,
+  .reservation-card__actions {
+    width: 100% !important;
+    justify-items: center !important;
+  }
+
+  .reservation-card__info p,
+  .reservation-card__info small,
+  .reservation-card__actions small {
+    overflow-wrap: anywhere !important;
+  }
+
+  .reservation-card__menu {
+    justify-self: center !important;
+  }
+
+  .reservation-card__dropdown {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .dashboard-benefits {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    padding: 12px !important;
+  }
+}
+
+/* =========================================================
+   CELULARES MUY ANGOSTOS
+========================================================= */
+
+@media (max-width: 380px) {
+  .dashboard-shell__main {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
+
+  .booking-panel,
+  .reservations-panel {
+    padding: 10px !important;
+  }
+
+  .step small {
+    display: none !important;
+  }
+
+  .booking-side-step {
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+  }
+
+  .booking-side-step strong {
+    font-size: 12px !important;
+  }
+
+  .booking-side-step small {
+    font-size: 9px !important;
+  }
+
+  .stage-content {
+    padding: 16px 10px !important;
+  }
+
+  .stage-headi h2 {
+    font-size: 20px !important;
+  }
+}
+/* =========================================================
+   FIX DROPDOWN MIS RESERVAS
+   Evita que el menú de las últimas reservas obligue a scrollear
+========================================================= */
+
+.reservation-card {
+  overflow: visible;
+}
+
+.reservation-card__menu {
+  position: relative;
+}
+
+.reservation-card__dropdown {
+  z-index: 999;
+}
+
+/* En las últimas reservas, el menú abre hacia arriba */
+.reservations-list .reservation-card:nth-last-child(-n + 2) .reservation-card__dropdown {
+  top: auto;
+  bottom: 34px;
+}
+
+/* Ajuste para mobile, manteniendo el menú centrado */
+@media (max-width: 600px) {
+  .reservations-list .reservation-card:nth-last-child(-n + 2) .reservation-card__dropdown {
+    top: auto !important;
+    bottom: 34px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+  }
+
 }
