@@ -149,6 +149,17 @@ function Register({ onRegisterComplete, onCancelRegister }) {
     normalizarTexto(c.nombre).startsWith(normalizarTexto(formData.ciudad))
   );
 
+  const validarPassword = (password) => {
+    const tieneMinimoCaracteres = password.length >= 8;
+    const tieneLetra = /[a-zA-ZáéíóúÁÉÍÓÚñÑ]/.test(password);
+    const tieneNumero = /\d/.test(password);
+
+    return tieneMinimoCaracteres && tieneLetra && tieneNumero;
+  };
+
+  const PASSWORD_POLICY_MESSAGE =
+    'La contraseña debe tener al menos 8 caracteres, incluir una letra y un número.';
+
   /*
     Actualiza inputs normales y el input file del logo.
     Si el campo es archivo, guarda files[0].
@@ -206,6 +217,14 @@ function Register({ onRegisterComplete, onCancelRegister }) {
         icon: 'error',
         title: 'Error',
         text: 'Las contraseñas no coinciden.',
+      });
+    }
+
+    if (!validarPassword(formData.password)) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Contraseña inválida',
+        text: PASSWORD_POLICY_MESSAGE,
       });
     }
 
@@ -558,6 +577,9 @@ function Register({ onRegisterComplete, onCancelRegister }) {
                     required
                   />
                   <i className="bi bi-lock icon-inside"></i>
+                  <small className="text-light d-block mt-1">
+                    Mínimo 8 caracteres, una letra y un número.
+                  </small>
                 </div>
 
                 <div className="col-md-6 position-relative">

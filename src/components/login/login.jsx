@@ -139,6 +139,17 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
 
   const { login } = useAuth();
 
+  const validarPassword = (password) => {
+    const tieneMinimoCaracteres = password.length >= 8;
+    const tieneLetra = /[a-zA-ZáéíóúÁÉÍÓÚñÑ]/.test(password);
+    const tieneNumero = /\d/.test(password);
+
+    return tieneMinimoCaracteres && tieneLetra && tieneNumero;
+  };
+
+  const PASSWORD_POLICY_MESSAGE =
+    'La contraseña debe tener al menos 8 caracteres, incluir una letra y un número.';
+
   const openRecoveryModal = () => {
     setRecoveryEmail(username || '');
     setRecoveryCode('');
@@ -202,6 +213,11 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
 
     if (newPassword !== confirmNewPassword) {
       setRecoveryError('Las contraseñas no coinciden.');
+      return;
+    }
+
+    if (!validarPassword(newPassword)) {
+      setRecoveryError(PASSWORD_POLICY_MESSAGE);
       return;
     }
 
@@ -448,6 +464,9 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
                         style={recoveryModalStyles.input}
                         required
                       />
+                      <small style={{ color: '#64748b', display: 'block', marginTop: '6px', fontSize: '12px' }}>
+                        Mínimo 8 caracteres, una letra y un número.
+                      </small>
                     </div>
 
                     <div style={recoveryModalStyles.inputGroup}>
