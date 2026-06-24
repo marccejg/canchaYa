@@ -667,15 +667,15 @@
 
 @keyframes inicioFloatCounter {
   0% {
-    transform: translateY(-50%) translateY(0);
+    transform: translateY(-70%) translateY(0);
   }
 
   50% {
-    transform: translateY(-50%) translateY(-10px);
+    transform: translateY(-70%) translateY(-13px);
   }
 
   100% {
-    transform: translateY(-50%) translateY(0);
+    transform: translateY(-70%) translateY(0);
   }
 }
 
