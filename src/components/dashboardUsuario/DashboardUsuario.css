@@ -2712,13 +2712,11 @@
 /* Hover de eliminar */
 .reservation-card__dropdown-danger:hover {
   background: #eef5ff !important;
-=======
 
 /* =========================================================
    RESPONSIVE FINAL DASHBOARD USUARIO
    Pegar al final del archivo.
    Solo corrige comportamiento responsive.
-========================================================= */
 
 /* Base segura: evita scroll horizontal global */
 html,
@@ -2751,7 +2749,6 @@ body,
 
 /* =========================================================
    TABLETS / NOTEBOOKS CHICAS
-========================================================= */
 
 @media (max-width: 1180px) {
   .dashboard-usuario {
@@ -2814,7 +2811,6 @@ body,
 
 /* =========================================================
    TABLETS VERTICALES
-========================================================= */
 
 @media (max-width: 900px) {
   .dashboard-header {
@@ -2917,7 +2913,6 @@ body,
 
 /* =========================================================
    CELULARES
-========================================================= */
 
 @media (max-width: 600px) {
   .dashboard-shell__main {
@@ -3105,7 +3100,6 @@ body,
 
 /* =========================================================
    CELULARES MUY ANGOSTOS
-========================================================= */
 
 @media (max-width: 380px) {
   .dashboard-shell__main {
@@ -3145,7 +3139,6 @@ body,
 /* =========================================================
    FIX DROPDOWN MIS RESERVAS
    Evita que el menú de las últimas reservas obligue a scrollear
-========================================================= */
 
 .reservation-card {
   overflow: visible;
