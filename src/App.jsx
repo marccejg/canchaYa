@@ -43,6 +43,8 @@ const mapReservaDesdeApi = (r) => ({
   precio: r.monto_total,
 });
 
+
+
 /*
   App es el componente raíz de CanchasYa.
   Decide qué pantalla mostrar según:
