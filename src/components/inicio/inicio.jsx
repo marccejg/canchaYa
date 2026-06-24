@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { deportes } from "../staticData";
 import "./inicio.css";
 import WhatsAppButton from "../WhatsApp/WhatsAppButton";
+import { API_URL } from '../../config';
 
 import futbol5 from "../imagenes/futbol5.png";
 import futbol11 from "../imagenes/futbol11.png";
@@ -54,7 +55,7 @@ const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub, onAdminLogin }) =>
 
   const obtenerCantidadUsuarios = async () => {
     try {
-      const response = await fetch("http://localhost:3000/user/count");
+      const response = await fetch(`${API_URL}/user/count`);
 
       if (!response.ok) {
         throw new Error("No se pudo obtener la cantidad de usuarios");

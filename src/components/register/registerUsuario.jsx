@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
 import './register.css';
+import { API_URL } from '../../config';
 import Logo from './logo.jpg';
 import LogoBlanco from './logo blanco.png';
 import LogoSoloBlanco from './logoSoloBlanco.png';
@@ -31,7 +32,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
   useEffect(() => {
     const loadProvincias = async () => {
       try {
-        const res = await fetch('http://localhost:3000/georef/provincias');
+        const res = await fetch(`${API_URL}/georef/provincias`);
         const data = await res.json();
 
 
@@ -62,7 +63,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     const loadCiudades = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3000/georef/localidades?provincia=${encodeURIComponent(formData.provincia)}`
+          `${API_URL}/georef/localidades?provincia=${encodeURIComponent(formData.provincia)}`
         );
         const data = await res.json();
         const listaCiudades = Array.isArray(data) ? data : (data.localidades || []);
@@ -167,14 +168,14 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
 
     const emailExists = async (email) => {
       try {
-        const response = await fetch('http://localhost:3000/user/email', {
+        const response = await fetch(`${API_URL}/user/email`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ email: email }),
         });
-        const dniExistsResponse = await fetch('http://localhost:3000/user/dni', {
+        const dniExistsResponse = await fetch(`${API_URL}/user/dni`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ dni: formData.DNI }),
@@ -209,7 +210,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/user', {
+      const response = await fetch(`${API_URL}/user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -237,7 +238,7 @@ function RegisterUser({ onRegisterComplete, onCancelRegister }) {
 
       // Enviar email de bienvenida (sin bloquear el flujo)
       try {
-        await fetch('http://localhost:3000/contact', {
+        await fetch(`${API_URL}/contact`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

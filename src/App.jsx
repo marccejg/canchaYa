@@ -14,6 +14,34 @@ import { useAuth } from './hooks/useAuth';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { API_URL } from './config';
+
+const restaurarUsuarioDesdeStorage = () => {
+  try {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    localStorage.removeItem('user');
+    return null;
+  }
+};
+
+const mapReservaDesdeApi = (r) => ({
+  id: r.id_reserva,
+  id_cancha: r.cancha?.id_cancha,
+  deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
+  club: r.cancha?.club?.nombre_club || 'Club',
+  cancha: r.cancha?.nombre_cancha || 'Cancha',
+  fecha: r.fecha,
+  hora: r.hora_inicio?.slice(0, 5) || '',
+  estado: r.estado
+    ? r.estado.charAt(0).toUpperCase() + r.estado.slice(1)
+    : 'Confirmada',
+  direccion: r.cancha?.club?.direccion_club || '',
+  ciudad: r.cancha?.club?.ciudad_club || '',
+  provincia: r.cancha?.club?.provincia_club || '',
+  precio: r.monto_total,
+});
 
 const restaurarUsuarioDesdeStorage = () => {
   try {
@@ -97,7 +125,7 @@ function App() {
   const fetchReservasPorClub = async (idClub) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/reserva/club/${idClub}`, {
+      const response = await fetch(`${API_URL}/reserva/club/${idClub}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -114,7 +142,7 @@ function App() {
   const fetchReservas = async (idUsuario) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/reserva/usuario/${idUsuario}`, {
+      const response = await fetch(`${API_URL}/reserva/usuario/${idUsuario}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -31,7 +31,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   const handleCheckFechaPago = async () => {
     try {
       const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-      const response = await fetch("http://localhost:3000/dueno-cancha/fecha-vencimiento", {
+      const response = await fetch("API_URL/dueno-cancha/fecha-vencimiento", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -171,7 +171,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
       return logo;
     }
 
-    return `http://localhost:3000${logo}`;
+    return `API_URL${logo}`;
   };
 
   const logoClubUrl = construirUrlLogo(logoClubActual);
@@ -245,7 +245,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
 
       data.append('logo', file);
 
-      const response = await fetch(`http://localhost:3000/club/${clubPrincipal.id_club}/logo`, {
+      const response = await fetch(`API_URL/club/${clubPrincipal.id_club}/logo`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -485,7 +485,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
         console.log('Cargando canchas para club ID:', clubPrincipal?.id_club);
         const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
         const response = await fetch(
-          `http://localhost:3000/cancha/club/${clubPrincipal?.id_club}`,
+          `API_URL/cancha/club/${clubPrincipal?.id_club}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -517,7 +517,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     const fetchDeportes = async () => {
       try {
         const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-        const response = await fetch('http://localhost:3000/deporte', {
+        const response = await fetch('API_URL/deporte', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -559,7 +559,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
           canchas.map(async (cancha) => {
             const idCancha = getCanchaId(cancha);
             const response = await fetch(
-              `http://localhost:3000/disponibilidad/cancha/${idCancha}`,
+              `API_URL/disponibilidad/cancha/${idCancha}`,
               { headers: { 'Authorization': `Bearer ${token}` } }
             );
 
@@ -604,7 +604,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
       const disponibilidades = construirDisponibilidades(getHorariosDeCancha(idCancha));
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`http://localhost:3000/disponibilidad/cancha/${idCancha}`, {
+      const response = await fetch(`API_URL/disponibilidad/cancha/${idCancha}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -671,7 +671,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
 
     try {
       const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-      const response = await fetch('http://localhost:3000/cancha', {
+      const response = await fetch('API_URL/cancha', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -795,7 +795,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/cancha/${canchaId}`, {
+      const response = await fetch(`API_URL/cancha/${canchaId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -879,7 +879,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/cancha/${canchaId}`, {
+      const response = await fetch(`API_URL/cancha/${canchaId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -930,7 +930,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
 
     try {
       const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-      const response = await fetch(`http://localhost:3000/cancha/${canchaId}`, {
+      const response = await fetch(`API_URL/cancha/${canchaId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

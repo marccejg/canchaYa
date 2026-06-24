@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from '../../config';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
@@ -47,7 +48,7 @@ const CANCHAS_DISPONIBLES = [
   - Permite seleccionar varias canchas.
   - Permite adjuntar logo.
   - Envía los datos al backend con FormData.
-  - Usa el endpoint: http://localhost:3000/user/register
+  - Usa el endpoint: API_URL/user/register
 */
 function Register({ onRegisterComplete, onCancelRegister }) {
   /*
@@ -83,7 +84,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
   useEffect(() => {
     const loadProvincias = async () => {
       try {
-        const res = await fetch('http://localhost:3000/georef/provincias');
+        const res = await fetch(`${API_URL}/georef/provincias`);
         const data = await res.json();
 
 
@@ -114,7 +115,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
     const loadCiudades = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3000/georef/localidades?provincia=${encodeURIComponent(formData.provincia)}`
+          `${API_URL}/georef/localidades?provincia=${encodeURIComponent(formData.provincia)}`
         );
         const data = await res.json();
         const listaCiudades = Array.isArray(data) ? data : (data.localidades || []);
@@ -263,7 +264,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
         formDataToSend.append('logo', formData.logo);
       }
 
-      const response = await fetch('http://localhost:3000/user/register', {
+      const response = await fetch(`${API_URL}/user/register`, {
         method: 'POST',
         body: formDataToSend,
       });
@@ -284,7 +285,7 @@ function Register({ onRegisterComplete, onCancelRegister }) {
 
       // Enviar email de bienvenida (sin esperar respuesta)
       try {
-        const mailResponse = await fetch('http://localhost:3000/contact', {
+        const mailResponse = await fetch(`${API_URL}/contact`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
