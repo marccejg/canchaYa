@@ -144,6 +144,7 @@
   box-shadow: 0 8px 22px rgba(255, 140, 26, 0.35);
   transition: all 0.25s ease;
 }
+
 .pdc-pay-button {
   border: none;
   border-radius: 11px;
@@ -163,6 +164,7 @@
   box-shadow: 0 8px 22px rgba(1, 104, 63, 0.35);
   transition: all 0.25s ease;
 }
+
 .pdc-settings-button:hover {
   background: #f27c07;
   transform: translateY(-2px);
@@ -302,7 +304,7 @@
 .pdc-panel-header {
   padding: 0 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-  
+
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1100,813 +1102,816 @@
   color: #65ff7b;
   font-weight: 900;
 
-.pdc-settings-courts-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.pdc-settings-court {
-  padding: 14px;
-  border-radius: 10px;
-}
-
-.pdc-welcome-modal h2 {
-  margin: 0 0 12px;
-  font-size: 1.8rem;
-  font-weight: 900;
-}
-
-.pdc-welcome-modal p {
-  line-height: 1.55;
-  font-weight: 600;
-}
-
-.pdc-welcome-modal-box {
-  margin: 18px 0;
-  padding: 18px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.pdc-welcome-modal-box h3 {
-  margin: 0 0 10px;
-}
-
-.pdc-settings-court-actions {
-  display: flex;
-
-@media (max-width: 1600px) {
-  .pdc-shell {
-    max-width: 1420px;
-  }
-}
-
-@media (max-width: 1380px) {
-  .pdc-owner-dashboard {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-
-  .pdc-shell {
-    max-width: 1320px;
-  }
-}
-
-@media (max-width: 1200px) {
-  .pdc-stats-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .pdc-bottom-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 1050px) {
-  .pdc-owner-dashboard {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
-  .pdc-header {
-    align-items: right;
-    min-height: auto;
+  .pdc-settings-courts-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
   }
 
-  .pdc-main-title,
-  .pdc-club-title {
-    text-align: left;
-    padding-top: 0;
+  .pdc-settings-court {
+    padding: 14px;
+    border-radius: 10px;
   }
 
-  .pdc-header-actions {
-    align-self: flex-end;
-    flex-wrap: wrap;
+  .pdc-welcome-modal h2 {
+    margin: 0 0 12px;
+    font-size: 1.8rem;
+    font-weight: 900;
   }
 
-  .pdc-settings-button,
-  .pdc-pay-button {
-    min-width: 140px;
+  .pdc-welcome-modal p {
+    line-height: 1.55;
+    font-weight: 600;
   }
 
-  .pdc-main-grid {
-    grid-template-columns: 1fr;
+  .pdc-welcome-modal-box {
+    margin: 18px 0;
+    padding: 18px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
   }
 
-  .pdc-court-row {
-    grid-template-columns: 115px 1fr;
-  }
-
-  gap: 12px;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-}
-
-.pdc-welcome-modal-primary,
-.pdc-welcome-modal-secondary {
-  border: none;
-  border-radius: 10px;
-  padding: 12px 18px;
-  font-family: inherit;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.pdc-welcome-modal-primary {
-  background: #087bff;
-  color: #ffffff;
-}
-
-.pdc-welcome-modal-secondary {
-  background: rgba(255, 255, 255, 0.16);
-  color: #ffffff;
-}
-
-
-/* =========================================================
-   CANCHAS CONFIGURADAS EN CONFIGURACIÓN
-
-.pdc-settings-courts-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.pdc-settings-court {
-  padding: 14px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.pdc-settings-court-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
-}
-
-.pdc-settings-court-summary strong {
-  display: block;
-  font-size: 0.98rem;
-  font-weight: 900;
-}
-
-.pdc-settings-court-summary span {
-  display: block;
-  margin-top: 4px;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 0.84rem;
-}
-
-.pdc-settings-court-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.pdc-icon-action {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition: all 0.2s ease;
-}
-
-.pdc-icon-action:hover {
-  background: rgba(102, 126, 234, 0.42);
-  border-color: rgba(102, 126, 234, 0.95);
-}
-
-.pdc-icon-action-edit {
-  border-color: rgba(56, 189, 248, 0.65);
-  background: rgba(14, 165, 233, 0.18);
-  color: #dff7ff;
-}
-
-.pdc-icon-action-edit:hover {
-  background: rgba(14, 165, 233, 0.34);
-  border-color: rgba(56, 189, 248, 0.95);
-}
-
-.pdc-icon-action-clock {
-  border-color: rgba(251, 146, 60, 0.68);
-  background: rgba(249, 115, 22, 0.18);
-  color: #fff1df;
-}
-
-.pdc-icon-action-clock:hover {
-  background: rgba(249, 115, 22, 0.34);
-  border-color: rgba(251, 146, 60, 0.95);
-}
-
-.pdc-icon-action-delete {
-  border-color: rgba(255, 77, 77, 0.55);
-  background: rgba(239, 68, 68, 0.18);
-  color: #ffffff;
-}
-
-.pdc-icon-action-delete:hover {
-  background: rgba(239, 68, 68, 0.34);
-  border-color: rgba(255, 77, 77, 0.95);
-}
-
-.pdc-edit-cancha-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.pdc-form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.pdc-court-schedule-editor {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-@media (max-width: 768px) {
-  .pdc-settings-court-summary {
-    flex-direction: column;
-    align-items: flex-start;
+  .pdc-welcome-modal-box h3 {
+    margin: 0 0 10px;
   }
 
   .pdc-settings-court-actions {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .pdc-form-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* =========================================================
-   RESPONSIVE
-
-@media (max-width: 1600px) {
-  .pdc-shell {
-    max-width: 1420px;
-  }
-}
-
-@media (max-width: 1380px) {
-  .pdc-owner-dashboard {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-
-  .pdc-shell {
-    max-width: 1320px;
-  }
-}
-
-@media (max-width: 1200px) {
-  .pdc-stats-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .pdc-bottom-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 1050px) {
-  .pdc-owner-dashboard {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
-  .pdc-header {
-    align-items: right;
-    min-height: auto;
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
 
-  .pdc-main-title,
-  .pdc-club-title {
-    text-align: left;
-    padding-top: 0;
-  }
+    @media (max-width: 1600px) {
+      .pdc-shell {
+        max-width: 1420px;
+      }
+    }
 
-  .pdc-header-actions {
-    align-self: flex-end;
-    flex-wrap: wrap;
-  }
+    @media (max-width: 1380px) {
+      .pdc-owner-dashboard {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
 
-  .pdc-settings-button,
-  .pdc-pay-button {
-    min-width: 140px;
-  }
+      .pdc-shell {
+        max-width: 1320px;
+      }
+    }
 
-  .pdc-main-grid {
-    grid-template-columns: 1fr;
-  }
+    @media (max-width: 1200px) {
+      .pdc-stats-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
 
-  .pdc-court-row {
-    grid-template-columns: 115px 1fr;
-  }
+      .pdc-bottom-grid {
+        grid-template-columns: 1fr;
+      }
+    }
 
-  .pdc-court-row img {
-    width: 115px;
-    height: 74px;
-  }
+    @media (max-width: 1050px) {
+      .pdc-owner-dashboard {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
 
-  .pdc-court-reservas {
-    grid-column: 2;
-  }
-}
+      .pdc-header {
+        align-items: right;
+        min-height: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
 
-@media (max-width: 768px) {
-  .pdc-owner-dashboard {
-    padding: 16px 10px 40px;
-    background-attachment: scroll;
-  }
+      .pdc-main-title,
+      .pdc-club-title {
+        text-align: left;
+        padding-top: 0;
+      }
 
-  .pdc-main-title h1,
-  .pdc-club-title h2 {
-    font-size: 1.85rem;
-  }
+      .pdc-header-actions {
+        align-self: flex-end;
+        flex-wrap: wrap;
+      }
 
-  .pdc-club-title p {
-    font-size: 1rem;
-  }
+      .pdc-settings-button,
+      .pdc-pay-button {
+        min-width: 140px;
+      }
 
-  .pdc-stats-grid {
-    grid-template-columns: 1fr;
-  }
+      .pdc-main-grid {
+        grid-template-columns: 1fr;
+      }
 
-  .pdc-court-row {
-    grid-template-columns: 1fr;
-  }
+      .pdc-court-row {
+        grid-template-columns: 115px 1fr;
+      }
 
-  .pdc-court-row img {
-    width: 100%;
-    height: 150px;
-  }
+      gap: 12px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
 
-  .pdc-court-reservas {
-    grid-column: auto;
-  }
+    .pdc-welcome-modal-primary,
+    .pdc-welcome-modal-secondary {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-family: inherit;
+      font-weight: 900;
+      cursor: pointer;
+    }
 
-  .pdc-panel-header,
-  .pdc-status-content,
-  .pdc-actions,
-  .pdc-form-actions {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
+    .pdc-welcome-modal-primary {
+      background: #087bff;
+      color: #ffffff;
+    }
 
-@media (max-width: 768px) {
-  .pdc-settings-main-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
+    .pdc-welcome-modal-secondary {
+      background: rgba(255, 255, 255, 0.16);
+      color: #ffffff;
+    }
 
-  .pdc-settings-main-actions .pdc-btn-add-cancha {
-    width: 100%;
-    justify-content: center;
-  }
 
-  .pdc-club-logo-content {
-    min-height: 180px;
-  }
+    /* =========================================================
+   CANCHAS CONFIGURADAS EN CONFIGURACIÓN
+========================================================*/
+    .pdc-settings-courts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
 
-  .pdc-club-logo-img {
-    max-height: 220px;
-  }
-}
-/* =========================================================
+    .pdc-settings-court {
+      padding: 14px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .pdc-settings-court-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .pdc-settings-court-summary strong {
+      display: block;
+      font-size: 0.98rem;
+      font-weight: 900;
+    }
+
+    .pdc-settings-court-summary span {
+      display: block;
+      margin-top: 4px;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 0.84rem;
+    }
+
+    .pdc-settings-court-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .pdc-icon-action {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.2s ease;
+    }
+
+    .pdc-icon-action:hover {
+      background: rgba(102, 126, 234, 0.42);
+      border-color: rgba(102, 126, 234, 0.95);
+    }
+
+    .pdc-icon-action-edit {
+      border-color: rgba(56, 189, 248, 0.65);
+      background: rgba(14, 165, 233, 0.18);
+      color: #dff7ff;
+    }
+
+    .pdc-icon-action-edit:hover {
+      background: rgba(14, 165, 233, 0.34);
+      border-color: rgba(56, 189, 248, 0.95);
+    }
+
+    .pdc-icon-action-clock {
+      border-color: rgba(251, 146, 60, 0.68);
+      background: rgba(249, 115, 22, 0.18);
+      color: #fff1df;
+    }
+
+    .pdc-icon-action-clock:hover {
+      background: rgba(249, 115, 22, 0.34);
+      border-color: rgba(251, 146, 60, 0.95);
+    }
+
+    .pdc-icon-action-delete {
+      border-color: rgba(255, 77, 77, 0.55);
+      background: rgba(239, 68, 68, 0.18);
+      color: #ffffff;
+    }
+
+    .pdc-icon-action-delete:hover {
+      background: rgba(239, 68, 68, 0.34);
+      border-color: rgba(255, 77, 77, 0.95);
+    }
+
+    .pdc-edit-cancha-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .pdc-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .pdc-court-schedule-editor {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    @media (max-width: 768px) {
+      .pdc-settings-court-summary {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .pdc-settings-court-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .pdc-form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* =========================================================
+   RESPONSIVE
+*/
+    @media (max-width: 1600px) {
+      .pdc-shell {
+        max-width: 1420px;
+      }
+    }
+
+    @media (max-width: 1380px) {
+      .pdc-owner-dashboard {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .pdc-shell {
+        max-width: 1320px;
+      }
+    }
+
+    @media (max-width: 1200px) {
+      .pdc-stats-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .pdc-bottom-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 1050px) {
+      .pdc-owner-dashboard {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .pdc-header {
+        align-items: right;
+        min-height: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .pdc-main-title,
+      .pdc-club-title {
+        text-align: left;
+        padding-top: 0;
+      }
+
+      .pdc-header-actions {
+        align-self: flex-end;
+        flex-wrap: wrap;
+      }
+
+      .pdc-settings-button,
+      .pdc-pay-button {
+        min-width: 140px;
+      }
+
+      .pdc-main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .pdc-court-row {
+        grid-template-columns: 115px 1fr;
+      }
+
+      .pdc-court-row img {
+        width: 115px;
+        height: 74px;
+      }
+
+      .pdc-court-reservas {
+        grid-column: 2;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .pdc-owner-dashboard {
+        padding: 16px 10px 40px;
+        background-attachment: scroll;
+      }
+
+      .pdc-main-title h1,
+      .pdc-club-title h2 {
+        font-size: 1.85rem;
+      }
+
+      .pdc-club-title p {
+        font-size: 1rem;
+      }
+
+      .pdc-stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .pdc-court-row {
+        grid-template-columns: 1fr;
+      }
+
+      .pdc-court-row img {
+        width: 100%;
+        height: 150px;
+      }
+
+      .pdc-court-reservas {
+        grid-column: auto;
+      }
+
+      .pdc-panel-header,
+      .pdc-status-content,
+      .pdc-actions,
+      .pdc-form-actions {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .pdc-settings-main-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .pdc-settings-main-actions .pdc-btn-add-cancha {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .pdc-club-logo-content {
+        min-height: 180px;
+      }
+
+      .pdc-club-logo-img {
+        max-height: 220px;
+      }
+    }
+
+    /* =========================================================
    RESPONSIVE FINAL PANEL DEL CLUB
    Pegar al final de PanelDelClub.css
    Solo corrige comportamiento responsive.
+*/
+    html,
+    body,
+    #root {
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+    }
 
-html,
-body,
-#root {
-  width: 100%;
-  min-height: 100%;
-  overflow-x: hidden;
-}
+    .pdc-owner-dashboard {
+      width: 100%;
+      min-width: 0;
+      overflow-x: hidden;
+    }
 
-.pdc-owner-dashboard {
-  width: 100%;
-  min-width: 0;
-  overflow-x: hidden;
-}
+    .pdc-shell,
+    .pdc-header,
+    .pdc-stats-grid,
+    .pdc-main-grid,
+    .pdc-bottom-grid,
+    .pdc-panel,
+    .pdc-court-row,
+    .pdc-reservation-row,
+    .pdc-settings-section,
+    .pdc-settings-box,
+    .pdc-add-cancha-form,
+    .pdc-actions {
+      min-width: 0;
+    }
 
-.pdc-shell,
-.pdc-header,
-.pdc-stats-grid,
-.pdc-main-grid,
-.pdc-bottom-grid,
-.pdc-panel,
-.pdc-court-row,
-.pdc-reservation-row,
-.pdc-settings-section,
-.pdc-settings-box,
-.pdc-add-cancha-form,
-.pdc-actions {
-  min-width: 0;
-}
-
-/* =========================================================
+    /* =========================================================
    NOTEBOOKS / TABLETS GRANDES
+*/
+    @media (max-width: 1180px) {
+      .pdc-owner-dashboard {
+        padding: 16px 18px 36px;
+      }
 
-@media (max-width: 1180px) {
-  .pdc-owner-dashboard {
-    padding: 16px 18px 36px;
-  }
+      .pdc-header {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        min-height: auto;
+        text-align: center;
+      }
 
-  .pdc-header {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
-    min-height: auto;
-    text-align: center;
-  }
+      .pdc-main-title,
+      .pdc-club-title,
+      .pdc-header-actions {
+        grid-column: auto;
+        justify-self: center;
+        text-align: center;
+        padding-top: 0;
+      }
 
-  .pdc-main-title,
-  .pdc-club-title,
-  .pdc-header-actions {
-    grid-column: auto;
-    justify-self: center;
-    text-align: center;
-    padding-top: 0;
-  }
+      .pdc-header-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+      }
 
-  .pdc-header-actions {
-    justify-content: center;
-    flex-wrap: wrap;
-  }
+      .pdc-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
 
-  .pdc-stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+      .pdc-main-grid {
+        grid-template-columns: 1fr;
+      }
 
-  .pdc-main-grid {
-    grid-template-columns: 1fr;
-  }
+      .pdc-bottom-grid {
+        grid-template-columns: 1fr;
+      }
 
-  .pdc-bottom-grid {
-    grid-template-columns: 1fr;
-  }
+      .pdc-court-row {
+        grid-template-columns: 120px minmax(0, 1fr) minmax(0, 1fr);
+      }
 
-  .pdc-court-row {
-    grid-template-columns: 120px minmax(0, 1fr) minmax(0, 1fr);
-  }
+      .pdc-court-row .pdc-court-reservas:last-child {
+        grid-column: 2 / -1;
+      }
+    }
 
-  .pdc-court-row .pdc-court-reservas:last-child {
-    grid-column: 2 / -1;
-  }
-}
-
-/* =========================================================
+    /* =========================================================
    TABLETS
+*/
+    @media (max-width: 768px) {
+      .pdc-owner-dashboard {
+        padding: 14px 10px 32px;
+        background-attachment: scroll;
+      }
 
-@media (max-width: 768px) {
-  .pdc-owner-dashboard {
-    padding: 14px 10px 32px;
-    background-attachment: scroll;
-  }
+      .pdc-main-title h1,
+      .pdc-club-title h2 {
+        font-size: 1.75rem;
+        line-height: 1.1;
+      }
 
-  .pdc-main-title h1,
-  .pdc-club-title h2 {
-    font-size: 1.75rem;
-    line-height: 1.1;
-  }
+      .pdc-main-title p,
+      .pdc-club-title p {
+        font-size: 0.95rem;
+      }
 
-  .pdc-main-title p,
-  .pdc-club-title p {
-    font-size: 0.95rem;
-  }
+      .pdc-header-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+      }
 
-  .pdc-header-actions {
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
-  }
+      .pdc-settings-button,
+      .pdc-pay-button {
+        width: 100%;
+        min-width: 0;
+      }
 
-  .pdc-settings-button,
-  .pdc-pay-button {
-    width: 100%;
-    min-width: 0;
-  }
+      .pdc-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
 
-  .pdc-stats-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
+      .pdc-stat-card {
+        min-height: auto;
+        padding: 14px;
+      }
 
-  .pdc-stat-card {
-    min-height: auto;
-    padding: 14px;
-  }
+      .pdc-panel {
+        padding: 14px;
+      }
 
-  .pdc-panel {
-    padding: 14px;
-  }
+      .pdc-panel-header {
+        padding: 0 0 12px;
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+      }
 
-  .pdc-panel-header {
-    padding: 0 0 12px;
-    flex-direction: column;
-    align-items: stretch;
-    text-align: center;
-  }
+      .pdc-panel-header h3 {
+        text-align: center;
+      }
 
-  .pdc-panel-header h3 {
-    text-align: center;
-  }
+      .pdc-light-button,
+      .pdc-dark-button {
+        width: 100%;
+        justify-content: center;
+      }
 
-  .pdc-light-button,
-  .pdc-dark-button {
-    width: 100%;
-    justify-content: center;
-  }
+      .pdc-court-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        text-align: center;
+      }
 
-  .pdc-court-row {
-    grid-template-columns: 1fr;
-    gap: 10px;
-    text-align: center;
-  }
+      .pdc-court-row img {
+        width: 100%;
+        height: 160px;
+      }
 
-  .pdc-court-row img {
-    width: 100%;
-    height: 160px;
-  }
+      .pdc-court-info,
+      .pdc-court-reservas {
+        width: 100%;
+        align-items: center;
+      }
 
-  .pdc-court-info,
-  .pdc-court-reservas {
-    width: 100%;
-    align-items: center;
-  }
+      .pdc-price-display,
+      .pdc-price-editor {
+        justify-content: center;
+        flex-wrap: wrap;
+      }
 
-  .pdc-price-display,
-  .pdc-price-editor {
-    justify-content: center;
-    flex-wrap: wrap;
-  }
+      .pdc-price-input {
+        width: min(180px, 100%);
+      }
 
-  .pdc-price-input {
-    width: min(180px, 100%);
-  }
+      .pdc-reservation-row {
+        grid-template-columns: 1fr;
+        text-align: center;
+        justify-items: center;
+      }
 
-  .pdc-reservation-row {
-    grid-template-columns: 1fr;
-    text-align: center;
-    justify-items: center;
-  }
+      .pdc-calendar-preview-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
 
-  .pdc-calendar-preview-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+      .pdc-status-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
 
-  .pdc-status-content {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
+      .pdc-status-list {
+        width: 100%;
+      }
 
-  .pdc-status-list {
-    width: 100%;
-  }
+      .pdc-status-list p {
+        gap: 10px;
+      }
 
-  .pdc-status-list p {
-    gap: 10px;
-  }
+      .pdc-income-value {
+        font-size: 1.55rem;
+        text-align: center;
+      }
 
-  .pdc-income-value {
-    font-size: 1.55rem;
-    text-align: center;
-  }
+      .pdc-income-value span {
+        display: inline-flex;
+        margin-top: 8px;
+        margin-left: 0;
+      }
 
-  .pdc-income-value span {
-    display: inline-flex;
-    margin-top: 8px;
-    margin-left: 0;
-  }
+      .pdc-actions {
+        flex-direction: column;
+      }
 
-  .pdc-actions {
-    flex-direction: column;
-  }
+      .pdc-btn {
+        width: 100%;
+      }
 
-  .pdc-btn {
-    width: 100%;
-  }
+      .pdc-settings-section {
+        padding: 18px 14px;
+      }
 
-  .pdc-settings-section {
-    padding: 18px 14px;
-  }
+      .pdc-settings-section h2 {
+        font-size: 1.35rem;
+        text-align: center;
+      }
 
-  .pdc-settings-section h2 {
-    font-size: 1.35rem;
-    text-align: center;
-  }
+      .pdc-settings-box {
+        padding: 14px;
+      }
 
-  .pdc-settings-box {
-    padding: 14px;
-  }
+      .pdc-horarios-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
 
-  .pdc-horarios-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+      .pdc-form-actions {
+        flex-direction: column;
+      }
 
-  .pdc-form-actions {
-    flex-direction: column;
-  }
+      .pdc-btn-success,
+      .pdc-btn-cancel,
+      .pdc-btn-save-settings,
+      .pdc-btn-add-cancha {
+        width: 100%;
+        justify-content: center;
+      }
+    }
 
-  .pdc-btn-success,
-  .pdc-btn-cancel,
-  .pdc-btn-save-settings,
-  .pdc-btn-add-cancha {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-/* =========================================================
+    /* =========================================================
    CELULARES
+*/
+    @media (max-width: 480px) {
+      .pdc-owner-dashboard {
+        padding: 12px 8px 28px;
+      }
 
-@media (max-width: 480px) {
-  .pdc-owner-dashboard {
-    padding: 12px 8px 28px;
-  }
+      .pdc-main-title h1,
+      .pdc-club-title h2 {
+        font-size: 1.5rem;
+      }
 
-  .pdc-main-title h1,
-  .pdc-club-title h2 {
-    font-size: 1.5rem;
-  }
+      .pdc-main-title p,
+      .pdc-club-title p {
+        font-size: 0.88rem;
+      }
 
-  .pdc-main-title p,
-  .pdc-club-title p {
-    font-size: 0.88rem;
-  }
+      .pdc-stat-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+      }
 
-  .pdc-stat-card {
-    flex-direction: column;
-    text-align: center;
-    gap: 10px;
-  }
+      .pdc-stat-card h3 {
+        font-size: 1.35rem;
+        word-break: break-word;
+      }
 
-  .pdc-stat-card h3 {
-    font-size: 1.35rem;
-    word-break: break-word;
-  }
+      .pdc-stat-icon {
+        width: 42px;
+        min-width: 42px;
+        height: 42px;
+      }
 
-  .pdc-stat-icon {
-    width: 42px;
-    min-width: 42px;
-    height: 42px;
-  }
+      .pdc-panel {
+        padding: 12px;
+        border-radius: 12px;
+      }
 
-  .pdc-panel {
-    padding: 12px;
-    border-radius: 12px;
-  }
+      .pdc-panel-header h3,
+      .pdc-panel h3 {
+        font-size: 1rem;
+      }
 
-  .pdc-panel-header h3,
-  .pdc-panel h3 {
-    font-size: 1rem;
-  }
+      .pdc-court-row img {
+        height: 135px;
+      }
 
-  .pdc-court-row img {
-    height: 135px;
-  }
+      .pdc-court-info h4 {
+        font-size: 0.95rem;
+      }
 
-  .pdc-court-info h4 {
-    font-size: 0.95rem;
-  }
+      .pdc-court-info p,
+      .pdc-court-reservas p,
+      .pdc-court-reservas small {
+        font-size: 0.78rem;
+      }
 
-  .pdc-court-info p,
-  .pdc-court-reservas p,
-  .pdc-court-reservas small {
-    font-size: 0.78rem;
-  }
+      .pdc-price-display strong {
+        font-size: 1rem !important;
+      }
 
-  .pdc-price-display strong {
-    font-size: 1rem !important;
-  }
+      .pdc-reservation-row {
+        gap: 8px;
+      }
 
-  .pdc-reservation-row {
-    gap: 8px;
-  }
+      .pdc-confirmed,
+      .pdc-pending {
+        width: 100%;
+        text-align: center;
+      }
 
-  .pdc-confirmed,
-  .pdc-pending {
-    width: 100%;
-    text-align: center;
-  }
+      .pdc-income-value {
+        font-size: 1.35rem;
+        word-break: break-word;
+      }
 
-  .pdc-income-value {
-    font-size: 1.35rem;
-    word-break: break-word;
-  }
+      .pdc-fake-chart {
+        height: 95px;
+      }
 
-  .pdc-fake-chart {
-    height: 95px;
-  }
+      .pdc-donut {
+        width: 88px;
+        height: 88px;
+      }
 
-  .pdc-donut {
-    width: 88px;
-    height: 88px;
-  }
+      .pdc-donut::after {
+        inset: 23px;
+      }
 
-  .pdc-donut::after {
-    inset: 23px;
-  }
+      .pdc-status-list p {
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 14px;
+      }
 
-  .pdc-status-list p {
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 14px;
-  }
+      .pdc-horarios-grid {
+        grid-template-columns: 1fr;
+      }
 
-  .pdc-horarios-grid {
-    grid-template-columns: 1fr;
-  }
+      .pdc-progress-modal,
+      .pdc-welcome-modal {
+        width: 100%;
+        max-height: calc(100vh - 32px);
+        padding: 28px 18px 22px;
+      }
 
-  .pdc-progress-modal,
-  .pdc-welcome-modal {
-    width: 100%;
-    max-height: calc(100vh - 32px);
-    padding: 28px 18px 22px;
-  }
+      .pdc-progress-modal h2,
+      .pdc-welcome-modal h2 {
+        font-size: 1.45rem;
+      }
 
-  .pdc-progress-modal h2,
-  .pdc-welcome-modal h2 {
-    font-size: 1.45rem;
-  }
+      .cy-alert-title {
+        font-size: 23px !important;
+      }
 
-  .cy-alert-title {
-    font-size: 23px !important;
-  }
+      .cy-alert-popup {
+        width: min(94vw, 420px) !important;
+        padding: 22px 18px 20px !important;
+      }
+    }
 
-  .cy-alert-popup {
-    width: min(94vw, 420px) !important;
-    padding: 22px 18px 20px !important;
-  }
-}
-
-/* =========================================================
+    /* =========================================================
    CELULARES MUY ANGOSTOS
+*/
+    @media (max-width: 360px) {
+      .pdc-owner-dashboard {
+        padding-left: 6px;
+        padding-right: 6px;
+      }
 
-@media (max-width: 360px) {
-  .pdc-owner-dashboard {
-    padding-left: 6px;
-    padding-right: 6px;
-  }
+      .pdc-settings-button,
+      .pdc-pay-button,
+      .pdc-light-button,
+      .pdc-dark-button,
+      .pdc-btn {
+        font-size: 0.82rem;
+        padding-left: 10px;
+        padding-right: 10px;
+      }
 
-  .pdc-settings-button,
-  .pdc-pay-button,
-  .pdc-light-button,
-  .pdc-dark-button,
-  .pdc-btn {
-    font-size: 0.82rem;
-    padding-left: 10px;
-    padding-right: 10px;
-  }
+      .pdc-main-title h1,
+      .pdc-club-title h2 {
+        font-size: 1.35rem;
+      }
 
-  .pdc-main-title h1,
-  .pdc-club-title h2 {
-    font-size: 1.35rem;
-  }
+      .pdc-panel {
+        padding: 10px;
+      }
 
-  .pdc-panel {
-    padding: 10px;
-  }
+      .pdc-court-row img {
+        height: 120px;
+      }
 
-  .pdc-court-row img {
-    height: 120px;
-  }
+      .pdc-price-editor {
+        flex-direction: column;
+      }
 
-  .pdc-price-editor {
-    flex-direction: column;
-  }
-
-  .pdc-price-input {
-    width: 100%;
-    text-align: center;
+      .pdc-price-input {
+        width: 100%;
+        text-align: center;
+      }
+    }
   }
 }
