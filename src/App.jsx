@@ -43,32 +43,6 @@ const mapReservaDesdeApi = (r) => ({
   precio: r.monto_total,
 });
 
-const restaurarUsuarioDesdeStorage = () => {
-  try {
-    const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
-  } catch {
-    localStorage.removeItem('user');
-    return null;
-  }
-};
-
-const mapReservaDesdeApi = (r) => ({
-  id: r.id_reserva,
-  id_cancha: r.cancha?.id_cancha,
-  deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
-  club: r.cancha?.club?.nombre_club || 'Club',
-  cancha: r.cancha?.nombre_cancha || 'Cancha',
-  fecha: r.fecha,
-  hora: r.hora_inicio?.slice(0, 5) || '',
-  estado: r.estado
-    ? r.estado.charAt(0).toUpperCase() + r.estado.slice(1)
-    : 'Confirmada',
-  direccion: r.cancha?.club?.direccion_club || '',
-  ciudad: r.cancha?.club?.ciudad_club || '',
-  provincia: r.cancha?.club?.provincia_club || '',
-  precio: r.monto_total,
-});
 
 /*
   App es el componente raíz de CanchasYa.
