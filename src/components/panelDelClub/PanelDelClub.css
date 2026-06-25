@@ -1915,3 +1915,38 @@
     }
   }
 }
+.pdc-icon-action-edit, .pdc-icon-action-edit i {
+  border-color: #22c55e !important;
+  background: rgba(34, 197, 94, 0.25) !important;
+  color: #4ade80 !important;
+}
+
+.pdc-icon-action-edit:hover, .pdc-icon-action-edit:hover i {
+  background: rgba(34, 197, 94, 0.5) !important;
+  border-color: #16a34a !important;
+  color: #ffffff !important;
+}
+
+.pdc-icon-action-clock, .pdc-icon-action-clock i {
+  border-color: #f97316 !important;
+  background: rgba(249, 115, 22, 0.25) !important;
+  color: #fb923c !important;
+}
+
+.pdc-icon-action-clock:hover, .pdc-icon-action-clock:hover i {
+  background: rgba(249, 115, 22, 0.5) !important;
+  border-color: #ea580c !important;
+  color: #ffffff !important;
+}
+
+.pdc-icon-action-delete, .pdc-icon-action-delete i {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.25) !important;
+  color: #f87171 !important;
+}
+
+.pdc-icon-action-delete:hover, .pdc-icon-action-delete:hover i {
+  background: rgba(239, 68, 68, 0.5) !important;
+  border-color: #dc2626 !important;
+  color: #ffffff !important;
+}
