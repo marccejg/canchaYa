@@ -182,7 +182,7 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
     setRecoverySuccess('');
 
     try {
-      const response = await fetch(`${API_URL}/auth/id: number-password/send-code`, {
+      const response = await fetch(`${API_URL}/auth/recover-password/send-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: recoveryEmail }),
@@ -224,9 +224,8 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
     setRecoveryLoading(true);
     setRecoveryError('');
     setRecoverySuccess('');
-
     try {
-      const response = await fetch(`${API_URL}/auth/id: number-password/reset`, {
+      const response = await fetch(`${API_URL}/auth/recover-password/reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
