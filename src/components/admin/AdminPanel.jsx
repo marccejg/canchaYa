@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Admin.css';
-
+import { API_URL } from '../../config';
 const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegistrados }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [newAdminNombre, setNewAdminNombre] = useState('');

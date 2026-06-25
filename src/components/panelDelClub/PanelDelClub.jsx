@@ -3,7 +3,7 @@ import './PanelDelClub.css';
 import { horarios } from '../staticData';
 import Swal from 'sweetalert2';
 import funcionalidadEnProgreso from '../../assets/PROGRESS.png';
-
+import { API_URL } from '../../config';
 const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
   /*
     Estado donde se guardan las canchas que llegan desde el backend.

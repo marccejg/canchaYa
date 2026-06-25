@@ -1,7 +1,7 @@
 import React from 'react';
 import './TarjetaCalendario.css';
 import Calendar from './calendario';
-
+import { API_URL } from '../../config';
 function CalendarView({ club, onDateSelect, onBack }) {
   const DEFAULT_LOGO =
     'https://img.freepik.com/vector-premium/diseno-camiseta-deportiva-logotipo-deporte-deporte-muestra-triangulo-medio_856405-2413.jpg?semt=ais_hybrid&w=740&q=80';
