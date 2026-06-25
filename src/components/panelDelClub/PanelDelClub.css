@@ -1950,3 +1950,7 @@
   border-color: #dc2626 !important;
   color: #ffffff !important;
 }
+
+.pdc-settings-court-actions {
+  gap: 8px !important;
+}
