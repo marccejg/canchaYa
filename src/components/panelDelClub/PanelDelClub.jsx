@@ -1,3 +1,4 @@
+import { API_URL } from '../../config';
 import React, { useEffect, useRef, useState } from 'react';
 import './PanelDelClub.css';
 import { horarios } from '../staticData';
