@@ -9,7 +9,7 @@ function CalendarView({ club, onDateSelect, onBack }) {
   const getLogoUrl = (logo) => {
     if (!logo) return DEFAULT_LOGO;
     if (logo.startsWith('http')) return logo;
-    return `API_URL${logo}`;
+    return `${API_URL}${logo}`;
   };
 
   const nombreClub = club?.nombre || club?.razonSocial || club?.nombre_club || 'Club';

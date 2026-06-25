@@ -576,7 +576,7 @@ function DashboardUsuario({
     const fetchClubes = async () => {
       try {
         const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-        const response = await fetch('API_URL/club/aceptados', {
+        const response = await fetch(`${API_URL}/club/aceptados`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -1046,7 +1046,7 @@ function DashboardUsuario({
 
     try {
       const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-      const response = await fetch(`API_URL/reserva/${reserva.id}`, {
+      const response = await fetch(`${API_URL}/reserva/${reserva.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -1059,7 +1059,7 @@ function DashboardUsuario({
 
       if (usuario?.email) {
         try {
-          const responseMail = await fetch('API_URL/contact', {
+          const responseMail = await fetch(`${API_URL}/contact`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1151,7 +1151,7 @@ function DashboardUsuario({
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch('API_URL/reserva', {
+      const response = await fetch(`${API_URL}/reserva`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1175,7 +1175,7 @@ function DashboardUsuario({
       // Si era modificación y la nueva se creó bien, borramos la reserva original.
       if (estaModificando) {
         const deleteResponse = await fetch(
-          `API_URL/reserva/${reservaEnEdicionSnapshot.id}`,
+          `${API_URL}/reserva/${reservaEnEdicionSnapshot.id}`,
           {
             method: 'DELETE',
             headers: {
@@ -1223,7 +1223,7 @@ function DashboardUsuario({
             ? `Tu reserva fue modificada correctamente para ${canchaSeleccionada?.nombre || ''} en ${clubSeleccionado || ''} el ${fechaSeleccionada} a las ${horarioSeleccionado} hs.`
             : `Tu reserva fue confirmada correctamente para ${canchaSeleccionada?.nombre || ''} en ${clubSeleccionado || ''} el ${fechaSeleccionada} a las ${horarioSeleccionado} hs.`;
 
-          const responseMail = await fetch('API_URL/contact', {
+          const responseMail = await fetch(`${API_URL}/contact`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

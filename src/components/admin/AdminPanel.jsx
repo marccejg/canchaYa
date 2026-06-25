@@ -25,7 +25,7 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
   const fetchClubesPendientes = async () => {
     try {
       const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-      const response = await fetch('API_URL/club/pendientes', {
+      const response = await fetch(`${API_URL}/club/pendientes`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -44,7 +44,7 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
   const fetchClubesAceptados = async () => {
     try {
       const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-      const response = await fetch('API_URL/club/aceptados', {
+      const response = await fetch(`${API_URL}/club/aceptados`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -95,7 +95,7 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
 
       // Enviar solicitud al backend para crear el admin
       const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-      const response = await fetch('API_URL/user/create-admin', {
+      const response = await fetch(`${API_URL}/user/create-admin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -146,7 +146,7 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
   const toggleClubStatus = async (clubId, currentActivo) => {
     try {
       const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-      const response = await fetch(`API_URL/club/${clubId}/toggle-status`, {
+      const response = await fetch(`${API_URL}/club/${clubId}/toggle-status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -172,7 +172,7 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
   const acceptClub = async (clubId) => {
     try {
       const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-      const response = await fetch(`API_URL/club/${clubId}/aceptar`, {
+      const response = await fetch(`${API_URL}/club/${clubId}/aceptar`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -194,7 +194,7 @@ const AdminPanel = ({ adminUser, onLogout, clubesRegistrados = [], setClubesRegi
   const rejectClub = async (clubId) => {
     try {
       const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado en localStorage
-      const response = await fetch(`API_URL/club/${clubId}/rechazar`, {
+      const response = await fetch(`${API_URL}/club/${clubId}/rechazar`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
