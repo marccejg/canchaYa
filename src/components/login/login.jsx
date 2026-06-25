@@ -181,7 +181,7 @@ const Login = ({ onLoginSuccess, onRegister, onRegisterClub }) => {
     setRecoveryError('');
     setRecoverySuccess('');
 
-    try {
+        try {
       const response = await fetch(`${API_URL}/auth/id: number-password/send-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
