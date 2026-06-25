@@ -1,4 +1,3 @@
-import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import './Admin.css';
 import { API_URL } from '../../config';

@@ -1,4 +1,3 @@
-import { API_URL } from '../../config';
 import React from 'react';
 import './TarjetaCalendario.css';
 import Calendar from './calendario';
