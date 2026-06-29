@@ -346,6 +346,43 @@ const obtenerClaseEstadoReserva = (estado) => {
   return 'status status--blocked';
 };
 
+/*
+  Normaliza el estado de pago que llega desde el backend.
+  Mantiene separado el estado de la reserva del estado del pago.
+*/
+const obtenerTextoEstadoPago = (estadoPago) => {
+  if (estadoPago === 'pagado') return 'Pagada online';
+  if (estadoPago === 'pago_en_club') return 'Pago en club';
+  if (estadoPago === 'rechazado') return 'Pago rechazado';
+
+  return 'Pago pendiente';
+};
+
+const obtenerClaseEstadoPago = (estadoPago) => {
+  if (estadoPago === 'pagado' || estadoPago === 'pago_en_club') {
+    return 'status status--confirmed';
+  }
+
+  if (estadoPago === 'rechazado') {
+    return 'status status--blocked';
+  }
+
+  return 'status status--pending';
+};
+
+const puedePagarReserva = (reserva) => {
+  if (!reserva) return false;
+  if (esReservaPasada(reserva)) return false;
+
+  const estadoReserva = normalizarTexto(reserva.estado || '');
+
+  if (estadoReserva.includes('cancelada') || estadoReserva.includes('cancelado')) {
+    return false;
+  }
+
+  return !['pagado', 'pago_en_club'].includes(reserva.estado_pago);
+};
+
 const esReservaPasada = (reserva) => {
   if (!reserva?.fechaHoraDate) return false;
 
@@ -361,14 +398,19 @@ const normalizarReserva = (reserva, listaClubes = []) => {
   if (!reserva) return null;
 
   const fechaStr = reserva.fecha instanceof Date ? formatearFecha(reserva.fecha) : reserva.fecha;
+  const horaNormalizada = reserva.hora || reserva.hora_inicio?.slice(0, 5) || '';
   const fechaDate = crearFechaDesdeTexto(fechaStr);
-  const fechaHoraDate = crearFechaHoraDesdeReserva(fechaStr, reserva.hora);
+  const fechaHoraDate = crearFechaHoraDesdeReserva(fechaStr, horaNormalizada);
   const clubEncontrado = buscarClubPorNombre(reserva.club, listaClubes);
   const puedeGestionarCalculado = puedeGestionarPorAnticipacion(fechaHoraDate);
+  const estadoPagoNormalizado = reserva.estado_pago || 'pendiente';
 
   return {
     ...reserva,
-    id: reserva.id || reserva.id_reserva || `${reserva.club}-${reserva.fecha}-${reserva.hora}`,
+    id: reserva.id || reserva.id_reserva || `${reserva.club}-${reserva.fecha}-${horaNormalizada}`,
+    id_reserva: reserva.id_reserva || reserva.id,
+    hora: horaNormalizada,
+    estado_pago: estadoPagoNormalizado,
     fecha: fechaDate ? formatearFecha(fechaDate) : fechaStr,
     diaSemana:
       reserva.diaSemana || obtenerDiaSemanaCorto(fechaDate),
@@ -657,6 +699,24 @@ function DashboardUsuario({
   const [enviandoReserva, setEnviandoReserva] = useState(false);
 
   /*
+    Guarda cambios locales de estado de pago después de simular o completar un pago.
+    Esto evita que la UI quede mostrando "Pago pendiente" mientras el backend ya marcó la reserva como pagada.
+  */
+  const [estadoPagoLocalPorReserva, setEstadoPagoLocalPorReserva] = useState({});
+
+  const actualizarEstadoPagoLocal = (reservaId, datosPago = {}) => {
+    if (!reservaId) return;
+
+    setEstadoPagoLocalPorReserva((prev) => ({
+      ...prev,
+      [String(reservaId)]: {
+        ...(prev[String(reservaId)] || {}),
+        ...datosPago,
+      },
+    }));
+  };
+
+  /*
     Referencia al carrusel de deportes.
     Permite desplazar horizontalmente la fila con los botones laterales.
   */
@@ -758,6 +818,19 @@ function DashboardUsuario({
     return reservas
       .map((reserva) => normalizarReserva(reserva, clubesActivos))
       .filter(Boolean)
+      .map((reserva) => {
+        const pagoLocal =
+          estadoPagoLocalPorReserva[String(reserva.id)] ||
+          estadoPagoLocalPorReserva[String(reserva.id_reserva)] ||
+          null;
+
+        return pagoLocal
+          ? {
+              ...reserva,
+              ...pagoLocal,
+            }
+          : reserva;
+      })
       .filter((reserva) => !reservasEliminadas.includes(reserva.id))
       .sort((a, b) => {
         const fechaA = a.fechaHoraDate?.getTime?.() || 0;
@@ -765,7 +838,7 @@ function DashboardUsuario({
 
         return fechaA - fechaB;
       });
-  }, [reservas, clubesActivos, reservasEliminadas]);
+  }, [reservas, clubesActivos, reservasEliminadas, estadoPagoLocalPorReserva]);
 
   /*
     Calcula las reservas futuras.
@@ -967,7 +1040,12 @@ function DashboardUsuario({
     Si la reserva ya no puede gestionarse, no abre el menú.
   */
   const alternarMenuReserva = (reserva) => {
-    if (!reserva.puedeGestionar && !esReservaPasada(reserva)) return;
+    const puedeAbrirMenu =
+      reserva.puedeGestionar ||
+      esReservaPasada(reserva) ||
+      puedePagarReserva(reserva);
+
+    if (!puedeAbrirMenu) return;
 
     setMenuReservaAbierto((idActual) =>
       idActual === reserva.id ? null : reserva.id
@@ -1003,6 +1081,191 @@ function DashboardUsuario({
 
     // Llevamos al usuario al panel de selección
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  /*
+    Inicia el pago online de una reserva.
+    Para demo local:
+    - Si el backend no tiene MERCADOPAGO_ACCESS_TOKEN, permite simular aprobado/rechazado/pendiente.
+    - Si el backend devuelve init_point real de Mercado Pago, redirige al checkout.
+  */
+  const pagarReservaConMercadoPago = async (reserva) => {
+    if (!reserva?.id) {
+      mostrarError(
+        'Reserva no disponible',
+        'No se pudo identificar la reserva para iniciar el pago.'
+      );
+      return;
+    }
+
+    if (!puedePagarReserva(reserva)) {
+      mostrarError(
+        'La reserva no se puede pagar',
+        'Esta reserva ya fue pagada o no se encuentra disponible para pago online.'
+      );
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`${API_URL}/reserva/${reserva.id}/mercadopago/preference`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const mensajeError = data?.message || 'No se pudo iniciar el pago.';
+
+        if (normalizarTexto(mensajeError).includes('pagada')) {
+          actualizarEstadoPagoLocal(reserva.id, {
+            estado_pago: 'pagado',
+            mercado_pago_status: 'approved',
+          });
+
+          setMenuReservaAbierto(null);
+
+          if (onRefreshReservas) {
+            onRefreshReservas();
+          }
+        }
+
+        throw new Error(mensajeError);
+      }
+
+      if (data.demo) {
+        const resultado = await Swal.fire({
+          icon: 'info',
+          title: 'Mercado Pago',
+          html: `
+            <p>Estamos trabajando en esta funcionalidad, para que tengas una mejor experiencia con CanchasYa!.</p>
+            <p><strong>Reserva:</strong> #${reserva.id}</p>
+            <p><strong>Monto:</strong> $${Number(data.amount || 0).toLocaleString('es-AR')}</p>
+          `,
+          showDenyButton: true,
+          showCancelButton: true,
+          confirmButtonText: 'Simular aprobado',
+          denyButtonText: 'Simular rechazado',
+          cancelButtonText: 'Dejar pendiente',
+          reverseButtons: true,
+          customClass: {
+            popup: 'cy-alert-popup',
+            title: 'cy-alert-title',
+            htmlContainer: 'cy-alert-text',
+            confirmButton: 'cy-alert-button',
+            denyButton: 'cy-alert-button cy-alert-button--danger',
+            cancelButton: 'cy-alert-cancel',
+          },
+        });
+
+        const estadoSimulado = resultado.isConfirmed
+          ? 'aprobado'
+          : resultado.isDenied
+            ? 'rechazado'
+            : 'pendiente';
+
+        const simResponse = await fetch(`${API_URL}/reserva/${reserva.id}/pago/simular`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ resultado: estadoSimulado }),
+        });
+
+        const simData = await simResponse.json();
+
+        if (!simResponse.ok) {
+          throw new Error(simData?.message || 'No se pudo simular el pago.');
+        }
+
+        const estadoPagoActualizado =
+          simData?.reserva?.estado_pago ||
+          simData?.estado_pago ||
+          (estadoSimulado === 'aprobado'
+            ? 'pagado'
+            : estadoSimulado === 'rechazado'
+              ? 'rechazado'
+              : 'pendiente');
+
+        actualizarEstadoPagoLocal(reserva.id, {
+          estado_pago: estadoPagoActualizado,
+          mercado_pago_payment_id:
+            simData?.reserva?.mercado_pago_payment_id ||
+            simData?.mercado_pago_payment_id ||
+            null,
+          mercado_pago_status:
+            simData?.reserva?.mercado_pago_status ||
+            simData?.mercado_pago_status ||
+            estadoSimulado,
+          monto_pagado:
+            simData?.reserva?.monto_pagado ||
+            simData?.monto_pagado ||
+            reserva.monto_total ||
+            reserva.precio ||
+            0,
+          fecha_pago:
+            simData?.reserva?.fecha_pago ||
+            simData?.fecha_pago ||
+            (estadoPagoActualizado === 'pagado' ? new Date().toISOString() : null),
+        });
+
+        if (reservaConfirmada?.id === reserva.id) {
+          setReservaConfirmada((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  estado_pago: estadoPagoActualizado,
+                }
+              : prev
+          );
+        }
+
+        await Swal.fire({
+          icon: estadoSimulado === 'aprobado'
+            ? 'success'
+            : estadoSimulado === 'rechazado'
+              ? 'error'
+              : 'info',
+          title: simData?.message || 'Resultado de pago actualizado',
+          confirmButtonText: 'Aceptar',
+          customClass: {
+            popup: 'cy-alert-popup',
+            title: 'cy-alert-title',
+            confirmButton: 'cy-alert-button',
+          },
+        });
+
+        setMostrarModalReserva(false);
+        setReservaConfirmada(null);
+        setMenuReservaAbierto(null);
+
+        if (onRefreshReservas) {
+          onRefreshReservas();
+        }
+
+        return;
+      }
+
+      const checkoutUrl = data.init_point || data.sandbox_init_point;
+
+      if (!checkoutUrl) {
+        throw new Error('Mercado Pago no devolvió una URL de pago.');
+      }
+
+      window.location.href = checkoutUrl;
+    } catch (error) {
+      console.error('Error al iniciar pago con Mercado Pago:', error);
+      mostrarError(
+        'No se pudo iniciar el pago',
+        error.message || 'Hubo un problema al conectar con Mercado Pago.'
+      );
+    }
   };
 
   /*
@@ -1133,6 +1396,9 @@ function DashboardUsuario({
     const reservaEnEdicionSnapshot = reservaEnEdicion;
     const estaModificando = Boolean(reservaEnEdicionSnapshot?.id);
 
+    const estadoPagoAnterior = reservaEnEdicionSnapshot?.estado_pago || 'pendiente';
+    const debeConservarPagoAnterior = ['pagado', 'pago_en_club'].includes(estadoPagoAnterior);
+
     const [dia, mes, anio] = fechaSeleccionada.split('/');
     const fechaSQL = `${anio}-${mes}-${dia}`;
 
@@ -1144,6 +1410,10 @@ function DashboardUsuario({
       hora_fin: `${parseInt(horarioSeleccionado.split(':')[0]) + 1}:00:00`,
       monto_total: canchaSeleccionada.precio || 0,
       estado: 'confirmada',
+
+      // Si el usuario está modificando una reserva que ya estaba pagada,
+      // la nueva reserva debe conservar ese estado de pago.
+      estado_pago: debeConservarPagoAnterior ? estadoPagoAnterior : 'pendiente',
     };
 
     setEnviandoReserva(true);
@@ -1191,6 +1461,7 @@ function DashboardUsuario({
 
       const nuevaReserva = {
         id: guardada?.id_reserva || Date.now(),
+        id_reserva: guardada?.id_reserva || null,
         id_cancha: canchaSeleccionada.id,
         deporte: deporteSeleccionado,
         club: clubSeleccionado,
@@ -1198,6 +1469,10 @@ function DashboardUsuario({
         fecha: fechaSeleccionada,
         hora: horarioSeleccionado,
         estado: 'Confirmada',
+        estado_pago: debeConservarPagoAnterior
+          ? estadoPagoAnterior
+          : guardada?.estado_pago || 'pendiente',
+        monto_total: guardada?.monto_total || canchaSeleccionada.precio || canchaSeleccionada.precio_por_hora || 0,
         puedeGestionar: puedeGestionarPorAnticipacion(
           crearFechaHoraDesdeReserva(fechaSeleccionada, horarioSeleccionado)
         ),
@@ -1211,6 +1486,10 @@ function DashboardUsuario({
       if (onAddReserva) {
         onAddReserva(nuevaReserva);
       }
+
+      actualizarEstadoPagoLocal(nuevaReserva.id, {
+        estado_pago: nuevaReserva.estado_pago,
+      });
 
       // ÚNICO MAIL PARA RESERVA CONFIRMADA O MODIFICADA.
       if (usuario?.email) {
@@ -1907,6 +2186,10 @@ function DashboardUsuario({
                             {reserva.estado}
                           </span>
 
+                          <span className={obtenerClaseEstadoPago(reserva.estado_pago)}>
+                            {obtenerTextoEstadoPago(reserva.estado_pago)}
+                          </span>
+
                           {reservaPasada ? (
                             <small>Turno finalizado</small>
                           ) : reserva.puedeGestionar ? (
@@ -1922,21 +2205,38 @@ function DashboardUsuario({
                               type="button"
                               className="reservation-card__menu-button"
                               onClick={() => alternarMenuReserva(reserva)}
-                              disabled={!reserva.puedeGestionar && !reservaPasada}
+                              disabled={
+                                !reserva.puedeGestionar &&
+                                !reservaPasada &&
+                                !puedePagarReserva(reserva)
+                              }
                               title={
                                 reservaPasada
                                   ? 'Borrar del panel'
-                                  : reserva.puedeGestionar
-                                  ? 'Gestionar reserva'
-                                  : 'No se puede gestionar con menos de 24 horas'
+                                  : puedePagarReserva(reserva)
+                                    ? 'Pagar o gestionar reserva'
+                                    : reserva.puedeGestionar
+                                      ? 'Gestionar reserva'
+                                      : 'No se puede gestionar con menos de 24 horas'
                               }
                             >
                               ⋮
                             </button>
 
-                            {menuReservaAbierto === reserva.id && (reserva.puedeGestionar || reservaPasada) && (
+                            {menuReservaAbierto === reserva.id &&
+                              (reserva.puedeGestionar || reservaPasada || puedePagarReserva(reserva)) && (
                               <div className="reservation-card__dropdown">
-                                {!reservaPasada && (
+                                {puedePagarReserva(reserva) && (
+                                  <button
+                                    type="button"
+                                    onClick={() => pagarReservaConMercadoPago(reserva)}
+                                  >
+                                    <i className="bi bi-credit-card"></i>
+                                    Pagar reserva
+                                  </button>
+                                )}
+
+                                {!reservaPasada && reserva.puedeGestionar && (
                                   <button
                                     type="button"
                                     onClick={() => iniciarModificacionReserva(reserva)}
@@ -1946,14 +2246,16 @@ function DashboardUsuario({
                                   </button>
                                 )}
 
-                                <button
-                                  type="button"
-                                  className="reservation-card__dropdown-danger"
-                                  onClick={() => eliminarReserva(reserva)}
-                                >
-                                  <i className="bi bi-trash3"></i>
-                                  {reservaPasada ? 'Borrar del panel' : 'Eliminar'}
-                                </button>
+                                {(reservaPasada || reserva.puedeGestionar) && (
+                                  <button
+                                    type="button"
+                                    className="reservation-card__dropdown-danger"
+                                    onClick={() => eliminarReserva(reserva)}
+                                  >
+                                    <i className="bi bi-trash3"></i>
+                                    {reservaPasada ? 'Borrar del panel' : 'Eliminar'}
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>
@@ -2042,6 +2344,11 @@ function DashboardUsuario({
                 <span>Horario</span>
                 <strong>{reservaConfirmada.hora}</strong>
               </div>
+
+              <div>
+                <span>Pago</span>
+                <strong>{obtenerTextoEstadoPago(reservaConfirmada.estado_pago)}</strong>
+              </div>
             </div>
 
             <div className="reserva-modal__actions">
@@ -2061,6 +2368,28 @@ function DashboardUsuario({
                 Ver mis reservas
               </button>
             </div>
+
+            {puedePagarReserva(reservaConfirmada) && (
+              <button
+                type="button"
+                className="reserva-modal__button"
+                onClick={() => pagarReservaConMercadoPago(reservaConfirmada)}
+                style={{
+                  width: '100%',
+                  marginTop: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  background: '#009ee3',
+                  color: '#ffffff',
+                  boxShadow: '0 10px 22px rgba(0, 158, 227, 0.28)',
+                }}
+              >
+                <i className="bi bi-credit-card"></i>
+                Pagar mi reserva con Mercado Pago
+              </button>
+            )}
           </div>
         </div>
       )}

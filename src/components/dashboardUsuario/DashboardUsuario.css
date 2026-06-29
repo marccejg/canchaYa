@@ -2712,3 +2712,507 @@
 .reservation-card__dropdown-danger:hover {
   background: #eef5ff !important;
 }
+
+/* =========================================================
+   FIX RESPONSIVE MOBILE - DASHBOARD USUARIO + MERCADO PAGO
+   Este bloque va al final para pisar los overrides desktop con !important.
+   Corrige:
+   - evita layout en dos columnas en ancho celular;
+   - permite scroll vertical en mobile;
+   - oculta banners laterales;
+   - acomoda wizard, cards, reservas, modal y botones de Mercado Pago.
+========================================================= */
+
+@media (max-width: 1180px) {
+  .dashboard-banner {
+    display: none !important;
+  }
+
+  .dashboard-usuario {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .dashboard-usuario__overlay,
+  .dashboard-shell,
+  .dashboard-shell__main {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow: visible !important;
+  }
+
+  .dashboard-shell__main {
+    padding: 0 10px 12px !important;
+  }
+
+  .dashboard-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .booking-panel {
+    order: 1 !important;
+  }
+
+  .reservations-panel {
+    order: 2 !important;
+  }
+
+  .booking-panel,
+  .reservations-panel,
+  .dashboard-benefits {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .reservations-list {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-shell__main {
+    padding: 0 8px 12px !important;
+  }
+
+  .dashboard-header {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 52px !important;
+    padding: 8px 10px !important;
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+    border-radius: 0 0 10px 10px !important;
+  }
+
+  .dashboard-header__logo-img {
+    height: 32px !important;
+  }
+
+  .dashboard-header__social {
+    gap: 16px !important;
+  }
+
+  .dashboard-header__user {
+    width: 100% !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    white-space: normal !important;
+    font-size: 12px !important;
+  }
+
+  .booking-panel,
+  .reservations-panel {
+    padding: 10px !important;
+    border-radius: 12px !important;
+  }
+
+  .booking-panel__top {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    text-align: center !important;
+  }
+
+  .booking-panel h1 {
+    font-size: 21px !important;
+  }
+
+  .steps-indicator {
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 2px !important;
+  }
+
+  .step span {
+    width: 25px !important;
+    height: 25px !important;
+    font-size: 12px !important;
+  }
+
+  .step small {
+    font-size: 9px !important;
+  }
+
+  .booking-wizard {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding-top: 8px !important;
+  }
+
+  .booking-sidebar {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    grid-template-rows: none !important;
+    gap: 5px !important;
+    width: 100% !important;
+  }
+
+  .booking-sidebar::before {
+    display: none !important;
+  }
+
+  .booking-side-step {
+    grid-template-columns: 1fr !important;
+    justify-items: center !important;
+    text-align: center !important;
+    padding: 7px 4px !important;
+    border-radius: 10px !important;
+    min-height: 72px !important;
+  }
+
+  .booking-side-step span {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+  }
+
+  .booking-side-step strong {
+    font-size: 10px !important;
+    margin: 2px 0 !important;
+  }
+
+  .booking-side-step small {
+    font-size: 8px !important;
+    line-height: 1.15 !important;
+  }
+
+  .booking-stage {
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .stage-content {
+    padding: 16px 10px !important;
+    justify-content: flex-start !important;
+  }
+
+  .stage-heading {
+    margin-bottom: 14px !important;
+  }
+
+  .stage-heading h2 {
+    font-size: 22px !important;
+  }
+
+  .stage-heading p {
+    font-size: 12px !important;
+  }
+
+  .sports-grid,
+  .sports-grid--large,
+  .clubs-grid,
+  .clubs-grid--large,
+  .date-selector__days,
+  .date-selector__days--large,
+  .time-grid,
+  .time-grid--large,
+  .booking-summary,
+  .booking-summary--large {
+    width: 100% !important;
+    max-width: 100% !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .sport-card,
+  .sport-card--large {
+    min-height: 105px !important;
+    padding: 12px 8px !important;
+  }
+
+  .sport-card__icon {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .sport-card__image {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .sport-card strong,
+  .sport-card--large strong {
+    font-size: 13px !important;
+  }
+
+  .club-card,
+  .club-card--large {
+    min-height: 165px !important;
+    padding: 12px 10px !important;
+  }
+
+  .club-card__logo,
+  .club-card__logo--large {
+    width: 58px !important;
+    height: 58px !important;
+    border-radius: 14px !important;
+  }
+
+  .club-card strong,
+  .club-card--large strong {
+    font-size: 14px !important;
+  }
+
+  .club-card small,
+  .club-card span,
+  .club-card--large small,
+  .club-card--large span {
+    font-size: 10px !important;
+  }
+
+  .date-selector,
+  .date-selector--large {
+    gap: 12px !important;
+  }
+
+  .date-selector__month {
+    gap: 14px !important;
+    font-size: 17px !important;
+  }
+
+  .day-card,
+  .day-card--large {
+    min-height: 82px !important;
+    border-radius: 13px !important;
+  }
+
+  .day-card strong,
+  .day-card--large strong {
+    font-size: 24px !important;
+  }
+
+  .time-card,
+  .time-card--large {
+    height: 52px !important;
+    font-size: 15px !important;
+  }
+
+  .time-grid__legend {
+    justify-self: center !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  .summary-item {
+    min-height: 98px !important;
+    padding: 12px 8px !important;
+  }
+
+  .confirm-actions,
+  .confirm-actions--large {
+    width: 100% !important;
+  }
+
+  .booking-warning {
+    font-size: 10px !important;
+    line-height: 1.35 !important;
+  }
+
+  .reservations-panel__header {
+    align-items: center !important;
+  }
+
+  .reservations-panel__header h2 {
+    font-size: 21px !important;
+  }
+
+  .reservations-panel__header button,
+  .see-all-button {
+    min-width: auto !important;
+    min-height: 34px !important;
+    padding: 0 10px !important;
+    font-size: 11px !important;
+  }
+
+  .next-reservation__body {
+    align-items: flex-start !important;
+  }
+
+  .reservation-card {
+    grid-template-columns: 48px minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    padding: 8px !important;
+  }
+
+  .reservation-card__actions {
+    justify-items: end !important;
+    text-align: right !important;
+  }
+
+  .reservation-card__actions small {
+    max-width: 110px !important;
+  }
+
+  .reservation-card__dropdown {
+    right: 0 !important;
+    left: auto !important;
+    min-width: 156px !important;
+  }
+
+  .dashboard-benefits {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+    margin-top: 10px !important;
+  }
+
+  .reserva-modal-overlay {
+    padding: 10px !important;
+    align-items: start !important;
+    overflow-y: auto !important;
+  }
+
+  .reserva-modal {
+    width: 100% !important;
+    max-width: 430px !important;
+    max-height: calc(100vh - 20px) !important;
+    overflow-y: auto !important;
+    padding: 22px 16px 16px !important;
+    border-radius: 18px !important;
+  }
+
+  .reserva-modal__icon {
+    width: 58px !important;
+    height: 58px !important;
+    margin-bottom: 12px !important;
+    font-size: 28px !important;
+  }
+
+  .reserva-modal h2 {
+    font-size: 22px !important;
+  }
+
+  .reserva-modal__subtitle {
+    font-size: 12px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .reserva-modal__details {
+    gap: 8px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .reserva-modal__details div {
+    padding: 9px 10px !important;
+  }
+
+  .reserva-modal__details span {
+    font-size: 10px !important;
+  }
+
+  .reserva-modal__details strong {
+    font-size: 13px !important;
+  }
+
+  .reserva-modal__actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .reserva-modal__button {
+    width: 100% !important;
+    min-height: 42px !important;
+    font-size: 13px !important;
+  }
+
+  .cy-alert-popup {
+    width: calc(100vw - 24px) !important;
+    max-width: 420px !important;
+    padding: 22px 16px 18px !important;
+    border-radius: 18px !important;
+  }
+
+  .cy-alert-title {
+    font-size: 22px !important;
+  }
+
+  .cy-alert-text {
+    font-size: 13px !important;
+  }
+
+  .swal2-actions {
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .swal2-actions button {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .dashboard-shell__main {
+    padding: 0 6px 10px !important;
+  }
+
+  .booking-panel,
+  .reservations-panel {
+    padding: 8px !important;
+  }
+
+  .booking-side-step {
+    min-height: 64px !important;
+    padding: 6px 2px !important;
+  }
+
+  .booking-side-step strong {
+    font-size: 9px !important;
+  }
+
+  .booking-side-step small {
+    display: none !important;
+  }
+
+  .sports-grid,
+  .sports-grid--large,
+  .clubs-grid,
+  .clubs-grid--large,
+  .date-selector__days,
+  .date-selector__days--large,
+  .time-grid,
+  .time-grid--large,
+  .booking-summary,
+  .booking-summary--large {
+    grid-template-columns: 1fr !important;
+  }
+
+  .reservation-card {
+    grid-template-columns: 44px minmax(0, 1fr) 34px !important;
+  }
+
+  .reservation-card__actions {
+    align-self: start !important;
+  }
+
+  .reservation-card__actions > .status,
+  .reservation-card__actions > small {
+    grid-column: 1 / -1 !important;
+  }
+
+  .reservation-card__actions small {
+    display: none !important;
+  }
+}
