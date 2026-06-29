@@ -1137,7 +1137,7 @@ function DashboardUsuario({
 
         throw new Error(mensajeError);
       }
-
+//MERCADO PAGO
       if (data.demo) {
         const resultado = await Swal.fire({
           icon: 'info',
