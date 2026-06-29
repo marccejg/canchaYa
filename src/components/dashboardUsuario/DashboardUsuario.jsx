@@ -350,24 +350,66 @@ const obtenerClaseEstadoReserva = (estado) => {
   Normaliza el estado de pago que llega desde el backend.
   Mantiene separado el estado de la reserva del estado del pago.
 */
+const normalizarEstadoPago = (estadoPago) => {
+  const estado = normalizarTexto(estadoPago || '');
+
+  if (
+    estado.includes('rechazado') ||
+    estado.includes('rejected') ||
+    estado.includes('failure')
+  ) {
+    return 'rechazado';
+  }
+
+  if (
+    estado.includes('pago_en_club') ||
+    estado.includes('pago en club') ||
+    estado.includes('en club')
+  ) {
+    return 'pago_en_club';
+  }
+
+  if (
+    estado.includes('pagado') ||
+    estado.includes('pagada') ||
+    estado.includes('approved') ||
+    estado.includes('aprobado') ||
+    estado.includes('aprobada')
+  ) {
+    return 'pagado';
+  }
+
+  return 'pendiente';
+};
+
 const obtenerTextoEstadoPago = (estadoPago) => {
-  if (estadoPago === 'pagado') return 'Pagada online';
-  if (estadoPago === 'pago_en_club') return 'Pago en club';
-  if (estadoPago === 'rechazado') return 'Pago rechazado';
+  const estado = normalizarEstadoPago(estadoPago);
+
+  if (estado === 'pagado') return 'Pagada online';
+  if (estado === 'pago_en_club') return 'Pago en club';
+  if (estado === 'rechazado') return 'Pago rechazado';
 
   return 'Pago pendiente';
 };
 
 const obtenerClaseEstadoPago = (estadoPago) => {
-  if (estadoPago === 'pagado' || estadoPago === 'pago_en_club') {
+  const estado = normalizarEstadoPago(estadoPago);
+
+  if (estado === 'pagado' || estado === 'pago_en_club') {
     return 'status status--confirmed';
   }
 
-  if (estadoPago === 'rechazado') {
+  if (estado === 'rechazado') {
     return 'status status--blocked';
   }
 
   return 'status status--pending';
+};
+
+const reservaEstaPagada = (reserva) => {
+  const estadoPago = normalizarEstadoPago(reserva?.estado_pago);
+
+  return estadoPago === 'pagado' || estadoPago === 'pago_en_club';
 };
 
 const puedePagarReserva = (reserva) => {
@@ -380,7 +422,7 @@ const puedePagarReserva = (reserva) => {
     return false;
   }
 
-  return !['pagado', 'pago_en_club'].includes(reserva.estado_pago);
+  return !reservaEstaPagada(reserva);
 };
 
 const esReservaPasada = (reserva) => {
@@ -403,7 +445,7 @@ const normalizarReserva = (reserva, listaClubes = []) => {
   const fechaHoraDate = crearFechaHoraDesdeReserva(fechaStr, horaNormalizada);
   const clubEncontrado = buscarClubPorNombre(reserva.club, listaClubes);
   const puedeGestionarCalculado = puedeGestionarPorAnticipacion(fechaHoraDate);
-  const estadoPagoNormalizado = reserva.estado_pago || 'pendiente';
+  const estadoPagoNormalizado = normalizarEstadoPago(reserva.estado_pago || 'pendiente');
 
   return {
     ...reserva,
@@ -707,11 +749,18 @@ function DashboardUsuario({
   const actualizarEstadoPagoLocal = (reservaId, datosPago = {}) => {
     if (!reservaId) return;
 
+    const datosPagoNormalizados = {
+      ...datosPago,
+      ...(datosPago.estado_pago
+        ? { estado_pago: normalizarEstadoPago(datosPago.estado_pago) }
+        : {}),
+    };
+
     setEstadoPagoLocalPorReserva((prev) => ({
       ...prev,
       [String(reservaId)]: {
         ...(prev[String(reservaId)] || {}),
-        ...datosPago,
+        ...datosPagoNormalizados,
       },
     }));
   };
@@ -828,6 +877,7 @@ function DashboardUsuario({
           ? {
               ...reserva,
               ...pagoLocal,
+              estado_pago: normalizarEstadoPago(pagoLocal.estado_pago || reserva.estado_pago),
             }
           : reserva;
       })
@@ -1133,6 +1183,12 @@ function DashboardUsuario({
           if (onRefreshReservas) {
             onRefreshReservas();
           }
+
+          mostrarExito(
+            'Reserva ya pagada',
+            'Actualizamos el estado de pago de esta reserva.'
+          );
+          return;
         }
 
         throw new Error(mensajeError);
@@ -1220,7 +1276,7 @@ function DashboardUsuario({
             prev
               ? {
                   ...prev,
-                  estado_pago: estadoPagoActualizado,
+                  estado_pago: normalizarEstadoPago(estadoPagoActualizado),
                 }
               : prev
           );
@@ -1396,7 +1452,9 @@ function DashboardUsuario({
     const reservaEnEdicionSnapshot = reservaEnEdicion;
     const estaModificando = Boolean(reservaEnEdicionSnapshot?.id);
 
-    const estadoPagoAnterior = reservaEnEdicionSnapshot?.estado_pago || 'pendiente';
+    const estadoPagoAnterior = normalizarEstadoPago(
+      reservaEnEdicionSnapshot?.estado_pago || 'pendiente'
+    );
     const debeConservarPagoAnterior = ['pagado', 'pago_en_club'].includes(estadoPagoAnterior);
 
     const [dia, mes, anio] = fechaSeleccionada.split('/');
@@ -2229,6 +2287,7 @@ function DashboardUsuario({
                                 {puedePagarReserva(reserva) && (
                                   <button
                                     type="button"
+                                    className="reservation-card__dropdown-pay"
                                     onClick={() => pagarReservaConMercadoPago(reserva)}
                                   >
                                     <i className="bi bi-credit-card"></i>

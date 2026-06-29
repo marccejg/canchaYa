@@ -3216,3 +3216,146 @@
     display: none !important;
   }
 }
+
+
+/* =========================================================
+   FIX MISTERX - RESPONSIVE RESERVAS + ESTADO DE PAGO
+   - Evita que los badges rompan las cards.
+   - Ordena acciones y menú de tres puntos.
+   - Da estilo específico a "Pagar reserva".
+   - Ajusta modal/SweetAlert de Mercado Pago en pantallas chicas.
+========================================================= */
+
+.reservation-card {
+  grid-template-columns: 52px minmax(0, 1fr) minmax(118px, auto) !important;
+  align-items: start !important;
+}
+
+.reservation-card__actions {
+  justify-items: end !important;
+  text-align: right !important;
+  align-content: start !important;
+  min-width: 0 !important;
+}
+
+.reservation-card__actions .status {
+  max-width: 118px !important;
+  white-space: normal !important;
+  line-height: 1.15 !important;
+  text-align: center !important;
+}
+
+.reservation-card__actions small {
+  max-width: 118px !important;
+  line-height: 1.25 !important;
+}
+
+.reservation-card__menu {
+  justify-self: end !important;
+}
+
+.reservation-card__dropdown-pay,
+.reservation-card__dropdown-pay i,
+.reservation-card__dropdown-pay .bi {
+  color: #009ee3 !important;
+}
+
+.reservation-card__dropdown-pay:hover {
+  background: #e6f7ff !important;
+}
+
+@media (max-width: 760px) {
+  .reservation-card {
+    grid-template-columns: 46px minmax(0, 1fr) !important;
+    gap: 8px !important;
+    align-items: start !important;
+  }
+
+  .reservation-card__date {
+    grid-row: 1 / span 2 !important;
+  }
+
+  .reservation-card__info {
+    grid-column: 2 !important;
+    min-width: 0 !important;
+  }
+
+  .reservation-card__actions {
+    grid-column: 1 / -1 !important;
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    gap: 6px 8px !important;
+    align-items: center !important;
+    justify-items: start !important;
+    text-align: left !important;
+    padding-top: 6px !important;
+    border-top: 1px solid #eef3fb !important;
+  }
+
+  .reservation-card__actions .status {
+    max-width: none !important;
+    white-space: nowrap !important;
+    font-size: 9px !important;
+  }
+
+  .reservation-card__actions small {
+    grid-column: 1 !important;
+    max-width: none !important;
+    font-size: 9px !important;
+    display: block !important;
+  }
+
+  .reservation-card__menu {
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+    justify-self: end !important;
+    align-self: center !important;
+  }
+
+  .reservation-card__menu-button {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .reservation-card__dropdown {
+    right: 0 !important;
+    left: auto !important;
+    top: 34px !important;
+    min-width: 170px !important;
+    max-width: calc(100vw - 32px) !important;
+  }
+
+  .swal2-popup.cy-alert-popup {
+    width: calc(100vw - 28px) !important;
+    max-width: 390px !important;
+  }
+
+  .swal2-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .swal2-actions button {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .reservation-card {
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+  }
+
+  .reservation-card__date strong {
+    font-size: 18px !important;
+  }
+
+  .reservation-card__actions {
+    grid-template-columns: 1fr auto !important;
+  }
+
+  .reservation-card__actions .status {
+    font-size: 8.5px !important;
+    padding: 3px 6px !important;
+  }
+}
