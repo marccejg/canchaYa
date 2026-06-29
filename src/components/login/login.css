@@ -2,7 +2,7 @@
    CONTENEDOR GENERAL DEL LOGIN
    Mantiene el fondo original de cancha detrás del formulario.
    También deja espacio para los banners laterales del Layout.
-========================================================= */
+=========================================================  */
 
 .login-page-container {
   position: relative;
