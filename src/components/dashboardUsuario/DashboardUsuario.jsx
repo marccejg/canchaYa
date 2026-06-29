@@ -20,7 +20,7 @@ import futbol11Icon from '../imagenes/futbol11.png';
 
 /*
   Imágenes de banners publicitarios.
-  Estos banners se muestran solo dentro del DashboardUsuario.
+  Estos banners se muestran solo dentro del DashboardUsuario y login.
   
 */
 import bannerImg1 from '../bannerVertical/banners/img1.png';
