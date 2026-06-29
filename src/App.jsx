@@ -25,22 +25,72 @@ const restaurarUsuarioDesdeStorage = () => {
   }
 };
 
-const mapReservaDesdeApi = (r) => ({
-  id: r.id_reserva,
-  id_cancha: r.cancha?.id_cancha,
-  deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
-  club: r.cancha?.club?.nombre_club || 'Club',
-  cancha: r.cancha?.nombre_cancha || 'Cancha',
-  fecha: r.fecha,
-  hora: r.hora_inicio?.slice(0, 5) || '',
-  estado: r.estado
-    ? r.estado.charAt(0).toUpperCase() + r.estado.slice(1)
-    : 'Confirmada',
-  direccion: r.cancha?.club?.direccion_club || '',
-  ciudad: r.cancha?.club?.ciudad_club || '',
-  provincia: r.cancha?.club?.provincia_club || '',
-  precio: r.monto_total,
-});
+const normalizarEstadoPagoDesdeApi = (estadoPago) => {
+  const estado = (estadoPago || 'pendiente').toString().toLowerCase();
+
+  if (
+    estado === 'pagado' ||
+    estado === 'approved' ||
+    estado === 'approved_demo' ||
+    estado === 'aprobado' ||
+    estado === 'pagada online'
+  ) {
+    return 'pagado';
+  }
+
+  if (
+    estado === 'pago_en_club' ||
+    estado === 'pago en club' ||
+    estado === 'paid_on_site'
+  ) {
+    return 'pago_en_club';
+  }
+
+  if (
+    estado === 'rechazado' ||
+    estado === 'rejected' ||
+    estado === 'rejected_demo' ||
+    estado === 'failure'
+  ) {
+    return 'rechazado';
+  }
+
+  return 'pendiente';
+};
+
+const mapReservaDesdeApi = (r) => {
+  const estadoPago = normalizarEstadoPagoDesdeApi(
+    r.estado_pago || r.mercado_pago_status
+  );
+
+  return {
+    id: r.id_reserva,
+    id_reserva: r.id_reserva,
+    id_cancha: r.cancha?.id_cancha,
+    deporte: r.cancha?.deporte?.nombre_deporte || 'Deporte',
+    club: r.cancha?.club?.nombre_club || 'Club',
+    cancha: r.cancha?.nombre_cancha || 'Cancha',
+    fecha: r.fecha,
+    hora: r.hora_inicio?.slice(0, 5) || '',
+    estado: r.estado
+      ? r.estado.charAt(0).toUpperCase() + r.estado.slice(1)
+      : 'Confirmada',
+
+    // Datos de pago: imprescindibles para que al recargar no vuelva a aparecer como pendiente.
+    estado_pago: estadoPago,
+    mercado_pago_preference_id: r.mercado_pago_preference_id || null,
+    mercado_pago_payment_id: r.mercado_pago_payment_id || null,
+    mercado_pago_status: r.mercado_pago_status || null,
+    monto_pagado: r.monto_pagado || null,
+    fecha_pago: r.fecha_pago || null,
+
+    direccion: r.cancha?.club?.direccion_club || '',
+    ciudad: r.cancha?.club?.ciudad_club || '',
+    provincia: r.cancha?.club?.provincia_club || '',
+    precio: r.monto_total,
+    monto_total: r.monto_total,
+  };
+};
 
 /*
   App es el componente raíz de CanchasYa.
