@@ -20,7 +20,7 @@ import futbol11Icon from '../imagenes/futbol11.png';
 
 /*
   Imágenes de banners publicitarios.
-  Estos banners se muestran solo dentro del DashboardUsuario y login.
+  Estos banners se muestran solo dentro del DashboardUsuario.
   
 */
 import bannerImg1 from '../bannerVertical/banners/img1.png';
@@ -407,6 +407,16 @@ const obtenerClaseEstadoPago = (estadoPago) => {
   return 'status status--pending';
 };
 
+const reservaEstaPagada = (reserva) => {
+  if (!reserva) return false;
+
+  const estadoPago = normalizarEstadoPago(
+    reserva.estado_pago || reserva.mercado_pago_status
+  );
+
+  return ['pagado', 'pago_en_club'].includes(estadoPago);
+};
+
 const puedePagarReserva = (reserva) => {
   if (!reserva) return false;
   if (esReservaPasada(reserva)) return false;
@@ -417,11 +427,20 @@ const puedePagarReserva = (reserva) => {
     return false;
   }
 
-  const estadoPago = normalizarEstadoPago(
-    reserva.estado_pago || reserva.mercado_pago_status
-  );
+  return !reservaEstaPagada(reserva);
+};
 
-  return !['pagado', 'pago_en_club'].includes(estadoPago);
+const puedeEliminarReserva = (reserva) => {
+  if (!reserva) return false;
+
+  /*
+    Regla de negocio:
+    si la reserva ya está pagada, no se puede eliminar/cancelar desde el usuario.
+    Solo se permite modificarla mientras cumpla la regla de anticipación.
+  */
+  if (reservaEstaPagada(reserva)) return false;
+
+  return reserva.puedeGestionar || esReservaPasada(reserva);
 };
 
 const esReservaPasada = (reserva) => {
@@ -1288,6 +1307,7 @@ function DashboardUsuario({
         setMostrarModalReserva(false);
         setReservaConfirmada(null);
         setMenuReservaAbierto(null);
+        reiniciarReserva();
 
         if (onRefreshReservas) {
           onRefreshReservas();
@@ -2251,24 +2271,26 @@ function DashboardUsuario({
                               onClick={() => alternarMenuReserva(reserva)}
                               disabled={
                                 !reserva.puedeGestionar &&
-                                !reservaPasada &&
-                                !puedePagarReserva(reserva)
+                                !puedePagarReserva(reserva) &&
+                                !puedeEliminarReserva(reserva)
                               }
                               title={
                                 reservaPasada
                                   ? 'Borrar del panel'
-                                  : puedePagarReserva(reserva)
-                                    ? 'Pagar o gestionar reserva'
-                                    : reserva.puedeGestionar
-                                      ? 'Gestionar reserva'
-                                      : 'No se puede gestionar con menos de 24 horas'
+                                  : reservaEstaPagada(reserva) && reserva.puedeGestionar
+                                    ? 'Modificar reserva'
+                                    : puedePagarReserva(reserva)
+                                      ? 'Pagar o gestionar reserva'
+                                      : reserva.puedeGestionar
+                                        ? 'Gestionar reserva'
+                                        : 'No se puede gestionar con menos de 24 horas'
                               }
                             >
                               ⋮
                             </button>
 
                             {menuReservaAbierto === reserva.id &&
-                              (reserva.puedeGestionar || reservaPasada || puedePagarReserva(reserva)) && (
+                              (reserva.puedeGestionar || puedePagarReserva(reserva) || puedeEliminarReserva(reserva)) && (
                               <div className="reservation-card__dropdown">
                                 {puedePagarReserva(reserva) && (
                                   <button
@@ -2290,7 +2312,7 @@ function DashboardUsuario({
                                   </button>
                                 )}
 
-                                {(reservaPasada || reserva.puedeGestionar) && (
+                                {puedeEliminarReserva(reserva) && (
                                   <button
                                     type="button"
                                     className="reservation-card__dropdown-danger"
