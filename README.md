@@ -113,6 +113,8 @@ Para levantar el entorno de desarrollo local y empezar a contribuir, sigue estos
     ```
 3.  Instalar dependencias: Se utiliza `npm` como gestor de paquetes.
     ```consola bash
+    npm i (para instalacion global de todo)
+    npm install (mismo comando extendido)
 
     npm install @vitejs/plugin-react --save-dev
     npm bootstrap bootstrap-icons 
