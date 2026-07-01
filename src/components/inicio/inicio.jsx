@@ -29,9 +29,94 @@ const sportImages = {
   Golf: golf,
 };
 
+const inicioModales = {
+  comoFunciona: {
+    titulo: "¿Cómo funciona CanchasYa?",
+    bajada:
+      "Reservar una cancha no debería depender de llamadas, mensajes o respuestas tardías.",
+    items: [
+      {
+        icono: "1️⃣",
+        titulo: "Elegí tu deporte",
+        descripcion:
+          "Seleccioná fútbol, tenis, pádel, básquet u otra categoría disponible.",
+      },
+      {
+        icono: "2️⃣",
+        titulo: "Buscá canchas disponibles",
+        descripcion:
+          "Consultá clubes cercanos, horarios libres, ubicación y servicios.",
+      },
+      {
+        icono: "3️⃣",
+        titulo: "Reservá tu horario",
+        descripcion:
+          "Ingresá a tu cuenta para avanzar con la reserva de forma rápida.",
+      },
+    ],
+  },
+  beneficios: {
+    titulo: "Beneficios de usar CanchasYa",
+    bajada:
+      "Una plataforma pensada para jugadores que quieren reservar rápido y para clubes que quieren gestionar mejor sus canchas.",
+    items: [
+      {
+        icono: "👥",
+        titulo: "Para jugadores",
+        descripcion:
+          "Ver canchas disponibles, consultar horarios, evitar llamadas y organizar partidos más rápido.",
+      },
+      {
+        icono: "🏟️",
+        titulo: "Para dueños de cancha",
+        descripcion:
+          "Publicar el club, mostrar servicios, recibir más consultas y ordenar mejor las reservas.",
+      },
+      {
+        icono: "⚡",
+        titulo: "Menos vueltas",
+        descripcion:
+          "Toda la información importante queda clara desde el primer contacto.",
+      },
+    ],
+  },
+  categorias: {
+    titulo: "Categorías disponibles",
+    bajada:
+      "Explorá diferentes deportes y encontrá espacios deportivos según la actividad que quieras practicar.",
+    items: [
+      {
+        icono: "⚽",
+        titulo: "Fútbol",
+        descripcion:
+          "Canchas de fútbol 5, fútbol 7 y fútbol 11 para partidos entre amigos o equipos.",
+      },
+      {
+        icono: "🎾",
+        titulo: "Tenis y Pádel",
+        descripcion:
+          "Espacios para partidos individuales, dobles, entrenamientos o clases.",
+      },
+      {
+        icono: "🏀",
+        titulo: "Básquet y Vóley",
+        descripcion:
+          "Canchas para partidos recreativos, entrenamientos y encuentros grupales.",
+      },
+      {
+        icono: "🏊",
+        titulo: "Otros deportes",
+        descripcion:
+          "Natación, golf y más disciplinas según disponibilidad de cada club.",
+      },
+    ],
+  },
+};
+
 const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub, onAdminLogin }) => {
   const [mostrarLogin, setMostrarLogin] = useState(false);
   const [usuariosRegistrados, setUsuariosRegistrados] = useState(0);
+  const [modalActivo, setModalActivo] = useState(null);
 
   useEffect(() => {
   const BASE_USUARIOS = 350;
@@ -79,6 +164,14 @@ const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub, onAdminLogin }) =>
     setMostrarLogin(true);
   };
 
+  const abrirModal = (modal) => {
+    setModalActivo(modal);
+  };
+
+  const cerrarModal = () => {
+    setModalActivo(null);
+  };
+
   if (mostrarLogin) {
     return (
       <Login
@@ -105,15 +198,15 @@ const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub, onAdminLogin }) =>
           </button>
 
           <nav className="inicio-nav">
-            <button type="button" onClick={irAlLogin}>
+            <button type="button" onClick={() => abrirModal("comoFunciona")}>
               ¿Cómo funciona?
             </button>
 
-            <button type="button" onClick={irAlLogin}>
+            <button type="button" onClick={() => abrirModal("beneficios")}>
               Beneficios
             </button>
 
-            <button type="button" onClick={irAlLogin}>
+            <button type="button" onClick={() => abrirModal("categorias")}>
               Categorías
             </button>
 
@@ -275,6 +368,53 @@ const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub, onAdminLogin }) =>
         <button type="button" className="inicio-footer" onClick={irAlLogin}>
           🛡️ Seguro · Confiable · Rápido · CanchasYa!
         </button>
+
+
+        {modalActivo && (
+          <div className="inicio-modal-backdrop" onClick={cerrarModal}>
+            <section
+              className="inicio-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="inicio-modal-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="inicio-modal-close"
+                onClick={cerrarModal}
+                aria-label="Cerrar modal"
+              >
+                ×
+              </button>
+
+              <div className="inicio-modal-header">
+                <h2 id="inicio-modal-title">
+                  {inicioModales[modalActivo].titulo}
+                </h2>
+                <p>{inicioModales[modalActivo].bajada}</p>
+              </div>
+
+              <div className="inicio-modal-grid">
+                {inicioModales[modalActivo].items.map((item) => (
+                  <article className="inicio-modal-card" key={item.titulo}>
+                    <span>{item.icono}</span>
+                    <h3>{item.titulo}</h3>
+                    <p>{item.descripcion}</p>
+                  </article>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="inicio-modal-action"
+                onClick={irAlLogin}
+              >
+                Ingresar para continuar →
+              </button>
+            </section>
+          </div>
+        )}
 
         <WhatsAppButton />
       </div>
