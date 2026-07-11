@@ -136,6 +136,59 @@ const crearFechaDesdeTexto = (fechaTexto) => {
 };
 
 /*
+  Normaliza una fecha a YYYY-MM-DD para poder comparar de forma segura
+  el formato visual del frontend (DD/MM/YYYY) con el formato del backend.
+*/
+const normalizarFechaParaComparar = (fechaValor) => {
+  if (!fechaValor) return '';
+
+  const fecha =
+    fechaValor instanceof Date
+      ? fechaValor
+      : crearFechaDesdeTexto(String(fechaValor).trim());
+
+  if (!(fecha instanceof Date) || Number.isNaN(fecha.getTime())) return '';
+
+  const anio = fecha.getFullYear();
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  const dia = String(fecha.getDate()).padStart(2, '0');
+
+  return `${anio}-${mes}-${dia}`;
+};
+
+/*
+  Normaliza horarios como 09:00, 09:00:00 o 9:00 al formato HH:mm.
+*/
+const normalizarHoraParaComparar = (horaValor) => {
+  if (horaValor === null || horaValor === undefined) return '';
+
+  const [horaTexto, minutosTexto = '0'] = String(horaValor).trim().split(':');
+  const hora = Number(horaTexto);
+  const minutos = Number(minutosTexto);
+
+  if (Number.isNaN(hora) || Number.isNaN(minutos)) return '';
+
+  return `${String(hora).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+};
+
+/*
+  Obtiene el id de cancha sin depender de una única forma de respuesta.
+  Soporta reservas aplanadas y reservas con la relación cancha anidada.
+*/
+const obtenerIdCanchaReserva = (reserva) =>
+  reserva?.id_cancha ??
+  reserva?.cancha_id ??
+  reserva?.cancha?.id_cancha ??
+  reserva?.cancha?.id ??
+  null;
+
+const obtenerNombreCanchaReserva = (reserva) => {
+  if (typeof reserva?.cancha === 'string') return reserva.cancha;
+
+  return reserva?.cancha?.nombre || reserva?.nombre_cancha || '';
+};
+
+/*
   Convierte una fecha y una hora en un objeto Date completo.
   Se usa para ordenar reservas y detectar horarios vencidos.
 */
@@ -574,6 +627,77 @@ function DashboardUsuario({
     Si la cancha no tiene horarios configurados, se muestran todos los del sistema.
   */
   const [horariosDeCancha, setHorariosDeCancha] = useState([]);
+
+  /*
+    Reservas reales de todas las canchas recibidas desde el backend.
+    Se usan exclusivamente para calcular la disponibilidad del turno.
+    No reemplazan las reservas del usuario que se muestran en el panel lateral.
+  */
+  const [reservasDelServidor, setReservasDelServidor] = useState([]);
+  const [cargandoReservasDelServidor, setCargandoReservasDelServidor] =
+    useState(false);
+
+  const obtenerReservasDelServidor = async (signal) => {
+    const idCancha =
+      canchaSeleccionada?.id ?? canchaSeleccionada?.id_cancha ?? null;
+    const fecha = normalizarFechaParaComparar(fechaSeleccionada);
+
+    if (!idCancha || !fecha) return [];
+
+    const token = localStorage.getItem('token');
+    const response = await fetch(
+      `${API_URL}/reserva/disponibilidad/${idCancha}/${fecha}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        signal,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('No se pudieron consultar los horarios reservados.');
+    }
+
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  };
+
+  /*
+    Cada vez que cambia la cancha o la fecha, vuelve a consultar al backend.
+    De esta forma, el selector no depende solamente del estado local del usuario
+    y también reconoce reservas creadas por otras personas.
+  */
+  useEffect(() => {
+    if (!canchaSeleccionada || !fechaSeleccionada) {
+      setReservasDelServidor([]);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+
+    const cargarReservasOcupadas = async () => {
+      setCargandoReservasDelServidor(true);
+
+      try {
+        const data = await obtenerReservasDelServidor(controller.signal);
+        setReservasDelServidor(data);
+      } catch (error) {
+        if (error?.name !== 'AbortError') {
+          console.error('Error al consultar horarios reservados:', error);
+          setReservasDelServidor([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setCargandoReservasDelServidor(false);
+        }
+      }
+    };
+
+    cargarReservasOcupadas();
+
+    return () => controller.abort();
+  }, [canchaSeleccionada, fechaSeleccionada]);
 
   /*
     Carga los horarios disponibles de la cancha seleccionada desde el backend.
@@ -1056,32 +1180,94 @@ function DashboardUsuario({
   };
 
   /*
-    Selecciona horario solo cuando corresponde el paso 4.
-    No permite seleccionar horarios pasados del día actual.
+    Indica si un horario ya está reservado para la cancha y fecha seleccionadas.
+    La comparación normaliza fecha, hora e ids para soportar tanto el formato
+    del frontend como el que llega desde el backend.
   */
-  const seleccionarHorario = (hora) => {
-    if (pasoActual !== 4) return;
-    if (esHorarioPasado(fechaSeleccionada, hora)) return;
+  const reservaOcupaTurnoSeleccionado = (reserva, hora) => {
+    if (!reserva || !fechaSeleccionada || !canchaSeleccionada || !hora) {
+      return false;
+    }
 
-    setHorarioSeleccionado(hora);
+    const idReserva = reserva.id_reserva ?? reserva.id ?? null;
+    const idReservaEnEdicion =
+      reservaEnEdicion?.id_reserva ?? reservaEnEdicion?.id ?? null;
+
+    // Al modificar, la reserva original no debe bloquearse a sí misma.
+    if (
+      idReserva !== null &&
+      idReservaEnEdicion !== null &&
+      String(idReserva) === String(idReservaEnEdicion)
+    ) {
+      return false;
+    }
+
+    const estadoReserva = normalizarTexto(reserva.estado || '');
+    if (
+      estadoReserva.includes('cancelada') ||
+      estadoReserva.includes('cancelado')
+    ) {
+      return false;
+    }
+
+    const fechaObjetivo = normalizarFechaParaComparar(fechaSeleccionada);
+    const horaObjetivo = normalizarHoraParaComparar(hora);
+    const idCanchaSeleccionada =
+      canchaSeleccionada.id ?? canchaSeleccionada.id_cancha ?? null;
+    const nombreCanchaSeleccionada = canchaSeleccionada.nombre || '';
+
+    const mismaFecha =
+      normalizarFechaParaComparar(reserva.fecha) === fechaObjetivo;
+    const mismaHora =
+      normalizarHoraParaComparar(reserva.hora ?? reserva.hora_inicio) ===
+      horaObjetivo;
+
+    const idCanchaReserva = obtenerIdCanchaReserva(reserva);
+    const mismaCancha =
+      idCanchaSeleccionada !== null && idCanchaReserva !== null
+        ? String(idCanchaReserva) === String(idCanchaSeleccionada)
+        : normalizarTexto(obtenerNombreCanchaReserva(reserva)) ===
+          normalizarTexto(nombreCanchaSeleccionada);
+
+    return mismaCancha && mismaFecha && mismaHora;
   };
 
   /*
-    Indica si un horario ya está reservado para el club, deporte y fecha seleccionados.
-    Evita que se pisen reservas en el mismo slot.
+    Combina las reservas del usuario con las reservas consultadas directamente
+    al backend. Esto evita que un turno ya ocupado vuelva a aparecer disponible.
   */
   const esHorarioOcupado = (hora) => {
-    if (!clubSeleccionado || !fechaSeleccionada || !deporteSeleccionado || !canchaSeleccionada) return false;
+    const reservasParaValidar = [...reservas, ...reservasDelServidor];
 
-    return reservas.some(
-      (r) =>
-        String(r.id_reserva || r.id) !== String(reservaEnEdicion?.id) &&
-        r.club === clubSeleccionado &&
-        r.fecha === fechaSeleccionada &&
-        r.hora === hora &&
-        r.deporte === deporteSeleccionado &&
-        (r.id_cancha ? r.id_cancha === canchaSeleccionada.id : r.cancha === canchaSeleccionada.nombre)
+    return reservasParaValidar.some((reserva) =>
+      reservaOcupaTurnoSeleccionado(reserva, hora)
     );
+  };
+
+  /*
+    Hace una última comprobación contra el backend inmediatamente antes del POST.
+    Evita confirmar utilizando información desactualizada del selector.
+  */
+  const verificarHorarioOcupadoEnServidor = async (hora) => {
+    const reservasActuales = await obtenerReservasDelServidor();
+    setReservasDelServidor(reservasActuales);
+
+    return reservasActuales.some((reserva) =>
+      reservaOcupaTurnoSeleccionado(reserva, hora)
+    );
+  };
+
+  /*
+    Selecciona horario solo cuando corresponde el paso 4.
+    No permite seleccionar horarios pasados ni horarios ya reservados.
+  */
+  const seleccionarHorario = (hora) => {
+    if (pasoActual !== 4) return;
+    if (cargandoReservasDelServidor) return;
+    if (esHorarioPasado(fechaSeleccionada, hora)) return;
+    if (esHorarioOcupado(hora)) return;
+
+    setHorarioSeleccionado(hora);
   };
 
   /*
@@ -1446,7 +1632,15 @@ function DashboardUsuario({
 
     if (esFechaPasada(fechaSeleccionada)) return;
     if (esHorarioPasado(fechaSeleccionada, horarioSeleccionado)) return;
-    if (esHorarioOcupado(horarioSeleccionado)) return;
+
+    if (esHorarioOcupado(horarioSeleccionado)) {
+      mostrarError(
+        'Horario no disponible',
+        'Ese horario ya fue reservado. Elegí otro turno para continuar.'
+      );
+      setHorarioSeleccionado(null);
+      return;
+    }
 
     if (!canchaSeleccionada) {
       mostrarError(
@@ -1468,7 +1662,7 @@ function DashboardUsuario({
 
     const reservaDTO = {
       id_usuario: usuario.id_usuario,
-      id_cancha: canchaSeleccionada.id,
+      id_cancha: canchaSeleccionada.id ?? canchaSeleccionada.id_cancha,
       fecha: fechaSQL,
       hora_inicio: `${horarioSeleccionado}:00`,
       hora_fin: `${parseInt(horarioSeleccionado.split(':')[0]) + 1}:00:00`,
@@ -1485,7 +1679,19 @@ function DashboardUsuario({
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch('http://localhost:3000/reserva', {
+      const horarioOcupadoEnServidor =
+        await verificarHorarioOcupadoEnServidor(horarioSeleccionado);
+
+      if (horarioOcupadoEnServidor) {
+        mostrarError(
+          'Horario no disponible',
+          'Ese horario acaba de ser reservado. Elegí otro turno para continuar.'
+        );
+        setHorarioSeleccionado(null);
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/reserva`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1495,21 +1701,41 @@ function DashboardUsuario({
       });
 
       if (!response.ok) {
+        let detalleError = null;
+
+        try {
+          detalleError = await response.json();
+        } catch {
+          detalleError = null;
+        }
+
+        if (response.status === 409) {
+          setHorarioSeleccionado(null);
+          mostrarError(
+            'Horario no disponible',
+            detalleError?.message ||
+              'Ese horario ya fue reservado. Elegí otro turno para continuar.'
+          );
+          return;
+        }
+
         mostrarError(
           estaModificando ? 'No se pudo modificar' : 'No se pudo reservar',
-          estaModificando
-            ? 'Hubo un problema al crear la nueva reserva, por lo que se conservó la original.'
-            : 'Hubo un problema al procesar la reserva en el servidor.'
+          detalleError?.message ||
+            (estaModificando
+              ? 'Hubo un problema al crear la nueva reserva, por lo que se conservó la original.'
+              : 'Hubo un problema al procesar la reserva en el servidor.')
         );
         return;
       }
 
       const guardada = await response.json();
+      setReservasDelServidor((prev) => [...prev, guardada]);
 
       // Si era modificación y la nueva se creó bien, borramos la reserva original.
       if (estaModificando) {
         const deleteResponse = await fetch(
-          `http://localhost:3000/reserva/${reservaEnEdicionSnapshot.id}`,
+          `${API_URL}/reserva/${reservaEnEdicionSnapshot.id}`,
           {
             method: 'DELETE',
             headers: {
@@ -1526,7 +1752,7 @@ function DashboardUsuario({
       const nuevaReserva = {
         id: guardada?.id_reserva || Date.now(),
         id_reserva: guardada?.id_reserva || null,
-        id_cancha: canchaSeleccionada.id,
+        id_cancha: canchaSeleccionada.id ?? canchaSeleccionada.id_cancha,
         deporte: deporteSeleccionado,
         club: clubSeleccionado,
         cancha: canchaSeleccionada.nombre,
@@ -2050,6 +2276,7 @@ function DashboardUsuario({
                           {horariosDeCancha.length > 0 ? (
                             horariosDeCancha.map((hora) => {
                               const horarioBloqueado =
+                                cargandoReservasDelServidor ||
                                 esHorarioPasado(fechaSeleccionada, hora) ||
                                 esHorarioOcupado(hora);
 

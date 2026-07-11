@@ -779,15 +779,54 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
     e.preventDefault();
 
     const precioLimpio = parsePrice(editCancha.precio_por_hora);
+    const idDeporte = Number(editCancha.deporte);
+    const idCanchaNumerico = Number(canchaId);
 
-    if (!editCancha.nombre || !editCancha.deporte || !precioLimpio) {
+    if (!editCancha.nombre.trim()) {
       Swal.fire({
         icon: 'warning',
-        title: 'Campos incompletos',
-        text: 'Completá nombre, deporte y precio para guardar la cancha.',
+        title: 'Nombre requerido',
+        text: 'Ingresá el nombre de la cancha.',
         confirmButtonText: 'Aceptar',
         confirmButtonColor: '#087bff',
       });
+
+      return;
+    }
+
+    if (!Number.isInteger(idDeporte) || idDeporte <= 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Deporte inválido',
+        text: 'Seleccioná un deporte válido.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#087bff',
+      });
+
+      return;
+    }
+
+    if (!Number.isInteger(idCanchaNumerico) || idCanchaNumerico <= 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Cancha inválida',
+        text: 'No se pudo identificar la cancha que querés modificar.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#ef4444',
+      });
+
+      return;
+    }
+
+    if (!Number.isFinite(precioLimpio) || precioLimpio <= 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Precio inválido',
+        text: 'Ingresá un precio mayor a cero.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#087bff',
+      });
+
       return;
     }
 
@@ -795,38 +834,91 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/cancha/${canchaId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          nombre_cancha: editCancha.nombre,
-          id_deporte: parseInt(editCancha.deporte),
-          precio_por_hora: precioLimpio,
-          tipo_suelo: editCancha.tipo_suelo,
-          descripcion_cancha: editCancha.descripcion,
-        }),
-      });
 
-      if (!response.ok) {
-        throw new Error('No se pudo actualizar la cancha');
+      if (!token) {
+        throw new Error(
+          'La sesión no está disponible. Cerrá sesión e ingresá nuevamente.'
+        );
       }
 
-      const canchaActualizada = await response.json();
+      /*
+       * Se envían únicamente propiedades que existen actualmente
+       * en el DTO y en la entidad del backend.
+       */
+      const payload = {
+        nombre_cancha: editCancha.nombre.trim(),
+        id_deporte: idDeporte,
+        precio_por_hora: precioLimpio,
+        descripcion_cancha: editCancha.descripcion.trim(),
+      };
+
+      const response = await fetch(
+        `http://localhost:3000/cancha/${idCanchaNumerico}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      /*
+       * Algunas respuestas de error pueden no traer JSON.
+       * Por eso primero obtenemos el texto y luego intentamos parsearlo.
+       */
+      const responseText = await response.text();
+
+      let resultado = null;
+
+      if (responseText) {
+        try {
+          resultado = JSON.parse(responseText);
+        } catch {
+          resultado = responseText;
+        }
+      }
+
+      if (!response.ok) {
+        const mensajeBackend = Array.isArray(resultado?.message)
+          ? resultado.message.join('. ')
+          : resultado?.message ||
+          resultado?.error ||
+          (typeof resultado === 'string' ? resultado : null);
+
+        throw new Error(
+          mensajeBackend ||
+          `No se pudo actualizar la cancha. Error HTTP ${response.status}.`
+        );
+      }
+
+      if (!resultado || typeof resultado !== 'object') {
+        throw new Error(
+          'El servidor no devolvió los datos de la cancha actualizada.'
+        );
+      }
 
       setCanchas((prev) =>
         prev.map((cancha) =>
-          cancha.id_cancha === canchaId
-            ? { ...cancha, ...canchaActualizada }
+          Number(getCanchaId(cancha)) === idCanchaNumerico
+            ? {
+              ...cancha,
+              ...resultado,
+
+              /*
+               * El backend todavía no guarda tipo_suelo.
+               * Lo conservamos localmente para no alterar la interfaz.
+               */
+              tipo_suelo: editCancha.tipo_suelo,
+            }
             : cancha
         )
       );
 
       cancelarEdicionCancha();
 
-      Swal.fire({
+      await Swal.fire({
         icon: 'success',
         title: 'Cancha actualizada',
         text: 'Los datos de la cancha fueron guardados correctamente.',
@@ -842,11 +934,16 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
       });
     } catch (error) {
       console.error('Error al actualizar cancha:', error);
+
       Swal.fire({
         icon: 'error',
-        title: 'Error',
-        text: 'No se pudo actualizar la cancha. Intentá nuevamente.',
+        title: 'No se pudo actualizar la cancha',
+        text:
+          error instanceof Error
+            ? error.message
+            : 'Ocurrió un error inesperado. Intentá nuevamente.',
         confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#ef4444',
       });
     } finally {
       setGuardandoCanchaId(null);
@@ -1798,7 +1895,7 @@ const PanelDelClub = ({ club, onLogout, onBackToMain, reservas = [] }) => {
               <p>
                 Nos alegra que tu club forme parte de CanchasYa!. Desde este panel
                 vas a poder gestionar tus canchas, revisar reservas y controlar
-                tus ingresos diarios y mensuales, como asi también agregar un logo 
+                tus ingresos diarios y mensuales, como asi también agregar un logo
                 si no lo hiciste al momento de completar el formulario.
               </p>
 
