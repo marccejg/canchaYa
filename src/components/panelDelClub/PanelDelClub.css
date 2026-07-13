@@ -120,7 +120,8 @@
 }
 
 .pdc-settings-button,
-.pdc-pay-button {
+.pdc-pay-button,
+.pdc-logout-button {
   min-width: 160px;
   justify-content: center;
 }
@@ -173,6 +174,37 @@
   background: #5eaa00;
   transform: translateY(-2px);
   box-shadow: 0 10px 24px rgba(111, 196, 0, 0.45);
+}
+
+.pdc-logout-button {
+  border: none;
+  border-radius: 11px;
+  padding: 11px 18px;
+
+  background: #ef4444;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(239, 68, 68, 0.32);
+  transition: all 0.25s ease;
+}
+
+.pdc-logout-button:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(239, 68, 68, 0.42);
+}
+
+.pdc-logout-button:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.75);
+  outline-offset: 3px;
 }
 
 /* =========================================================
@@ -1341,7 +1373,8 @@
   }
 
   .pdc-settings-button,
-  .pdc-pay-button {
+  .pdc-pay-button,
+  .pdc-logout-button {
     min-width: 140px;
   }
 
@@ -1376,6 +1409,21 @@
 
   .pdc-club-title p {
     font-size: 1rem;
+  }
+
+  .pdc-header-actions {
+    width: 100%;
+    align-self: stretch;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .pdc-settings-button,
+  .pdc-pay-button,
+  .pdc-logout-button {
+    width: 100%;
+    min-width: 0;
   }
 
   .pdc-stats-grid {
@@ -1423,3 +1471,1220 @@
     max-height: 220px;
   }
 }
+
+/* =========================================================
+   AJUSTE DE LAYOUT AMPLIO + GESTIÓN COMPACTA DE TORNEOS
+   - Aprovecha el ancho disponible del panel del dueño.
+   - Elimina la necesidad de repetir los ingresos en la zona inferior.
+   - Mantiene una adaptación progresiva para notebook, tablet y móvil.
+========================================================= */
+
+.pdc-shell {
+  width: min(1720px, 100%);
+  max-width: none;
+}
+
+.pdc-stats-grid {
+  gap: 16px;
+}
+
+.pdc-main-grid {
+  grid-template-columns: minmax(0, 2.15fr) minmax(360px, 1fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.pdc-bottom-grid {
+  grid-template-columns: minmax(0, 2.4fr) minmax(280px, 0.8fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.pdc-tournaments-panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.pdc-tournaments-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.pdc-tournaments-header > div {
+  min-width: 0;
+  max-width: 780px;
+}
+
+.pdc-tournaments-kicker {
+  display: inline-flex;
+  margin-bottom: 8px;
+  color: #6ee7ff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.pdc-tournaments-header h3 {
+  margin: 0;
+  font-size: 1.18rem;
+}
+
+.pdc-tournaments-header p {
+  max-width: 760px;
+  margin: 9px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.pdc-create-tournament-button {
+  min-height: 44px;
+  flex: 0 0 auto;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 11px;
+  background: linear-gradient(135deg, #ff9a21, #ff7a00);
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  box-shadow: 0 10px 22px rgba(255, 122, 0, 0.2);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
+}
+
+.pdc-create-tournament-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 13px 26px rgba(255, 122, 0, 0.28);
+}
+
+.pdc-create-tournament-button:focus-visible {
+  outline: 3px solid rgba(110, 231, 255, 0.5);
+  outline-offset: 3px;
+}
+
+.pdc-tournaments-empty {
+  min-height: 118px;
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.055);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pdc-tournaments-empty-icon {
+  width: 52px;
+  min-width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(255, 154, 33, 0.18);
+  color: #ffb14c;
+  display: grid;
+  place-items: center;
+  font-size: 1.45rem;
+}
+
+.pdc-tournaments-empty strong {
+  display: block;
+  font-size: 0.96rem;
+}
+
+.pdc-tournaments-empty p {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.pdc-bottom-grid .pdc-club-logo-panel {
+  min-width: 0;
+}
+
+.pdc-bottom-grid .pdc-club-logo-content {
+  min-height: 180px;
+}
+
+@media (max-width: 1600px) {
+  .pdc-shell {
+    width: min(100%, 1520px);
+    max-width: none;
+  }
+}
+
+@media (max-width: 1380px) {
+  .pdc-shell {
+    width: 100%;
+    max-width: none;
+  }
+
+  .pdc-main-grid {
+    grid-template-columns: minmax(0, 1.9fr) minmax(330px, 1fr);
+  }
+}
+
+@media (max-width: 1220px) {
+  .pdc-stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pdc-bottom-grid {
+    grid-template-columns: minmax(0, 1.8fr) minmax(250px, 0.8fr);
+  }
+}
+
+@media (max-width: 1080px) {
+  .pdc-header {
+    align-items: stretch;
+  }
+
+  .pdc-main-grid,
+  .pdc-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdc-bottom-grid .pdc-club-logo-content {
+    min-height: 160px;
+  }
+}
+
+@media (max-width: 900px) {
+  .pdc-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pdc-tournaments-header {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .pdc-shell {
+    width: 100%;
+  }
+
+  .pdc-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdc-tournaments-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pdc-create-tournament-button {
+    width: 100%;
+  }
+
+  .pdc-tournaments-empty {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .pdc-owner-dashboard {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .pdc-panel {
+    padding: 13px;
+  }
+
+  .pdc-tournaments-empty {
+    flex-direction: column;
+  }
+
+  .pdc-tournaments-empty-icon {
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+  }
+}
+/* =========================================================
+   BOTONES DEL HEADER
+========================================================= */
+
+.pdc-header-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.pdc-settings-button,
+.pdc-pay-button,
+.pdc-logout-button {
+  box-sizing: border-box;
+  min-height: 48px;
+  height: 48px;
+  padding: 0 14px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Configuración con la misma altura */
+.pdc-settings-button {
+  justify-content: center;
+}
+
+/* Contenido alineado hacia la izquierda */
+.pdc-pay-button {
+  min-width: 156px;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+/* Cerrar sesión */
+.pdc-logout-button {
+  min-width: 130px;
+  justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pdc-header-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .pdc-settings-button,
+  .pdc-pay-button,
+  .pdc-logout-button {
+    width: 100%;
+    min-width: 0;
+    justify-content: flex-start;
+    text-align: left;
+  }
+}
+
+
+/* =========================================================
+   BLOQUEOS EXCEPCIONALES DE CANCHA
+========================================================= */
+
+.pdc-icon-action-block {
+  border-color: rgba(245, 158, 11, 0.72);
+  background: rgba(245, 158, 11, 0.2);
+  color: #fff4d6;
+}
+
+.pdc-icon-action-block:hover,
+.pdc-icon-action-block.is-active {
+  background: rgba(245, 158, 11, 0.4);
+  border-color: #fbbf24;
+  color: #ffffff;
+}
+
+.pdc-court-block-editor {
+  margin-top: 14px;
+  padding: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0 0 10px 10px;
+  background: rgba(2, 16, 35, 0.34);
+}
+
+.pdc-block-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.pdc-block-editor-kicker {
+  display: block;
+  margin-bottom: 5px;
+  color: #fbbf24;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.pdc-block-editor-header h4 {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 900;
+}
+
+.pdc-block-editor-header p {
+  max-width: 720px;
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.pdc-block-editor-close {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.pdc-block-editor-close:hover {
+  background: rgba(239, 68, 68, 0.28);
+  border-color: rgba(248, 113, 113, 0.75);
+}
+
+.pdc-block-form {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.pdc-block-form-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(170px, 1.15fr)
+    minmax(120px, 0.8fr)
+    minmax(120px, 0.8fr)
+    minmax(170px, 1fr);
+  gap: 14px;
+}
+
+.pdc-block-form input[type='date'],
+.pdc-block-form input[type='time'] {
+  color-scheme: dark;
+}
+
+.pdc-block-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.pdc-btn-create-block,
+.pdc-btn-refresh-blocks,
+.pdc-btn-release-block {
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: all 0.2s ease;
+}
+
+.pdc-btn-create-block {
+  min-width: 180px;
+  padding: 11px 17px;
+  background: #f59e0b;
+  color: #172033;
+}
+
+.pdc-btn-create-block:hover:not(:disabled) {
+  background: #fbbf24;
+  transform: translateY(-1px);
+}
+
+.pdc-btn-refresh-blocks {
+  padding: 8px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.09);
+  color: #ffffff;
+  font-size: 0.78rem;
+}
+
+.pdc-btn-refresh-blocks:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.pdc-btn-release-block {
+  min-width: 104px;
+  padding: 9px 12px;
+  border: 1px solid rgba(248, 113, 113, 0.55);
+  background: rgba(239, 68, 68, 0.18);
+  color: #ffffff;
+}
+
+.pdc-btn-release-block:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.36);
+}
+
+.pdc-btn-create-block:disabled,
+.pdc-btn-refresh-blocks:disabled,
+.pdc-btn-release-block:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pdc-blocks-list-section {
+  margin-top: 18px;
+}
+
+.pdc-blocks-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.pdc-blocks-list-header h5 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.pdc-blocks-message {
+  margin: 0;
+  padding: 14px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 9px;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+}
+
+.pdc-blocks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.pdc-block-item {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.pdc-block-item-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  font-size: 1.05rem;
+}
+
+.pdc-block-item-info {
+  min-width: 0;
+}
+
+.pdc-block-item-context {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+  color: #ffffff;
+  font-size: 0.82rem;
+}
+
+.pdc-block-item-context i {
+  color: #fbbf24;
+}
+
+.pdc-block-item-context strong {
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.pdc-block-item-context span {
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 700;
+}
+
+.pdc-block-item-main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.pdc-block-item-main strong {
+  font-size: 0.9rem;
+}
+
+.pdc-block-item-main span {
+  color: #fde68a;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.pdc-block-item-detail {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.pdc-block-item-detail p {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.8rem;
+}
+
+.pdc-block-type {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fde68a;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+@media (max-width: 1050px) {
+  .pdc-block-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .pdc-court-block-editor {
+    padding: 14px 10px;
+  }
+
+  .pdc-block-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdc-block-form-actions {
+    flex-direction: column;
+  }
+
+  .pdc-btn-create-block,
+  .pdc-block-form-actions .pdc-btn-cancel {
+    width: 100%;
+  }
+
+  .pdc-block-item {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .pdc-block-item-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .pdc-btn-release-block {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .pdc-settings-court-actions {
+    flex-wrap: wrap;
+  }
+
+  .pdc-block-editor-header {
+    gap: 10px;
+  }
+
+  .pdc-blocks-list-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pdc-btn-refresh-blocks {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   GESTIÓN REAL DE TORNEOS
+========================================================= */
+
+.pdc-tournament-form {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid rgba(110, 231, 255, 0.28);
+  border-radius: 14px;
+  background: rgba(2, 16, 35, 0.46);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.pdc-tournament-form-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.pdc-tournament-form-heading span {
+  display: block;
+  margin-bottom: 5px;
+  color: #6ee7ff;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.pdc-tournament-form-heading h4 {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 900;
+}
+
+.pdc-tournament-form-reset,
+.pdc-tournaments-refresh {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.09);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.pdc-tournament-form-reset {
+  min-height: 38px;
+  padding: 0 13px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.pdc-tournament-form-reset:hover,
+.pdc-tournaments-refresh:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.pdc-tournament-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.pdc-tournament-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.pdc-tournament-field--wide {
+  grid-column: 1 / -1;
+}
+
+.pdc-tournament-field > span {
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.pdc-tournament-field input,
+.pdc-tournament-field select,
+.pdc-tournament-field textarea {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.09);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.pdc-tournament-field input,
+.pdc-tournament-field select {
+  min-height: 43px;
+  padding: 0 12px;
+}
+
+.pdc-tournament-field textarea {
+  min-height: 118px;
+  padding: 12px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.pdc-tournament-field input::placeholder,
+.pdc-tournament-field textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.pdc-tournament-field input:focus,
+.pdc-tournament-field select:focus,
+.pdc-tournament-field textarea:focus {
+  border-color: #6ee7ff;
+  background: rgba(255, 255, 255, 0.13);
+  box-shadow: 0 0 0 3px rgba(110, 231, 255, 0.13);
+}
+
+.pdc-tournament-field select option {
+  background: #071f4d;
+  color: #ffffff;
+}
+
+.pdc-tournament-flyer-control {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pdc-tournament-file-input {
+  display: none;
+}
+
+.pdc-tournament-file-button {
+  min-height: 42px;
+  padding: 0 15px;
+  border: 1px solid rgba(110, 231, 255, 0.45);
+  border-radius: 9px;
+  background: rgba(15, 133, 180, 0.2);
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pdc-tournament-flyer-control small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.76rem;
+}
+
+.pdc-tournament-flyer-preview {
+  margin-top: 12px;
+  min-height: 110px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.055);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pdc-tournament-flyer-preview img {
+  width: 82px;
+  height: 104px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pdc-tournament-flyer-preview div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pdc-tournament-flyer-preview strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pdc-tournament-flyer-preview span {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.78rem;
+}
+
+.pdc-tournament-form-actions {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.13);
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pdc-tournament-secondary-button,
+.pdc-tournament-draft-button,
+.pdc-tournament-publish-button {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pdc-tournament-secondary-button {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.pdc-tournament-draft-button {
+  border: 1px solid rgba(110, 231, 255, 0.42);
+  background: rgba(15, 133, 180, 0.22);
+  color: #ffffff;
+}
+
+.pdc-tournament-publish-button {
+  border: 1px solid rgba(69, 235, 103, 0.55);
+  background: linear-gradient(135deg, #36c957, #1ca83d);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(28, 168, 61, 0.22);
+}
+
+.pdc-tournament-secondary-button:disabled,
+.pdc-tournament-draft-button:disabled,
+.pdc-tournament-publish-button:disabled,
+.pdc-tournament-action:disabled,
+.pdc-tournaments-refresh:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pdc-tournaments-list-heading {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.pdc-tournaments-list-heading > div {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.pdc-tournaments-list-heading strong {
+  font-size: 0.94rem;
+}
+
+.pdc-tournaments-list-heading span {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.76rem;
+}
+
+.pdc-tournaments-refresh {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+}
+
+.pdc-tournaments-refresh .is-spinning {
+  display: inline-block;
+  animation: pdc-tournament-spin 0.85s linear infinite;
+}
+
+@keyframes pdc-tournament-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pdc-tournaments-loading {
+  min-height: 110px;
+  margin-top: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.pdc-tournaments-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #6ee7ff;
+  border-radius: 50%;
+  animation: pdc-tournament-spin 0.85s linear infinite;
+}
+
+.pdc-tournaments-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pdc-tournament-card {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.055);
+  display: grid;
+  grid-template-columns: 106px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.pdc-tournament-card-flyer {
+  width: 106px;
+  height: 136px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.09);
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.6rem;
+}
+
+.pdc-tournament-card-flyer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pdc-tournament-card-content {
+  min-width: 0;
+}
+
+.pdc-tournament-card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pdc-tournament-card-title-row > div {
+  min-width: 0;
+}
+
+.pdc-tournament-card-title-row > div > span {
+  display: block;
+  margin-bottom: 3px;
+  color: #6ee7ff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pdc-tournament-card-title-row h4 {
+  margin: 0;
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pdc-tournament-status {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pdc-tournament-status--borrador {
+  background: rgba(110, 231, 255, 0.16);
+  color: #9beeff;
+}
+
+.pdc-tournament-status--publicado {
+  background: rgba(69, 235, 103, 0.18);
+  color: #78ff92;
+}
+
+.pdc-tournament-status--finalizado {
+  background: rgba(168, 139, 250, 0.2);
+  color: #c7b5ff;
+}
+
+.pdc-tournament-status--cancelado {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ff9999;
+}
+
+.pdc-tournament-card-dates,
+.pdc-tournament-card-contact {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.pdc-tournament-card-contact {
+  color: #8ef3a0;
+}
+
+.pdc-tournament-card-description {
+  margin: 9px 0 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.pdc-tournament-card-actions {
+  margin-top: 11px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.pdc-tournament-action {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pdc-tournament-action--edit {
+  border: 1px solid rgba(110, 231, 255, 0.32);
+  background: rgba(110, 231, 255, 0.1);
+  color: #b8f4ff;
+}
+
+.pdc-tournament-action--publish {
+  border: 1px solid rgba(69, 235, 103, 0.4);
+  background: rgba(69, 235, 103, 0.14);
+  color: #83ff99;
+}
+
+.pdc-tournament-action--finish,
+.pdc-tournament-action--draft {
+  border: 1px solid rgba(168, 139, 250, 0.4);
+  background: rgba(168, 139, 250, 0.14);
+  color: #d3c5ff;
+}
+
+.pdc-tournament-action--cancel {
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.13);
+  color: #ffaaaa;
+}
+
+.pdc-tournament-updating {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+@media (max-width: 768px) {
+  .pdc-tournament-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdc-tournament-field--wide {
+    grid-column: auto;
+  }
+
+  .pdc-tournament-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .pdc-tournament-secondary-button,
+  .pdc-tournament-draft-button,
+  .pdc-tournament-publish-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .pdc-tournament-form {
+    padding: 14px;
+  }
+
+  .pdc-tournament-form-heading {
+    flex-direction: column;
+  }
+
+  .pdc-tournament-card {
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .pdc-tournament-card-flyer {
+    width: 82px;
+    height: 108px;
+  }
+
+  .pdc-tournament-card-title-row {
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .pdc-tournament-card-title-row h4 {
+    white-space: normal;
+  }
+
+  .pdc-tournament-card-description {
+    -webkit-line-clamp: 3;
+  }
+
+  .pdc-tournament-card-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 420px) {
+  .pdc-tournament-card {
+    grid-template-columns: 1fr;
+  }
+
+  .pdc-tournament-card-flyer {
+    width: 100%;
+    height: 220px;
+  }
+}
+

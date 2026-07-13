@@ -3,6 +3,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import './DashboardUsuario.css';
+import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import ClubUbicacionMapa, { construirUbicacionCompleta } from './ClubUbicacionMapa';
 // import { useAuth } from '../../hooks/useAuth';
 
@@ -29,6 +30,14 @@ import bannerImg3 from '../bannerVertical/banners/img3.png';
 import bannerImg4 from '../bannerVertical/banners/img4.png';
 import bannerImg5 from '../bannerVertical/banners/img5.png';
 import bannerImg6 from '../bannerVertical/banners/img6.png';
+
+const MERCADOPAGO_PUBLIC_KEY = import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY;
+
+if (MERCADOPAGO_PUBLIC_KEY) {
+  initMercadoPago(MERCADOPAGO_PUBLIC_KEY, {
+    locale: 'es-AR',
+  });
+}
 
 /*
   Lista temporal de deportes.
@@ -185,7 +194,28 @@ const obtenerIdCanchaReserva = (reserva) =>
 const obtenerNombreCanchaReserva = (reserva) => {
   if (typeof reserva?.cancha === 'string') return reserva.cancha;
 
-  return reserva?.cancha?.nombre || reserva?.nombre_cancha || '';
+  return (
+    reserva?.cancha?.nombre ||
+    reserva?.cancha?.nombre_cancha ||
+    reserva?.nombre_cancha ||
+    ''
+  );
+};
+
+/*
+  Convierte una hora HH:mm o HH:mm:ss a minutos desde las 00:00.
+  Permite comparar correctamente rangos completos de reservas y bloqueos.
+*/
+const convertirHoraAMinutos = (horaValor) => {
+  const horaNormalizada = normalizarHoraParaComparar(horaValor);
+
+  if (!horaNormalizada) return null;
+
+  const [hora, minutos] = horaNormalizada.split(':').map(Number);
+
+  if (Number.isNaN(hora) || Number.isNaN(minutos)) return null;
+
+  return hora * 60 + minutos;
 };
 
 /*
@@ -388,6 +418,49 @@ const buscarClubPorNombre = (nombreClub, listaClubes = []) => {
 
 const normalizarTexto = (str) =>
   str ? str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
+
+
+/*
+  Formatea una fecha de torneo sin pasar por UTC.
+  Evita que una fecha YYYY-MM-DD se muestre con un día menos.
+*/
+const formatearFechaTorneo = (fechaValor) => {
+  if (!fechaValor) return 'Fecha a confirmar';
+
+  const fechaLimpia = String(fechaValor).slice(0, 10);
+  const [anio, mes, dia] = fechaLimpia.split('-');
+
+  if (!anio || !mes || !dia) return fechaLimpia;
+
+  return `${dia}/${mes}/${anio}`;
+};
+
+/*
+  Obtiene nombres desde las relaciones reales que devuelve el backend.
+*/
+const obtenerNombreClubTorneo = (torneo) =>
+  torneo?.club?.nombre_club ||
+  torneo?.nombre_club ||
+  'Club organizador';
+
+const obtenerNombreDeporteTorneo = (torneo) =>
+  torneo?.deporte?.nombre_deporte ||
+  torneo?.nombre_deporte ||
+  '';
+
+const torneoSigueVigente = (torneo) => {
+  const fechaFin = String(torneo?.fecha_fin || '').slice(0, 10);
+
+  if (!fechaFin) return true;
+
+  const hoy = new Date();
+  const fechaHoy = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(
+    2,
+    '0'
+  )}-${String(hoy.getDate()).padStart(2, '0')}`;
+
+  return fechaFin >= fechaHoy;
+};
 
 /*
   Devuelve la clase visual del estado de una reserva.
@@ -621,6 +694,56 @@ function DashboardUsuario({
   const [clubesActivos, setClubesActivos] = useState([]);
   const API_URL = 'http://localhost:3000';
 
+
+  /*
+    Torneos publicados.
+    Se cargan una sola vez y luego se filtran por el deporte elegido.
+  */
+  const [torneosPublicados, setTorneosPublicados] = useState([]);
+  const [cargandoTorneos, setCargandoTorneos] = useState(false);
+  const [torneoSeleccionado, setTorneoSeleccionado] = useState(null);
+  const canchasPasoDosRef = useRef(null);
+
+  /*
+    Carga todos los torneos publicados.
+    El endpoint ya devuelve las relaciones club y deporte.
+  */
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const cargarTorneosPublicados = async () => {
+      setCargandoTorneos(true);
+
+      try {
+        const response = await fetch(`${API_URL}/torneo/publicados`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `No se pudieron cargar los torneos. Error HTTP ${response.status}.`
+          );
+        }
+
+        const data = await response.json();
+        setTorneosPublicados(Array.isArray(data) ? data : []);
+      } catch (error) {
+        if (error?.name !== 'AbortError') {
+          console.error('Error al cargar torneos publicados:', error);
+          setTorneosPublicados([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setCargandoTorneos(false);
+        }
+      }
+    };
+
+    cargarTorneosPublicados();
+
+    return () => controller.abort();
+  }, []);
+
   /*
     Horarios disponibles reales de la cancha seleccionada.
     Se cargan desde el backend cuando el usuario elige una cancha.
@@ -629,8 +752,8 @@ function DashboardUsuario({
   const [horariosDeCancha, setHorariosDeCancha] = useState([]);
 
   /*
-    Reservas reales de todas las canchas recibidas desde el backend.
-    Se usan exclusivamente para calcular la disponibilidad del turno.
+    Ocupaciones reales de la cancha y fecha recibidas desde el backend.
+    Incluyen reservas normales y bloqueos creados por el dueño del club.
     No reemplazan las reservas del usuario que se muestran en el panel lateral.
   */
   const [reservasDelServidor, setReservasDelServidor] = useState([]);
@@ -656,7 +779,7 @@ function DashboardUsuario({
     );
 
     if (!response.ok) {
-      throw new Error('No se pudieron consultar los horarios reservados.');
+      throw new Error('No se pudieron consultar los horarios ocupados.');
     }
 
     const data = await response.json();
@@ -684,7 +807,7 @@ function DashboardUsuario({
         setReservasDelServidor(data);
       } catch (error) {
         if (error?.name !== 'AbortError') {
-          console.error('Error al consultar horarios reservados:', error);
+          console.error('Error al consultar horarios ocupados:', error);
           setReservasDelServidor([]);
         }
       } finally {
@@ -870,6 +993,30 @@ function DashboardUsuario({
   */
   const [mostrarModalReserva, setMostrarModalReserva] = useState(false);
   const [reservaConfirmada, setReservaConfirmada] = useState(null);
+  const [mercadoPagoPreferenceId, setMercadoPagoPreferenceId] = useState(null);
+  const [preparandoMercadoPago, setPreparandoMercadoPago] = useState(false);
+  const preferenciaSolicitadaParaReservaRef = useRef(null);
+
+
+  useEffect(() => {
+    if (!torneoSeleccionado) return undefined;
+
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const cerrarConEscape = (event) => {
+      if (event.key === 'Escape') {
+        setTorneoSeleccionado(null);
+      }
+    };
+
+    window.addEventListener('keydown', cerrarConEscape);
+
+    return () => {
+      window.removeEventListener('keydown', cerrarConEscape);
+      document.body.style.overflow = overflowAnterior;
+    };
+  }, [torneoSeleccionado]);
 
   /*
     Estados para el menú de los tres puntos de cada reserva.
@@ -899,6 +1046,145 @@ function DashboardUsuario({
       },
     }));
   };
+
+  /*
+    Al volver de Checkout Pro, consulta el backend hasta que el webhook
+    haya persistido el resultado. Así el frontend nunca confía únicamente
+    en los parámetros de retorno enviados por el navegador.
+  */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentResult = params.get('payment');
+    const reservaId = params.get('reservaId');
+
+    if (!paymentResult || !reservaId) return;
+
+    let cancelado = false;
+
+    const limpiarParametrosPago = () => {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('payment');
+      url.searchParams.delete('reservaId');
+      window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    };
+
+    const esperar = (milisegundos) =>
+      new Promise((resolve) => setTimeout(resolve, milisegundos));
+
+    const consultarResultado = async () => {
+      const token = localStorage.getItem('token');
+      let ultimoEstado = 'pendiente';
+      let ultimoResultado = null;
+
+      try {
+        for (let intento = 0; intento < 6; intento += 1) {
+          const response = await fetch(
+            `${API_URL}/pago/mercadopago/status/${reservaId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              data?.message ||
+                'No se pudo consultar el estado del pago.'
+            );
+          }
+
+          ultimoResultado = data;
+          ultimoEstado = normalizarEstadoPago(
+            data.estado_pago || data.mercado_pago_status
+          );
+
+          if (
+            ultimoEstado === 'pagado' ||
+            ultimoEstado === 'rechazado'
+          ) {
+            break;
+          }
+
+          if (intento < 5) {
+            await esperar(1500);
+          }
+        }
+
+        if (cancelado) return;
+
+        actualizarEstadoPagoLocal(reservaId, {
+          estado_pago: ultimoEstado,
+          mercado_pago_status:
+            ultimoResultado?.mercado_pago_status || null,
+          mercado_pago_payment_id:
+            ultimoResultado?.mercado_pago_payment_id || null,
+          monto_pagado:
+            ultimoResultado?.monto_pagado || null,
+          fecha_pago:
+            ultimoResultado?.fecha_pago || null,
+        });
+
+        if (onRefreshReservas) {
+          await onRefreshReservas();
+        }
+
+        setMostrarModalReserva(false);
+        setReservaConfirmada(null);
+        setMenuReservaAbierto(null);
+        reiniciarReserva();
+
+        if (ultimoEstado === 'pagado') {
+          mostrarExito(
+            'Pago aprobado',
+            'Tu reserva fue pagada correctamente con Mercado Pago.'
+          );
+        } else if (
+          ultimoEstado === 'rechazado' ||
+          paymentResult === 'failure'
+        ) {
+          mostrarError(
+            'Pago rechazado',
+            'Mercado Pago no pudo aprobar el pago. Podés intentarlo nuevamente.'
+          );
+        } else {
+          await Swal.fire({
+            icon: 'info',
+            title: 'Pago pendiente',
+            text: 'Mercado Pago todavía está procesando el pago. El estado se actualizará automáticamente.',
+            confirmButtonText: 'Aceptar',
+            customClass: {
+              popup: 'cy-alert-popup',
+              title: 'cy-alert-title',
+              htmlContainer: 'cy-alert-text',
+              confirmButton: 'cy-alert-button',
+            },
+          });
+        }
+      } catch (error) {
+        console.error(
+          'Error al verificar el retorno de Mercado Pago:',
+          error
+        );
+
+        mostrarError(
+          'No se pudo verificar el pago',
+          error.message ||
+            'La reserva seguirá visible y podrás consultar su estado nuevamente.'
+        );
+      } finally {
+        limpiarParametrosPago();
+      }
+    };
+
+    consultarResultado();
+
+    return () => {
+      cancelado = true;
+    };
+  }, []);
 
   /*
     Referencia al carrusel de deportes.
@@ -969,6 +1255,123 @@ function DashboardUsuario({
         }))
     );
   }, [clubesActivos, deporteSeleccionado]);
+
+
+  /*
+    Solo muestra torneos publicados, vigentes y del deporte seleccionado.
+    La comparación ignora mayúsculas y tildes: "Padel" coincide con "Pádel".
+  */
+  const torneosDelDeporteSeleccionado = useMemo(() => {
+    if (!deporteSeleccionado) return [];
+
+    return torneosPublicados.filter((torneo) => {
+      const mismoDeporte =
+        normalizarTexto(obtenerNombreDeporteTorneo(torneo)) ===
+        normalizarTexto(deporteSeleccionado);
+
+      return mismoDeporte && torneoSigueVigente(torneo);
+    });
+  }, [torneosPublicados, deporteSeleccionado]);
+
+  const construirUrlFlyerTorneo = (flyerUrl) => {
+    if (!flyerUrl) return '';
+
+    if (/^https?:\/\//i.test(flyerUrl)) {
+      return flyerUrl;
+    }
+
+    return `${API_URL}${flyerUrl}`;
+  };
+
+  const abrirDetalleTorneo = (torneo) => {
+    setTorneoSeleccionado(torneo);
+  };
+
+  const cerrarDetalleTorneo = () => {
+    setTorneoSeleccionado(null);
+  };
+
+  const seguirReservando = () => {
+    canchasPasoDosRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+    });
+  };
+
+  const contactarPorTorneo = async (torneo) => {
+    const contacto = String(torneo?.contacto || '').trim();
+
+    if (!contacto) {
+      await Swal.fire({
+        icon: 'info',
+        title: 'Contacto a confirmar',
+        text: 'El club todavía no informó un medio de contacto para este torneo.',
+        confirmButtonText: 'Entendido',
+        customClass: {
+          popup: 'cy-alert-popup',
+          title: 'cy-alert-title',
+          htmlContainer: 'cy-alert-text',
+          confirmButton: 'cy-alert-button',
+        },
+      });
+      return;
+    }
+
+    if (/^https?:\/\//i.test(contacto)) {
+      window.open(contacto, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contacto)) {
+      window.location.href = `mailto:${contacto}?subject=${encodeURIComponent(
+        `Inscripción a ${torneo?.titulo || 'torneo'}`
+      )}`;
+      return;
+    }
+
+    const soloNumeros = contacto.replace(/\D/g, '');
+
+    if (soloNumeros.length >= 10) {
+      window.open(
+        `https://wa.me/${soloNumeros}?text=${encodeURIComponent(
+          `Hola, quiero inscribirme en ${torneo?.titulo || 'el torneo'}.`
+        )}`,
+        '_blank',
+        'noopener,noreferrer'
+      );
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(contacto);
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Contacto copiado',
+        text: `${contacto} fue copiado al portapapeles.`,
+        confirmButtonText: 'Aceptar',
+        customClass: {
+          popup: 'cy-alert-popup',
+          title: 'cy-alert-title',
+          htmlContainer: 'cy-alert-text',
+          confirmButton: 'cy-alert-button',
+        },
+      });
+    } catch {
+      await Swal.fire({
+        icon: 'info',
+        title: 'Contacto del torneo',
+        text: contacto,
+        confirmButtonText: 'Aceptar',
+        customClass: {
+          popup: 'cy-alert-popup',
+          title: 'cy-alert-title',
+          htmlContainer: 'cy-alert-text',
+          confirmButton: 'cy-alert-button',
+        },
+      });
+    }
+  };
 
   /*
     Busca el objeto completo del club seleccionado.
@@ -1180,21 +1583,31 @@ function DashboardUsuario({
   };
 
   /*
-    Indica si un horario ya está reservado para la cancha y fecha seleccionadas.
-    La comparación normaliza fecha, hora e ids para soportar tanto el formato
-    del frontend como el que llega desde el backend.
+    Indica si una ocupación del backend se superpone con el turno seleccionado.
+
+    El endpoint de disponibilidad devuelve tanto reservas como bloqueos.
+    Por eso no alcanza con comparar únicamente la hora de inicio: un bloqueo
+    de 17:00 a 22:00 debe deshabilitar 17:00, 18:00, 19:00, 20:00 y 21:00.
   */
-  const reservaOcupaTurnoSeleccionado = (reserva, hora) => {
-    if (!reserva || !fechaSeleccionada || !canchaSeleccionada || !hora) {
+  const ocupacionBloqueaTurnoSeleccionado = (ocupacion, hora) => {
+    if (!ocupacion || !fechaSeleccionada || !canchaSeleccionada || !hora) {
       return false;
     }
 
-    const idReserva = reserva.id_reserva ?? reserva.id ?? null;
+    const esBloqueo =
+      ocupacion.tipo_ocupacion === 'bloqueo' ||
+      ocupacion.id_bloqueo !== null && ocupacion.id_bloqueo !== undefined;
+
+    const idReserva = ocupacion.id_reserva ?? ocupacion.id ?? null;
     const idReservaEnEdicion =
       reservaEnEdicion?.id_reserva ?? reservaEnEdicion?.id ?? null;
 
-    // Al modificar, la reserva original no debe bloquearse a sí misma.
+    /*
+      Al modificar una reserva, la reserva original no debe bloquearse a sí
+      misma. Esta excepción nunca se aplica a un bloqueo del club.
+    */
     if (
+      !esBloqueo &&
       idReserva !== null &&
       idReservaEnEdicion !== null &&
       String(idReserva) === String(idReservaEnEdicion)
@@ -1202,45 +1615,74 @@ function DashboardUsuario({
       return false;
     }
 
-    const estadoReserva = normalizarTexto(reserva.estado || '');
+    const estadoOcupacion = normalizarTexto(ocupacion.estado || '');
+
     if (
-      estadoReserva.includes('cancelada') ||
-      estadoReserva.includes('cancelado')
+      !esBloqueo &&
+      (
+        estadoOcupacion.includes('cancelada') ||
+        estadoOcupacion.includes('cancelado')
+      )
     ) {
       return false;
     }
 
     const fechaObjetivo = normalizarFechaParaComparar(fechaSeleccionada);
-    const horaObjetivo = normalizarHoraParaComparar(hora);
     const idCanchaSeleccionada =
       canchaSeleccionada.id ?? canchaSeleccionada.id_cancha ?? null;
-    const nombreCanchaSeleccionada = canchaSeleccionada.nombre || '';
+    const nombreCanchaActual =
+      canchaSeleccionada.nombre ?? canchaSeleccionada.nombre_cancha ?? '';
 
     const mismaFecha =
-      normalizarFechaParaComparar(reserva.fecha) === fechaObjetivo;
-    const mismaHora =
-      normalizarHoraParaComparar(reserva.hora ?? reserva.hora_inicio) ===
-      horaObjetivo;
+      normalizarFechaParaComparar(ocupacion.fecha) === fechaObjetivo;
 
-    const idCanchaReserva = obtenerIdCanchaReserva(reserva);
+    const idCanchaOcupacion = obtenerIdCanchaReserva(ocupacion);
     const mismaCancha =
-      idCanchaSeleccionada !== null && idCanchaReserva !== null
-        ? String(idCanchaReserva) === String(idCanchaSeleccionada)
-        : normalizarTexto(obtenerNombreCanchaReserva(reserva)) ===
-          normalizarTexto(nombreCanchaSeleccionada);
+      idCanchaSeleccionada !== null && idCanchaOcupacion !== null
+        ? String(idCanchaOcupacion) === String(idCanchaSeleccionada)
+        : normalizarTexto(obtenerNombreCanchaReserva(ocupacion)) ===
+          normalizarTexto(nombreCanchaActual);
 
-    return mismaCancha && mismaFecha && mismaHora;
+    if (!mismaFecha || !mismaCancha) return false;
+
+    const inicioTurno = convertirHoraAMinutos(hora);
+    const finTurno = inicioTurno === null ? null : inicioTurno + 60;
+
+    const inicioOcupacion = convertirHoraAMinutos(
+      ocupacion.hora ?? ocupacion.hora_inicio
+    );
+
+    /*
+      Las reservas locales más antiguas pueden no traer hora_fin.
+      En ese caso se considera que duran una hora, igual que los turnos
+      seleccionables del dashboard.
+    */
+    const finOcupacionExplicito = convertirHoraAMinutos(ocupacion.hora_fin);
+    const finOcupacion =
+      finOcupacionExplicito ??
+      (inicioOcupacion === null ? null : inicioOcupacion + 60);
+
+    if (
+      inicioTurno === null ||
+      finTurno === null ||
+      inicioOcupacion === null ||
+      finOcupacion === null
+    ) {
+      return false;
+    }
+
+    return inicioTurno < finOcupacion && finTurno > inicioOcupacion;
   };
 
   /*
-    Combina las reservas del usuario con las reservas consultadas directamente
-    al backend. Esto evita que un turno ya ocupado vuelva a aparecer disponible.
+    Combina las reservas del usuario con todas las ocupaciones consultadas
+    al backend. Estas ocupaciones pueden ser reservas o bloqueos del club.
   */
   const esHorarioOcupado = (hora) => {
-    const reservasParaValidar = [...reservas, ...reservasDelServidor];
+    const ocupacionesParaValidar = [...reservas, ...reservasDelServidor];
 
-    return reservasParaValidar.some((reserva) =>
-      reservaOcupaTurnoSeleccionado(reserva, hora)
+    return ocupacionesParaValidar.some((ocupacion) =>
+      ocupacionBloqueaTurnoSeleccionado(ocupacion, hora)
     );
   };
 
@@ -1249,11 +1691,11 @@ function DashboardUsuario({
     Evita confirmar utilizando información desactualizada del selector.
   */
   const verificarHorarioOcupadoEnServidor = async (hora) => {
-    const reservasActuales = await obtenerReservasDelServidor();
-    setReservasDelServidor(reservasActuales);
+    const ocupacionesActuales = await obtenerReservasDelServidor();
+    setReservasDelServidor(ocupacionesActuales);
 
-    return reservasActuales.some((reserva) =>
-      reservaOcupaTurnoSeleccionado(reserva, hora)
+    return ocupacionesActuales.some((ocupacion) =>
+      ocupacionBloqueaTurnoSeleccionado(ocupacion, hora)
     );
   };
 
@@ -1338,7 +1780,15 @@ function DashboardUsuario({
     - Si el backend no tiene MERCADOPAGO_ACCESS_TOKEN, permite simular aprobado/rechazado/pendiente.
     - Si el backend devuelve init_point real de Mercado Pago, redirige al checkout.
   */
-  const pagarReservaConMercadoPago = async (reserva) => {
+  const prepararPagoConMercadoPago = async (reserva) => {
+    if (!MERCADOPAGO_PUBLIC_KEY) {
+      mostrarError(
+        'Falta configurar Mercado Pago',
+        'Creá un archivo .env en el frontend y agregá VITE_MERCADOPAGO_PUBLIC_KEY con tu Public Key de prueba.'
+      );
+      return;
+    }
+
     if (!reserva?.id) {
       mostrarError(
         'Reserva no disponible',
@@ -1356,20 +1806,35 @@ function DashboardUsuario({
     }
 
     try {
+      setPreparandoMercadoPago(true);
+      setMercadoPagoPreferenceId(null);
+
+      /*
+        Cuando el pago se inicia desde el menú de una reserva existente,
+        abrimos el mismo modal para mostrar allí el botón oficial.
+      */
+      setReservaConfirmada(reserva);
+      setMostrarModalReserva(true);
+      setMenuReservaAbierto(null);
+
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`${API_URL}/reserva/${reserva.id}/mercadopago/preference`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${API_URL}/pago/mercadopago/preference/${reserva.id}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
-        const mensajeError = data?.message || 'No se pudo iniciar el pago.';
+        const mensajeError =
+          data?.message || 'No se pudo preparar el pago.';
 
         if (normalizarTexto(mensajeError).includes('pagada')) {
           actualizarEstadoPagoLocal(reserva.id, {
@@ -1377,146 +1842,81 @@ function DashboardUsuario({
             mercado_pago_status: 'approved',
           });
 
-          setMenuReservaAbierto(null);
+          setMostrarModalReserva(false);
+          setReservaConfirmada(null);
 
           if (onRefreshReservas) {
-            onRefreshReservas();
+            await onRefreshReservas();
           }
         }
 
         throw new Error(mensajeError);
       }
-//MERCADO PAGO
-      if (data.demo) {
-        const resultado = await Swal.fire({
-          icon: 'info',
-          title: 'Mercado Pago',
-          html: `
-            <p>Estamos trabajando en esta funcionalidad, para que tengas una mejor experiencia con CanchasYa!.</p>
-            <p><strong>Reserva:</strong> #${reserva.id}</p>
-            <p><strong>Monto:</strong> $${Number(data.amount || 0).toLocaleString('es-AR')}</p>
-          `,
-          showDenyButton: true,
-          showCancelButton: true,
-          confirmButtonText: 'Simular aprobado',
-          denyButtonText: 'Simular rechazado',
-          cancelButtonText: 'Dejar pendiente',
-          reverseButtons: true,
-          customClass: {
-            popup: 'cy-alert-popup',
-            title: 'cy-alert-title',
-            htmlContainer: 'cy-alert-text',
-            confirmButton: 'cy-alert-button',
-            denyButton: 'cy-alert-button cy-alert-button--danger',
-            cancelButton: 'cy-alert-cancel',
-          },
-        });
 
-        const estadoSimulado = resultado.isConfirmed
-          ? 'aprobado'
-          : resultado.isDenied
-            ? 'rechazado'
-            : 'pendiente';
+      const preferenceId =
+        data.preferenceId ||
+        data.preference_id ||
+        data.id ||
+        data.preference?.id;
 
-        const simResponse = await fetch(`${API_URL}/reserva/${reserva.id}/pago/simular`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ resultado: estadoSimulado }),
-        });
-
-        const simData = await simResponse.json();
-
-        if (!simResponse.ok) {
-          throw new Error(simData?.message || 'No se pudo simular el pago.');
-        }
-
-        const estadoPagoActualizado =
-          simData?.reserva?.estado_pago ||
-          simData?.estado_pago ||
-          (estadoSimulado === 'aprobado'
-            ? 'pagado'
-            : estadoSimulado === 'rechazado'
-              ? 'rechazado'
-              : 'pendiente');
-
-        actualizarEstadoPagoLocal(reserva.id, {
-          estado_pago: estadoPagoActualizado,
-          mercado_pago_payment_id:
-            simData?.reserva?.mercado_pago_payment_id ||
-            simData?.mercado_pago_payment_id ||
-            null,
-          mercado_pago_status:
-            simData?.reserva?.mercado_pago_status ||
-            simData?.mercado_pago_status ||
-            estadoSimulado,
-          monto_pagado:
-            simData?.reserva?.monto_pagado ||
-            simData?.monto_pagado ||
-            reserva.monto_total ||
-            reserva.precio ||
-            0,
-          fecha_pago:
-            simData?.reserva?.fecha_pago ||
-            simData?.fecha_pago ||
-            (estadoPagoActualizado === 'pagado' ? new Date().toISOString() : null),
-        });
-
-        if (reservaConfirmada?.id === reserva.id) {
-          setReservaConfirmada((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  estado_pago: estadoPagoActualizado,
-                }
-              : prev
-          );
-        }
-
-        await Swal.fire({
-          icon: estadoSimulado === 'aprobado'
-            ? 'success'
-            : estadoSimulado === 'rechazado'
-              ? 'error'
-              : 'info',
-          title: simData?.message || 'Resultado de pago actualizado',
-          confirmButtonText: 'Aceptar',
-          customClass: {
-            popup: 'cy-alert-popup',
-            title: 'cy-alert-title',
-            confirmButton: 'cy-alert-button',
-          },
-        });
-
-        setMostrarModalReserva(false);
-        setReservaConfirmada(null);
-        setMenuReservaAbierto(null);
-        reiniciarReserva();
-
-        if (onRefreshReservas) {
-          onRefreshReservas();
-        }
-
-        return;
+      if (!preferenceId) {
+        throw new Error(
+          'El backend creó la operación, pero no devolvió el ID de la preferencia.'
+        );
       }
 
-      const checkoutUrl = data.init_point || data.sandbox_init_point;
-
-      if (!checkoutUrl) {
-        throw new Error('Mercado Pago no devolvió una URL de pago.');
-      }
-
-      window.location.href = checkoutUrl;
+      setMercadoPagoPreferenceId(String(preferenceId));
     } catch (error) {
-      console.error('Error al iniciar pago con Mercado Pago:', error);
+      console.error(
+        'Error al preparar pago con Mercado Pago:',
+        error
+      );
+
       mostrarError(
         'No se pudo iniciar el pago',
-        error.message || 'Hubo un problema al conectar con Mercado Pago.'
+        error.message ||
+          'Hubo un problema al conectar con Mercado Pago.'
       );
+    } finally {
+      setPreparandoMercadoPago(false);
     }
   };
+
+  /*
+    Cuando el modal de una reserva pendiente se abre, crea automáticamente
+    la preferencia. Así el usuario ve directamente el botón oficial de
+    Mercado Pago, sin un botón intermedio personalizado.
+  */
+  useEffect(() => {
+    if (!mostrarModalReserva) {
+      preferenciaSolicitadaParaReservaRef.current = null;
+      return;
+    }
+
+    if (
+      !reservaConfirmada?.id ||
+      mercadoPagoPreferenceId ||
+      preparandoMercadoPago ||
+      !puedePagarReserva(reservaConfirmada)
+    ) {
+      return;
+    }
+
+    const idReserva = String(reservaConfirmada.id);
+
+    if (preferenciaSolicitadaParaReservaRef.current === idReserva) {
+      return;
+    }
+
+    preferenciaSolicitadaParaReservaRef.current = idReserva;
+    prepararPagoConMercadoPago(reservaConfirmada);
+  }, [
+    mostrarModalReserva,
+    reservaConfirmada?.id,
+    mercadoPagoPreferenceId,
+    preparandoMercadoPago,
+  ]);
+
 
   /*
     Elimina o cancela una reserva existente.
@@ -1636,7 +2036,7 @@ function DashboardUsuario({
     if (esHorarioOcupado(horarioSeleccionado)) {
       mostrarError(
         'Horario no disponible',
-        'Ese horario ya fue reservado. Elegí otro turno para continuar.'
+        'Ese horario no está disponible porque ya fue reservado o bloqueado por el club.'
       );
       setHorarioSeleccionado(null);
       return;
@@ -1685,7 +2085,7 @@ function DashboardUsuario({
       if (horarioOcupadoEnServidor) {
         mostrarError(
           'Horario no disponible',
-          'Ese horario acaba de ser reservado. Elegí otro turno para continuar.'
+          'Ese horario acaba de quedar ocupado o fue bloqueado por el club. Elegí otro turno.'
         );
         setHorarioSeleccionado(null);
         return;
@@ -1714,7 +2114,7 @@ function DashboardUsuario({
           mostrarError(
             'Horario no disponible',
             detalleError?.message ||
-              'Ese horario ya fue reservado. Elegí otro turno para continuar.'
+              'Ese horario no está disponible porque ya fue reservado o bloqueado por el club.'
           );
           return;
         }
@@ -1848,6 +2248,9 @@ function DashboardUsuario({
   const cerrarModalReserva = () => {
     setMostrarModalReserva(false);
     setReservaConfirmada(null);
+    setMercadoPagoPreferenceId(null);
+    setPreparandoMercadoPago(false);
+    preferenciaSolicitadaParaReservaRef.current = null;
     reiniciarReserva();
   };
 
@@ -2138,65 +2541,203 @@ function DashboardUsuario({
                           </p>
                         </div>
 
-                        <div className="clubs-grid clubs-grid--large">
-                          {canchasDisponibles.length > 0 ? (
-                            canchasDisponibles.map((cancha) => (
-                              <button
-                                key={`${cancha.clubId}-${cancha.id}`}
-                                type="button"
-                                className={
-                                  canchaSeleccionada?.id === cancha.id
-                                    ? 'club-card club-card--large selected'
-                                    : 'club-card club-card--large'
-                                }
-                                onClick={() => seleccionarCancha(cancha)}
-                              >
+                        {cargandoTorneos && (
+                          <div className="tournament-context-loading">
+                            <i className="bi bi-arrow-repeat"></i>
+                            Buscando torneos de {deporteSeleccionado}...
+                          </div>
+                        )}
 
-                                <div className="club-card__logo">
-                                  {cancha.clubLogo ? (
-                                    <img
-                                      src={cancha.clubLogo}
-                                      alt={`Logo de ${cancha.clubNombre}`}
-                                      className="club-card__logo-img"
-                                      onError={(e) => {
-                                        e.currentTarget.style.display = 'none';
-                                        e.currentTarget.parentElement.textContent = cancha.clubNombre
-                                          .split(' ')
-                                          .filter(Boolean)
-                                          .slice(0, 2)
-                                          .map((palabra) => palabra[0])
-                                          .join('')
-                                          .toUpperCase();
-                                      }}
-                                    />
-                                  ) : (
-                                    cancha.clubNombre
-                                      .split(' ')
-                                      .filter(Boolean)
-                                      .slice(0, 2)
-                                      .map((palabra) => palabra[0])
-                                      .join('')
-                                      .toUpperCase()
-                                  )}
+                        {!cargandoTorneos &&
+                          torneosDelDeporteSeleccionado.length > 0 && (
+                            <section
+                              className="tournament-context"
+                              aria-label={`Torneos disponibles de ${deporteSeleccionado}`}
+                            >
+                              <div className="tournament-context__header">
+                                <div>
+                                  <span className="tournament-context__eyebrow">
+                                    <i className="bi bi-trophy-fill"></i>
+                                    Oportunidad especial
+                                  </span>
+                                  <h3>
+                                    {torneosDelDeporteSeleccionado.length === 1
+                                      ? `Hay un torneo de ${deporteSeleccionado}`
+                                      : `Hay ${torneosDelDeporteSeleccionado.length} torneos de ${deporteSeleccionado}`}
+                                  </h3>
+                                  <p>
+                                    Podés inscribirte o continuar normalmente con tu reserva.
+                                  </p>
                                 </div>
 
-                                <strong>{cancha.clubNombre}</strong>
-                                <small>{cancha.deporte || deporteSeleccionado}</small>
-                                <small>{cancha.clubDireccion}</small>
-                                <span>
-                                  {cancha.precio || cancha.precio_por_hora
-                                    ? `$${Number(cancha.precio || cancha.precio_por_hora).toLocaleString('es-AR')}/hora`
-                                    : 'Precio a confirmar'}
-                                </span>
-                              </button>
-                            ))
-                          ) : (
-                            <div className="empty-clubs-message">
-                              {deporteSeleccionado
-                                ? `No hay canchas disponibles para ${deporteSeleccionado}`
-                                : 'Primero elegí un deporte'}
+                                <button
+                                  type="button"
+                                  className="tournament-context__continue"
+                                  onClick={seguirReservando}
+                                >
+                                  Seguir reservando
+                                  <i className="bi bi-arrow-down"></i>
+                                </button>
+                              </div>
+
+                              <div className="tournament-context__list">
+                                {torneosDelDeporteSeleccionado.map((torneo) => {
+                                  const nombreClub =
+                                    obtenerNombreClubTorneo(torneo);
+                                  const flyerUrl =
+                                    construirUrlFlyerTorneo(torneo.flyer_url);
+
+                                  return (
+                                    <article
+                                      key={torneo.id_torneo}
+                                      className="tournament-context-card"
+                                    >
+                                      <button
+                                        type="button"
+                                        className="tournament-context-card__media"
+                                        onClick={() => abrirDetalleTorneo(torneo)}
+                                        aria-label={`Ver detalles de ${torneo.titulo}`}
+                                      >
+                                        {flyerUrl ? (
+                                          <img
+                                            src={flyerUrl}
+                                            alt={`Flyer de ${torneo.titulo}`}
+                                          />
+                                        ) : (
+                                          <span>
+                                            <i className="bi bi-trophy-fill"></i>
+                                          </span>
+                                        )}
+                                      </button>
+
+                                      <div className="tournament-context-card__body">
+                                        <span className="tournament-context-card__sport">
+                                          {obtenerNombreDeporteTorneo(torneo)}
+                                        </span>
+
+                                        <h4>{torneo.titulo}</h4>
+
+                                        <p className="tournament-context-card__club">
+                                          <i className="bi bi-geo-alt-fill"></i>
+                                          {nombreClub}
+                                        </p>
+
+                                        <p className="tournament-context-card__date">
+                                          <i className="bi bi-calendar-event"></i>
+                                          {formatearFechaTorneo(torneo.fecha_inicio)}
+                                          {torneo.fecha_fin &&
+                                          torneo.fecha_fin !== torneo.fecha_inicio
+                                            ? ` al ${formatearFechaTorneo(
+                                                torneo.fecha_fin
+                                              )}`
+                                            : ''}
+                                        </p>
+
+                                        <div className="tournament-context-card__actions">
+                                          <button
+                                            type="button"
+                                            className="tournament-context-card__details"
+                                            onClick={() =>
+                                              abrirDetalleTorneo(torneo)
+                                            }
+                                          >
+                                            Ver torneo
+                                          </button>
+
+                                          <button
+                                            type="button"
+                                            className="tournament-context-card__join"
+                                            onClick={() =>
+                                              abrirDetalleTorneo(torneo)
+                                            }
+                                          >
+                                            Inscribirme ahora
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </article>
+                                  );
+                                })}
+                              </div>
+                            </section>
+                          )}
+
+                        <div
+                          ref={canchasPasoDosRef}
+                          className="clubs-selection-section"
+                        >
+                          {torneosDelDeporteSeleccionado.length > 0 && (
+                            <div className="clubs-selection-section__heading">
+                              <span>¿Preferís reservar un turno?</span>
+                              <strong>Elegí una cancha y continuá</strong>
                             </div>
                           )}
+
+                          <div className="clubs-grid clubs-grid--large">
+                            {canchasDisponibles.length > 0 ? (
+                              canchasDisponibles.map((cancha) => (
+                                <button
+                                  key={`${cancha.clubId}-${cancha.id}`}
+                                  type="button"
+                                  className={
+                                    canchaSeleccionada?.id === cancha.id
+                                      ? 'club-card club-card--large selected'
+                                      : 'club-card club-card--large'
+                                  }
+                                  onClick={() => seleccionarCancha(cancha)}
+                                >
+                                  <div className="club-card__logo">
+                                    {cancha.clubLogo ? (
+                                      <img
+                                        src={cancha.clubLogo}
+                                        alt={`Logo de ${cancha.clubNombre}`}
+                                        className="club-card__logo-img"
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = 'none';
+                                          e.currentTarget.parentElement.textContent =
+                                            cancha.clubNombre
+                                              .split(' ')
+                                              .filter(Boolean)
+                                              .slice(0, 2)
+                                              .map((palabra) => palabra[0])
+                                              .join('')
+                                              .toUpperCase();
+                                        }}
+                                      />
+                                    ) : (
+                                      cancha.clubNombre
+                                        .split(' ')
+                                        .filter(Boolean)
+                                        .slice(0, 2)
+                                        .map((palabra) => palabra[0])
+                                        .join('')
+                                        .toUpperCase()
+                                    )}
+                                  </div>
+
+                                  <strong>{cancha.clubNombre}</strong>
+                                  <small>
+                                    {cancha.deporte || deporteSeleccionado}
+                                  </small>
+                                  <small>{cancha.clubDireccion}</small>
+                                  <span>
+                                    {cancha.precio || cancha.precio_por_hora
+                                      ? `$${Number(
+                                          cancha.precio ||
+                                            cancha.precio_por_hora
+                                        ).toLocaleString('es-AR')}/hora`
+                                      : 'Precio a confirmar'}
+                                  </span>
+                                </button>
+                              ))
+                            ) : (
+                              <div className="empty-clubs-message">
+                                {deporteSeleccionado
+                                  ? `No hay canchas disponibles para ${deporteSeleccionado}`
+                                  : 'Primero elegí un deporte'}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -2522,7 +3063,7 @@ function DashboardUsuario({
                                 {puedePagarReserva(reserva) && (
                                   <button
                                     type="button"
-                                    onClick={() => pagarReservaConMercadoPago(reserva)}
+                                    onClick={() => prepararPagoConMercadoPago(reserva)}
                                   >
                                     <i className="bi bi-credit-card"></i>
                                     Pagar reserva
@@ -2595,6 +3136,137 @@ function DashboardUsuario({
         </div>
       </div>
 
+      {torneoSeleccionado && (
+        <div
+          className="tournament-detail-overlay"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              cerrarDetalleTorneo();
+            }
+          }}
+        >
+          <article
+            className="tournament-detail-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tournament-detail-title"
+          >
+            <button
+              type="button"
+              className="tournament-detail-modal__close"
+              onClick={cerrarDetalleTorneo}
+              aria-label="Cerrar detalle del torneo"
+            >
+              <i className="bi bi-x-lg"></i>
+            </button>
+
+            <div className="tournament-detail-modal__flyer">
+              {construirUrlFlyerTorneo(torneoSeleccionado.flyer_url) ? (
+                <img
+                  src={construirUrlFlyerTorneo(
+                    torneoSeleccionado.flyer_url
+                  )}
+                  alt={`Flyer de ${torneoSeleccionado.titulo}`}
+                />
+              ) : (
+                <div className="tournament-detail-modal__flyer-empty">
+                  <i className="bi bi-trophy-fill"></i>
+                </div>
+              )}
+            </div>
+
+            <div className="tournament-detail-modal__content">
+              <span className="tournament-detail-modal__badge">
+                <i className="bi bi-trophy-fill"></i>
+                {obtenerNombreDeporteTorneo(torneoSeleccionado)}
+              </span>
+
+              <h2 id="tournament-detail-title">
+                {torneoSeleccionado.titulo}
+              </h2>
+
+              <div className="tournament-detail-modal__meta">
+                <p>
+                  <i className="bi bi-building"></i>
+                  <span>
+                    <small>Organiza</small>
+                    <strong>
+                      {obtenerNombreClubTorneo(torneoSeleccionado)}
+                    </strong>
+                  </span>
+                </p>
+
+                <p>
+                  <i className="bi bi-calendar-event"></i>
+                  <span>
+                    <small>Fecha</small>
+                    <strong>
+                      {formatearFechaTorneo(
+                        torneoSeleccionado.fecha_inicio
+                      )}
+                      {torneoSeleccionado.fecha_fin &&
+                      torneoSeleccionado.fecha_fin !==
+                        torneoSeleccionado.fecha_inicio
+                        ? ` al ${formatearFechaTorneo(
+                            torneoSeleccionado.fecha_fin
+                          )}`
+                        : ''}
+                    </strong>
+                  </span>
+                </p>
+
+                <p>
+                  <i className="bi bi-chat-dots"></i>
+                  <span>
+                    <small>Contacto</small>
+                    <strong>
+                      {torneoSeleccionado.contacto ||
+                        'A confirmar por el club'}
+                    </strong>
+                  </span>
+                </p>
+              </div>
+
+              <div className="tournament-detail-modal__description">
+                <h3>Información del torneo</h3>
+                <p>{torneoSeleccionado.descripcion}</p>
+              </div>
+
+              <div className="tournament-detail-modal__notice">
+                <i className="bi bi-info-circle-fill"></i>
+                <p>
+                  La inscripción se coordina directamente con el club
+                  organizador. Tu flujo de reserva permanece disponible.
+                </p>
+              </div>
+
+              <div className="tournament-detail-modal__actions">
+                <button
+                  type="button"
+                  className="tournament-detail-modal__secondary"
+                  onClick={() => {
+                    cerrarDetalleTorneo();
+                    seguirReservando();
+                  }}
+                >
+                  Seguir reservando
+                </button>
+
+                <button
+                  type="button"
+                  className="tournament-detail-modal__primary"
+                  onClick={() => contactarPorTorneo(torneoSeleccionado)}
+                >
+                  <i className="bi bi-send-fill"></i>
+                  Contactar para inscribirme
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+      )}
+
       {mostrarModalReserva && reservaConfirmada && (
         <div className="reserva-modal-overlay">
           <div className="reserva-modal">
@@ -2663,25 +3335,47 @@ function DashboardUsuario({
             </div>
 
             {puedePagarReserva(reservaConfirmada) && (
-              <button
-                type="button"
-                className="reserva-modal__button"
-                onClick={() => pagarReservaConMercadoPago(reservaConfirmada)}
-                style={{
-                  width: '100%',
-                  marginTop: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  background: '#009ee3',
-                  color: '#ffffff',
-                  boxShadow: '0 10px 22px rgba(0, 158, 227, 0.28)',
-                }}
+              <div
+                className="reserva-modal__wallet"
+                style={{ width: '100%', marginTop: '12px', minHeight: '48px' }}
               >
-                <i className="bi bi-credit-card"></i>
-                Pagar mi reserva con Mercado Pago
-              </button>
+                {!mercadoPagoPreferenceId && (
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    style={{
+                      width: '100%',
+                      minHeight: '48px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      color: '#334155',
+                      fontWeight: 700,
+                    }}
+                  >
+                    <span
+                      className="spinner-border spinner-border-sm"
+                      aria-hidden="true"
+                    ></span>
+                    Preparando Mercado Pago...
+                  </div>
+                )}
+
+                {mercadoPagoPreferenceId && (
+                  <Wallet
+                    initialization={{
+                      preferenceId: mercadoPagoPreferenceId,
+                      redirectMode: 'self',
+                    }}
+                    customization={{
+                      texts: {
+                        valueProp: 'smart_option',
+                      },
+                    }}
+                  />
+                )}
+              </div>
             )}
           </div>
         </div>
