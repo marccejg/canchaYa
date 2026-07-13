@@ -9,6 +9,7 @@ import PanelDelClub from './components/panelDelClub/PanelDelClub';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminPanel from './components/admin/AdminPanel';
 import DashboardUsuario from './components/dashboardUsuario/DashboardUsuario';
+import BancoSuplentes from './components/bancoSuplentes/BancoSuplentes';
 import { useAuth } from './hooks/useAuth';
 
 import './App.css';
@@ -134,7 +135,17 @@ function App() {
     if (user) {
       if (user.tipo === 'usuario') {
         fetchReservas(user.id_usuario);
-        navigate('/dashboardUsuario');
+
+        const redirectAfterLogin =
+          localStorage.getItem('redirectAfterLogin');
+
+        localStorage.removeItem('redirectAfterLogin');
+
+        navigate(
+          redirectAfterLogin === '/banco-de-suplentes'
+            ? '/banco-de-suplentes'
+            : '/dashboardUsuario'
+        );
       } else if ((user.tipo === 'club' || user.tipo === 'dueno') && user.club?.id_club) {
         fetchReservasPorClub(user.club.id_club);
         navigate('/panelDelClub');
@@ -394,11 +405,29 @@ function App() {
               onUpdateReserva={handleUpdateReserva}
               onDeleteReserva={handleDeleteReserva}
               onRefreshReservas={() => fetchReservas(currentUser.id_usuario)}
+              onOpenBancoSuplentes={() =>
+                navigate('/banco-de-suplentes')
+              }
             />
           ) : (
             <Navigate to="/" replace />
           )
         } 
+      />
+
+      {/* Banco de suplentes: acceso privado para usuarios autenticados */}
+      <Route
+        path="/banco-de-suplentes"
+        element={
+          currentUser && currentUser.tipo === 'usuario' ? (
+            <BancoSuplentes
+              usuario={currentUser}
+              onLogout={handleLogout}
+            />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
       />
 
       {/* Panel del Club Route */}

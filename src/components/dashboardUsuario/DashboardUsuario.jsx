@@ -5,6 +5,7 @@ import 'sweetalert2/dist/sweetalert2.min.css';
 import './DashboardUsuario.css';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import ClubUbicacionMapa, { construirUbicacionCompleta } from './ClubUbicacionMapa';
+import BancoSuplentesCard from '../bancoSuplentes/BancoSuplentesCard';
 // import { useAuth } from '../../hooks/useAuth';
 
 import logoCanchasYa from '../../assets/logo_blanco_720.png';
@@ -681,6 +682,7 @@ function DashboardUsuario({
   onUpdateReserva,
   onDeleteReserva,
   onRefreshReservas,
+  onOpenBancoSuplentes,
 }) {
   /*
     Estados principales del wizard.
@@ -2935,6 +2937,7 @@ function DashboardUsuario({
               </section>
 
               <aside className="reservations-panel">
+                <BancoSuplentesCard onOpen={onOpenBancoSuplentes} />
                 <div className="reservations-panel__header">
                   <h2>Mis Reservas</h2>
                   <button type="button">Ver historial</button>

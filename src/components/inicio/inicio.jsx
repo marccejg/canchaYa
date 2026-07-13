@@ -164,6 +164,19 @@ const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub, onAdminLogin }) =>
     setMostrarLogin(true);
   };
 
+  /*
+    El Banco de suplentes es privado.
+    Guardamos la intención para que, después del login,
+    App.jsx redirija al usuario directamente a esa sección.
+  */
+  const irAlBancoSuplentes = () => {
+    localStorage.setItem(
+      'redirectAfterLogin',
+      '/banco-de-suplentes'
+    );
+    setMostrarLogin(true);
+  };
+
   const abrirModal = (modal) => {
     setModalActivo(modal);
   };
@@ -299,6 +312,29 @@ const Inicio = ({ onLoginSuccess, onRegister, onRegisterClub, onAdminLogin }) =>
             jugadores ya forman parte de <strong>CanchasYa!</strong>
           </p>
         </aside>
+
+        <section className="inicio-banco-suplentes">
+          <div className="inicio-banco-suplentes__icon">
+            <i className="bi bi-people-fill"></i>
+          </div>
+
+          <div className="inicio-banco-suplentes__content">
+            <span>Nueva comunidad deportiva</span>
+            <h2>¿Querés jugar pero no tenés equipo?</h2>
+            <p>
+              Encontrá compañeros por deporte, nivel, zona, día y
+              horario. Formá el partido y después reservá la cancha.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={irAlBancoSuplentes}
+          >
+            Explorar Banco de suplentes
+            <i className="bi bi-arrow-right"></i>
+          </button>
+        </section>
 
         <section className="inicio-benefits" onClick={irAlLogin}>
           <div className="inicio-benefit">
