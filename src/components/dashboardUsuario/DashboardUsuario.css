@@ -802,6 +802,176 @@
   padding: 18px;
 }
 
+
+/* =========================================================
+   9.1 SERVICIOS / AMENIDADES EN CARDS DE CLUB
+========================================================= */
+
+.club-card,
+.club-card--large {
+  align-content: stretch;
+  cursor: default;
+}
+
+.club-card__summary {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  margin: 0;
+
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+
+  cursor: pointer;
+}
+
+.club-card__summary:focus-visible,
+.club-card__services-toggle:focus-visible,
+.club-card__select:focus-visible {
+  outline: 3px solid rgba(8, 123, 255, 0.28);
+  outline-offset: 3px;
+}
+
+.club-card__price {
+  font-weight: 800;
+}
+
+.club-card__services-hint {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  padding: 5px 9px;
+  border-radius: 999px;
+
+  background: #f0f7ff;
+  color: var(--azul-principal) !important;
+  border: 1px solid #dbeafe;
+
+  font-size: 11px !important;
+  font-weight: 900;
+}
+
+.club-card__amenities {
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px;
+
+  border-radius: 12px;
+  border: 1px solid #dbeafe;
+  background: linear-gradient(180deg, #f7fbff, #ffffff);
+
+  text-align: left;
+  animation: stageFadeIn 0.2s ease;
+}
+
+.club-card__amenities h4 {
+  margin: 0 0 8px;
+  color: var(--azul-texto);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.club-card__amenities ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  display: grid;
+  gap: 6px;
+}
+
+.club-card__amenities li {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+
+  color: var(--azul-secundario);
+  font-size: 12px;
+  line-height: 1.28;
+}
+
+.club-card__amenities li i {
+  margin-top: 1px;
+  color: #16a34a;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.club-card__amenities p {
+  margin: 0;
+  color: var(--azul-secundario);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.club-card__actions {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.club-card__services-toggle,
+.club-card__select {
+  width: 100%;
+  min-height: 34px;
+
+  border-radius: 10px;
+  padding: 7px 10px;
+
+  font-size: 12px;
+  font-weight: 900;
+  font-family: inherit;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.club-card__services-toggle {
+  border: 1px solid #c8d6e8;
+  background: #ffffff;
+  color: var(--azul-principal);
+}
+
+.club-card__services-toggle:hover {
+  border-color: var(--azul-principal);
+  background: #eef5ff;
+}
+
+.club-card__select {
+  border: none;
+  background: var(--azul-principal);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(8, 123, 255, 0.16);
+}
+
+.club-card__select:hover {
+  background: var(--azul-oscuro);
+  transform: translateY(-1px);
+}
+
+@media (min-width: 900px) {
+  .club-card__actions {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+
 /* =========================================================
    10. FECHAS
 ========================================================= */

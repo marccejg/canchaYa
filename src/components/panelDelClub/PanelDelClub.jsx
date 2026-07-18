@@ -225,6 +225,97 @@ const PanelDelClub = ({ club, onLogout, reservas = [] }) => {
 
   const logoClubUrl = construirUrlLogo(logoClubActual);
 
+  const serviciosInicialesClub =
+    clubPrincipal?.servicios_club ||
+    clubPrincipal?.servicios ||
+    club?.servicios_club ||
+    club?.servicios ||
+    '';
+
+  const [serviciosClub, setServiciosClub] = useState(serviciosInicialesClub);
+  const [guardandoServiciosClub, setGuardandoServiciosClub] = useState(false);
+
+  useEffect(() => {
+    setServiciosClub(serviciosInicialesClub);
+  }, [idClubActual, serviciosInicialesClub]);
+
+  const handleGuardarServiciosClub = async () => {
+    if (!idClubActual) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Club no disponible',
+        text: 'No se pudo identificar el club para guardar los servicios.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#ef4444',
+      });
+      return;
+    }
+
+    setGuardandoServiciosClub(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:3000/club/${idClubActual}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          servicios_club: serviciosClub.trim(),
+        }),
+      });
+
+      const texto = await response.text();
+      let data = null;
+
+      if (texto) {
+        try {
+          data = JSON.parse(texto);
+        } catch {
+          data = texto;
+        }
+      }
+
+      if (!response.ok) {
+        const mensaje =
+          data?.message ||
+          data?.error ||
+          (typeof data === 'string' ? data : '') ||
+          'No se pudieron guardar los servicios del club.';
+
+        throw new Error(mensaje);
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Servicios actualizados',
+        text: 'Las amenidades del club fueron guardadas correctamente.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#087bff',
+        background: '#ffffff',
+        color: '#071f4d',
+        customClass: {
+          popup: 'cy-alert-popup',
+          title: 'cy-alert-title',
+          confirmButton: 'cy-alert-button',
+        },
+      });
+    } catch (error) {
+      console.error('Error al guardar servicios del club:', error);
+
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudieron guardar los servicios',
+        text: error.message || 'Intentá nuevamente.',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#ef4444',
+      });
+    } finally {
+      setGuardandoServiciosClub(false);
+    }
+  };
+
   const inicialesClub = nombreClub
     .split(' ')
     .filter(Boolean)
@@ -2114,8 +2205,8 @@ const PanelDelClub = ({ club, onLogout, reservas = [] }) => {
               onClick={() => setShowSettings(!showSettings)}
               title="Configuración"
             >
-              <i className="bi bi-gear"></i>
-              Configuración
+              <i className={showSettings ? 'bi bi-arrow-left' : 'bi bi-gear'}></i>
+              {showSettings ? 'Volver al dashboard' : 'Configuración'}
             </button>
             <button
               className="pdc-pay-button"
@@ -2266,6 +2357,57 @@ const PanelDelClub = ({ club, onLogout, reservas = [] }) => {
                     </div>
                   </form>
                 )}
+              </div>
+
+              <div className="pdc-settings-box pdc-services-box">
+                <div className="pdc-services-header">
+                  <div>
+                    <span className="pdc-services-kicker">INFORMACIÓN DEL CLUB</span>
+                    <h3>Servicios disponibles / Amenidades</h3>
+                    <p className="pdc-settings-description">
+                      Agregá los servicios que ofrece tu club para que luego los
+                      usuarios puedan verlos antes de reservar.
+                    </p>
+                  </div>
+
+                  <i className="bi bi-stars" aria-hidden="true"></i>
+                </div>
+
+                <div className="pdc-form-group">
+                  <label htmlFor="servicios-club">
+                    Servicios disponibles
+                  </label>
+
+                  <textarea
+                    id="servicios-club"
+                    rows={5}
+                    maxLength={800}
+                    placeholder="Ej: Servicio de cantina, vestuarios, duchas, estacionamiento, iluminación nocturna, alquiler de paletas, WiFi, espacio para cumpleaños."
+                    value={serviciosClub}
+                    onChange={(e) => setServiciosClub(e.target.value)}
+                  />
+
+                  <small className="pdc-services-help">
+                    Separá cada servicio con comas. Esta información será visible
+                    para los usuarios cuando consulten el club.
+                  </small>
+                </div>
+
+                <div className="pdc-services-actions">
+                  <span>{serviciosClub.length}/800 caracteres</span>
+
+                  <button
+                    type="button"
+                    className="pdc-btn-save-settings"
+                    onClick={handleGuardarServiciosClub}
+                    disabled={guardandoServiciosClub}
+                  >
+                    <i className="bi bi-check2-circle"></i>
+                    {guardandoServiciosClub
+                      ? 'Guardando...'
+                      : 'Guardar servicios'}
+                  </button>
+                </div>
               </div>
 
               <div className="pdc-settings-box">
@@ -2730,8 +2872,10 @@ const PanelDelClub = ({ club, onLogout, reservas = [] }) => {
           </section>
         )}
 
-        {/* CARDS SUPERIORES CON ESTADÍSTICAS */}
-        <section className="pdc-stats-grid">
+        {!showSettings && (
+          <>
+            {/* CARDS SUPERIORES CON ESTADÍSTICAS */}
+            <section className="pdc-stats-grid">
           <div className="pdc-stat-card">
             <div className="pdc-stat-icon pdc-green">
               <i className="bi bi-bounding-box"></i>
@@ -2823,8 +2967,10 @@ const PanelDelClub = ({ club, onLogout, reservas = [] }) => {
                     <p>{cancha.deporte}</p>
                     {(cancha.tipo_suelo || cancha.descripcion_cancha) && (
                       <small>
-                        {cancha.tipo_suelo || 'Sin tipo de suelo'}
-                        {cancha.descripcion_cancha ? ` · ${cancha.descripcion_cancha}` : ''}
+                        {[cancha.tipo_suelo, cancha.descripcion_cancha]
+                          .map((texto) => String(texto || '').trim())
+                          .filter(Boolean)
+                          .join(' · ')}
                       </small>
                     )}
                     <span>Activa</span>
@@ -3397,7 +3543,9 @@ const PanelDelClub = ({ club, onLogout, reservas = [] }) => {
               )}
             </div>
           </div>
-        </section>
+            </section>
+          </>
+        )}
 
         {mostrarModalSuscripcion && (
           <div className="pdc-progress-modal-backdrop" onClick={cerrarModalSuscripcion}>

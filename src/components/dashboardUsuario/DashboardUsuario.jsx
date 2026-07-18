@@ -420,6 +420,40 @@ const buscarClubPorNombre = (nombreClub, listaClubes = []) => {
 const normalizarTexto = (str) =>
   str ? str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
 
+/*
+  Convierte el texto de servicios/amenidades del club en una lista legible.
+  Acepta texto separado por saltos de línea, comas o punto y coma.
+*/
+const normalizarServiciosClub = (serviciosValor) => {
+  if (!serviciosValor) return [];
+
+  if (Array.isArray(serviciosValor)) {
+    return serviciosValor
+      .map((servicio) => String(servicio).trim())
+      .filter(Boolean);
+  }
+
+  return String(serviciosValor)
+    .split(/[\n,;]+/)
+    .map((servicio) => servicio.trim())
+    .filter(Boolean);
+};
+
+const obtenerServiciosCancha = (cancha) =>
+  normalizarServiciosClub(
+    cancha?.clubServicios ||
+      cancha?.servicios ||
+      cancha?.servicios_club ||
+      ''
+  );
+
+const obtenerClaveCancha = (cancha) => {
+  const idClub = cancha?.clubId ?? cancha?.id_club ?? 'club';
+  const idCancha = cancha?.id ?? cancha?.id_cancha ?? cancha?.nombre ?? 'cancha';
+
+  return `${idClub}-${idCancha}`;
+};
+
 
 /*
   Formatea una fecha de torneo sin pasar por UTC.
@@ -705,6 +739,8 @@ function DashboardUsuario({
   const [cargandoTorneos, setCargandoTorneos] = useState(false);
   const [torneoSeleccionado, setTorneoSeleccionado] = useState(null);
   const canchasPasoDosRef = useRef(null);
+  const [serviciosAbiertosPorCancha, setServiciosAbiertosPorCancha] = useState({});
+
 
   /*
     Carga todos los torneos publicados.
@@ -958,6 +994,8 @@ function DashboardUsuario({
                 email: c.email || 'No disponible',
                 telefono: c.telefono || 'No disponible',
                 distancia: 'A calcular',
+                servicios: c.servicios || c.servicios_club || '',
+                servicios_club: c.servicios_club || c.servicios || '',
                 deportes,
                 detallesCanchas: c.detallesCanchas || [],
 
@@ -1254,6 +1292,7 @@ function DashboardUsuario({
           clubTelefono: club.telefono,
           clubEmail: club.email,
           clubLogo: club.logo,
+          clubServicios: club.servicios || club.servicios_club || '',
         }))
     );
   }, [clubesActivos, deporteSeleccionado]);
@@ -1298,6 +1337,22 @@ function DashboardUsuario({
       behavior: 'smooth',
       block: 'nearest',
     });
+  };
+
+  const alternarServiciosCancha = (cancha) => {
+    const clave = obtenerClaveCancha(cancha);
+
+    setServiciosAbiertosPorCancha((prev) => ({
+      ...prev,
+      [clave]: !prev[clave],
+    }));
+  };
+
+  const estanServiciosAbiertos = (cancha) =>
+    Boolean(serviciosAbiertosPorCancha[obtenerClaveCancha(cancha)]);
+
+  const seleccionarCanchaDesdeBoton = (cancha) => {
+    seleccionarCancha(cancha);
   };
 
   const contactarPorTorneo = async (torneo) => {
@@ -2677,61 +2732,129 @@ function DashboardUsuario({
 
                           <div className="clubs-grid clubs-grid--large">
                             {canchasDisponibles.length > 0 ? (
-                              canchasDisponibles.map((cancha) => (
-                                <button
-                                  key={`${cancha.clubId}-${cancha.id}`}
-                                  type="button"
-                                  className={
-                                    canchaSeleccionada?.id === cancha.id
-                                      ? 'club-card club-card--large selected'
-                                      : 'club-card club-card--large'
-                                  }
-                                  onClick={() => seleccionarCancha(cancha)}
-                                >
-                                  <div className="club-card__logo">
-                                    {cancha.clubLogo ? (
-                                      <img
-                                        src={cancha.clubLogo}
-                                        alt={`Logo de ${cancha.clubNombre}`}
-                                        className="club-card__logo-img"
-                                        onError={(e) => {
-                                          e.currentTarget.style.display = 'none';
-                                          e.currentTarget.parentElement.textContent =
-                                            cancha.clubNombre
-                                              .split(' ')
-                                              .filter(Boolean)
-                                              .slice(0, 2)
-                                              .map((palabra) => palabra[0])
-                                              .join('')
-                                              .toUpperCase();
-                                        }}
-                                      />
-                                    ) : (
-                                      cancha.clubNombre
-                                        .split(' ')
-                                        .filter(Boolean)
-                                        .slice(0, 2)
-                                        .map((palabra) => palabra[0])
-                                        .join('')
-                                        .toUpperCase()
-                                    )}
-                                  </div>
+                              canchasDisponibles.map((cancha) => {
+                                const servicios = obtenerServiciosCancha(cancha);
+                                const serviciosAbiertos = estanServiciosAbiertos(cancha);
+                                const canchaId =
+                                  cancha.id ?? cancha.id_cancha ?? obtenerClaveCancha(cancha);
+                                const canchaSeleccionadaId =
+                                  canchaSeleccionada?.id ??
+                                  canchaSeleccionada?.id_cancha ??
+                                  null;
 
-                                  <strong>{cancha.clubNombre}</strong>
-                                  <small>
-                                    {cancha.deporte || deporteSeleccionado}
-                                  </small>
-                                  <small>{cancha.clubDireccion}</small>
-                                  <span>
-                                    {cancha.precio || cancha.precio_por_hora
-                                      ? `$${Number(
-                                          cancha.precio ||
-                                            cancha.precio_por_hora
-                                        ).toLocaleString('es-AR')}/hora`
-                                      : 'Precio a confirmar'}
-                                  </span>
-                                </button>
-                              ))
+                                return (
+                                  <article
+                                    key={`${cancha.clubId}-${canchaId}`}
+                                    className={
+                                      String(canchaSeleccionadaId) === String(canchaId)
+                                        ? 'club-card club-card--large selected'
+                                        : 'club-card club-card--large'
+                                    }
+                                  >
+                                    <button
+                                      type="button"
+                                      className="club-card__summary"
+                                      onClick={() => alternarServiciosCancha(cancha)}
+                                      aria-expanded={serviciosAbiertos}
+                                      aria-label={`Ver servicios disponibles de ${cancha.clubNombre}`}
+                                    >
+                                      <div className="club-card__logo">
+                                        {cancha.clubLogo ? (
+                                          <img
+                                            src={cancha.clubLogo}
+                                            alt={`Logo de ${cancha.clubNombre}`}
+                                            className="club-card__logo-img"
+                                            onError={(e) => {
+                                              e.currentTarget.style.display = 'none';
+                                              e.currentTarget.parentElement.textContent =
+                                                cancha.clubNombre
+                                                  .split(' ')
+                                                  .filter(Boolean)
+                                                  .slice(0, 2)
+                                                  .map((palabra) => palabra[0])
+                                                  .join('')
+                                                  .toUpperCase();
+                                            }}
+                                          />
+                                        ) : (
+                                          cancha.clubNombre
+                                            .split(' ')
+                                            .filter(Boolean)
+                                            .slice(0, 2)
+                                            .map((palabra) => palabra[0])
+                                            .join('')
+                                            .toUpperCase()
+                                        )}
+                                      </div>
+
+                                      <strong>{cancha.clubNombre}</strong>
+                                      <small>
+                                        {cancha.deporte || deporteSeleccionado}
+                                      </small>
+                                      <small>{cancha.clubDireccion}</small>
+                                      <span className="club-card__price">
+                                        {cancha.precio || cancha.precio_por_hora
+                                          ? `$${Number(
+                                              cancha.precio ||
+                                                cancha.precio_por_hora
+                                            ).toLocaleString('es-AR')}/hora`
+                                          : 'Precio a confirmar'}
+                                      </span>
+
+                                      <span className="club-card__services-hint">
+                                        <i className="bi bi-stars"></i>
+                                        {servicios.length > 0
+                                          ? `${servicios.length} servicio${servicios.length === 1 ? '' : 's'} disponible${servicios.length === 1 ? '' : 's'}`
+                                          : 'Servicios a confirmar'}
+                                      </span>
+                                    </button>
+
+                                    {serviciosAbiertos && (
+                                      <div className="club-card__amenities">
+                                        <h4>Servicios disponibles</h4>
+
+                                        {servicios.length > 0 ? (
+                                          <ul>
+                                            {servicios.map((servicio) => (
+                                              <li key={servicio}>
+                                                <i className="bi bi-check-circle-fill"></i>
+                                                {servicio}
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        ) : (
+                                          <p>
+                                            Este club todavía no informó sus servicios
+                                            o amenidades.
+                                          </p>
+                                        )}
+                                      </div>
+                                    )}
+
+                                    <div className="club-card__actions">
+                                      <button
+                                        type="button"
+                                        className="club-card__services-toggle"
+                                        onClick={() => alternarServiciosCancha(cancha)}
+                                        aria-expanded={serviciosAbiertos}
+                                      >
+                                        <i className="bi bi-info-circle"></i>
+                                        {serviciosAbiertos
+                                          ? 'Ocultar servicios'
+                                          : 'Ver servicios'}
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        className="club-card__select"
+                                        onClick={() => seleccionarCanchaDesdeBoton(cancha)}
+                                      >
+                                        Elegir cancha
+                                      </button>
+                                    </div>
+                                  </article>
+                                );
+                              })
                             ) : (
                               <div className="empty-clubs-message">
                                 {deporteSeleccionado
