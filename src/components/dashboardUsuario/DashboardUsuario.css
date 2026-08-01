@@ -4154,3 +4154,90 @@
   }
 }
 
+/* =========================================================
+   FIX DEFINITIVO - SCROLL INTERNO PASO 2 / LISTADO DE CANCHAS
+   Problema:
+   - El dashboard no scrollea por diseño.
+   - .stage-content tenía overflow:hidden y centrado vertical.
+   - Si hay muchas canchas, las cards inferiores quedan cortadas.
+
+   Solución:
+   - En desktop, solo scrollea el contenido del paso 2.
+   - No se mueve toda la página.
+   - No se mueve el panel derecho "Mis Reservas".
+========================================================= */
+
+@media (min-width: 1181px) {
+  .booking-stage {
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .stage-content--clubs {
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+
+    padding-bottom: 28px !important;
+    padding-right: 18px !important;
+
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+  }
+
+  .stage-content--clubs .stage-heading,
+  .stage-content--clubs .tournament-context,
+  .stage-content--clubs .tournament-context-loading {
+    flex: 0 0 auto !important;
+  }
+
+  .clubs-selection-section {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    padding-bottom: 22px !important;
+  }
+
+  .clubs-grid,
+  .clubs-grid--large {
+    overflow: visible !important;
+  }
+
+  .stage-content--clubs::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .stage-content--clubs::-webkit-scrollbar-track {
+    background: rgba(225, 235, 248, 0.75);
+    border-radius: 999px;
+  }
+
+  .stage-content--clubs::-webkit-scrollbar-thumb {
+    background: rgba(8, 123, 255, 0.38);
+    border-radius: 999px;
+    border: 2px solid rgba(245, 249, 255, 0.95);
+  }
+
+  .stage-content--clubs::-webkit-scrollbar-thumb:hover {
+    background: rgba(8, 123, 255, 0.58);
+  }
+}
+
+/* En pantallas chicas dejamos que scrollee la página completa,
+   porque forzar scroll interno dentro del wizard empeora la usabilidad móvil. */
+@media (max-width: 1180px) {
+  .stage-content--clubs {
+    justify-content: flex-start !important;
+    overflow: visible !important;
+  }
+}
+

@@ -869,3 +869,20 @@
     width: 100%;
   }
 }
+
+
+.bs-icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.bs-request-card__actions--trash {
+  margin-top: 10px;
+  justify-content: flex-end;
+}
+
+.bs-request-card__actions--trash .bs-icon-action {
+  min-width: 96px;
+}

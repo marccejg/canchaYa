@@ -341,13 +341,19 @@ function BancoSuplentes({ usuario, onLogout }) {
     }
   };
 
-  const eliminarPublicacion = async (idDisponibilidad) => {
+  const eliminarPublicacion = async (idDisponibilidad, estadoActual) => {
+    const esArchivada = ['eliminada', 'vencida'].includes(estadoActual);
+
     const confirmacion = await Swal.fire({
       icon: 'warning',
-      title: '¿Eliminar publicación?',
-      text: 'Dejará de aparecer para los demás jugadores.',
+      title: esArchivada
+        ? '¿Quitar publicación de tu lista?'
+        : '¿Eliminar publicación?',
+      text: esArchivada
+        ? 'La publicación dejará de mostrarse en Mis publicaciones.'
+        : 'Dejará de aparecer para los demás jugadores y también se quitará de tu lista.',
       showCancelButton: true,
-      confirmButtonText: 'Eliminar',
+      confirmButtonText: esArchivada ? 'Quitar' : 'Eliminar',
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#dc3545',
     });
@@ -417,6 +423,32 @@ function BancoSuplentes({ usuario, onLogout }) {
           method: 'PATCH',
           body: JSON.stringify({ estado }),
         }
+      );
+
+      await cargarSolicitudes();
+    } catch (error) {
+      mostrarError(error);
+    }
+  };
+
+
+  const quitarSolicitud = async (idSolicitud) => {
+    const confirmacion = await Swal.fire({
+      icon: 'warning',
+      title: '¿Quitar solicitud?',
+      text: 'Se quitará de tu lista. No se eliminará para la otra persona.',
+      showCancelButton: true,
+      confirmButtonText: 'Quitar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#dc3545',
+    });
+
+    if (!confirmacion.isConfirmed) return;
+
+    try {
+      await requestApi(
+        `/banco-suplentes/solicitudes/${idSolicitud}`,
+        { method: 'DELETE' }
       );
 
       await cargarSolicitudes();
@@ -1081,19 +1113,39 @@ function BancoSuplentes({ usuario, onLogout }) {
                         </button>
                       ) : null}
 
-                      {publicacion.estado !== 'eliminada' && (
-                        <button
-                          type="button"
-                          className="danger"
-                          onClick={() =>
-                            eliminarPublicacion(
-                              publicacion.id_disponibilidad
-                            )
-                          }
-                        >
-                          Eliminar
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        className="danger bs-icon-action"
+                        title={
+                          ['eliminada', 'vencida'].includes(
+                            publicacion.estado
+                          )
+                            ? 'Quitar de mi lista'
+                            : 'Eliminar publicación'
+                        }
+                        aria-label={
+                          ['eliminada', 'vencida'].includes(
+                            publicacion.estado
+                          )
+                            ? 'Quitar publicación de mi lista'
+                            : 'Eliminar publicación'
+                        }
+                        onClick={() =>
+                          eliminarPublicacion(
+                            publicacion.id_disponibilidad,
+                            publicacion.estado
+                          )
+                        }
+                      >
+                        <i className="bi bi-trash3"></i>
+                        <span>
+                          {['eliminada', 'vencida'].includes(
+                            publicacion.estado
+                          )
+                            ? 'Quitar'
+                            : 'Eliminar'}
+                        </span>
+                      </button>
                     </div>
                   </article>
                 ))}
@@ -1239,6 +1291,23 @@ function BancoSuplentes({ usuario, onLogout }) {
                           </button>
                         </div>
                       )}
+
+                      {solicitud.estado !== 'pendiente' && (
+                        <div className="bs-request-card__actions bs-request-card__actions--trash">
+                          <button
+                            type="button"
+                            className="danger bs-icon-action"
+                            title="Quitar de mi lista"
+                            aria-label="Quitar solicitud de mi lista"
+                            onClick={() =>
+                              quitarSolicitud(solicitud.id_solicitud)
+                            }
+                          >
+                            <i className="bi bi-trash3"></i>
+                            <span>Quitar</span>
+                          </button>
+                        </div>
+                      )}
                     </article>
                   ))
                 ) : (
@@ -1319,6 +1388,23 @@ function BancoSuplentes({ usuario, onLogout }) {
                             }
                           >
                             Buscar cancha
+                          </button>
+                        </div>
+                      )}
+
+                      {solicitud.estado !== 'pendiente' && (
+                        <div className="bs-request-card__actions bs-request-card__actions--trash">
+                          <button
+                            type="button"
+                            className="danger bs-icon-action"
+                            title="Quitar de mi lista"
+                            aria-label="Quitar solicitud de mi lista"
+                            onClick={() =>
+                              quitarSolicitud(solicitud.id_solicitud)
+                            }
+                          >
+                            <i className="bi bi-trash3"></i>
+                            <span>Quitar</span>
                           </button>
                         </div>
                       )}

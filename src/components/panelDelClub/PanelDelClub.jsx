@@ -83,6 +83,12 @@ const PanelDelClub = ({ club, onLogout, reservas = [] }) => {
   */
   const [showCalendar, setShowCalendar] = useState(false);
 
+  /*
+    Controla si la card lateral de próximas reservas muestra solo un resumen
+    o la lista ampliada. Evita que el dashboard crezca indefinidamente.
+  */
+  const [mostrarTodasLasReservasProximas, setMostrarTodasLasReservasProximas] = useState(false);
+
   const horariosIniciales = horarios.map((h) => h.id);
   const [horariosPorCancha, setHorariosPorCancha] = useState({});
   const [canchaEditandoId, setCanchaEditandoId] = useState(null);
@@ -2178,6 +2184,15 @@ const PanelDelClub = ({ club, onLogout, reservas = [] }) => {
       return fechaA - fechaB;
     });
 
+  const LIMITE_RESERVAS_PROXIMAS = 6;
+  const reservasProximasVisibles = mostrarTodasLasReservasProximas
+    ? reservasProximas
+    : reservasProximas.slice(0, LIMITE_RESERVAS_PROXIMAS);
+  const hayMasReservasProximas =
+    reservasProximas.length > LIMITE_RESERVAS_PROXIMAS;
+  const cantidadReservasOcultas =
+    reservasProximas.length - LIMITE_RESERVAS_PROXIMAS;
+
 
 
   return (
@@ -3042,7 +3057,7 @@ const PanelDelClub = ({ club, onLogout, reservas = [] }) => {
           </div>
 
           {/* Panel de próximas reservas */}
-          <div className="pdc-panel">
+          <div className="pdc-panel pdc-upcoming-reservations-panel">
             <div className="pdc-panel-header">
               <h3>Próximas reservas</h3>
 
@@ -3058,18 +3073,49 @@ const PanelDelClub = ({ club, onLogout, reservas = [] }) => {
             {reservasProximas.length === 0 ? (
               <p className="pdc-alert pdc-alert-info">No hay próximas reservas.</p>
             ) : (
-              reservasProximas.map((reserva, index) => (
-                <div className="pdc-reservation-row" key={reserva.id || index}>
-                  <span>{reserva.hora}</span>
+              <>
+                <div
+                  className={
+                    mostrarTodasLasReservasProximas
+                      ? 'pdc-upcoming-reservations-list pdc-upcoming-reservations-list-expanded'
+                      : 'pdc-upcoming-reservations-list'
+                  }
+                >
+                  {reservasProximasVisibles.map((reserva, index) => (
+                    <div className="pdc-reservation-row" key={reserva.id || index}>
+                      <span>{reserva.hora}</span>
 
-                  <div>
-                    <strong>{reserva.deporte}</strong>
-                    <p>{formatearFecha(reserva.fecha)}</p>
-                  </div>
+                      <div>
+                        <strong>{reserva.deporte}</strong>
+                        <p>{formatearFecha(reserva.fecha)}</p>
+                      </div>
 
-                  <small className="pdc-confirmed">Confirmada</small>
+                      <small className="pdc-confirmed">Confirmada</small>
+                    </div>
+                  ))}
                 </div>
-              ))
+
+                {hayMasReservasProximas && (
+                  <button
+                    type="button"
+                    className="pdc-see-more-reservations-button"
+                    onClick={() =>
+                      setMostrarTodasLasReservasProximas((valorActual) => !valorActual)
+                    }
+                  >
+                    {mostrarTodasLasReservasProximas
+                      ? 'Ver menos'
+                      : `Ver más (${cantidadReservasOcultas})`}
+                    <i
+                      className={
+                        mostrarTodasLasReservasProximas
+                          ? 'bi bi-chevron-up'
+                          : 'bi bi-chevron-down'
+                      }
+                    ></i>
+                  </button>
+                )}
+              </>
             )}
 
             {/* Calendario simple desplegable */}
